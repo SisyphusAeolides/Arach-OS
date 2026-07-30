@@ -4,13 +4,13 @@ distribution = "Arach OS"
 [[component]]
 name = "arach-kernel"
 repository = "https://github.com/SisyphusAeolides/Arach-Kernel.git"
-revision = "c5c19df6fd8b69937220165b3147c0e825af270b"
+revision = "c4ece493a1b84fa2987ba5ae3d4761501f90267a"
 role = "kernel"
 
 [[component]]
 name = "slope"
 repository = "https://github.com/SisyphusAeolides/Slope.git"
-revision = "9f12c52bc4f59181857b84b27306a1c7ff2e1e4d"
+revision = "093a8f704ce399d5c5774a18287f16b01aee1a5c"
 role = "userspace-abi"
 
 [[component]]
@@ -34,7 +34,7 @@ role = "package-manager"
 [[component]]
 name = "arach-packages"
 repository = "https://github.com/SisyphusAeolides/Arach-Packages.git"
-revision = "980925595200e0b67a6fb15f4c32b68644ccef57"
+revision = "f55cc8b603db174495bfab6add309f1b7e293eca"
 role = "package-recipes"
 
 [[component]]
