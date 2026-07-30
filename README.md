@@ -13,6 +13,7 @@ cross-component boot and desktop gates.
 - **Push** — PID 1 and service supervisor
 - **Slope** — userspace ABI and runtime library
 - **Corinth** — source and binary package manager
+- **Arach-Packages** — signed recipes and immutable source locks
 - **Arach-HWD** — hardware detection and driver provisioning (planned)
 
 The exact revisions used by an image are recorded in

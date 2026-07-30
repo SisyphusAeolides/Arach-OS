@@ -32,6 +32,12 @@ revision = "5c03a2d58e9df2b62b7b7f5b2d1402add1ae5375"
 role = "package-manager"
 
 [[component]]
+name = "arach-packages"
+repository = "https://github.com/SisyphusAeolides/Arach-Packages.git"
+revision = "891a5be7ec117fe3e93372e4fc1c084c07ac647c"
+role = "package-recipes"
+
+[[component]]
 name = "libinput-rs"
 repository = "https://github.com/SisyphusAeolides/libinput-rs.git"
 revision = "8c25705118e540a01e478c39abb36a398401371f"

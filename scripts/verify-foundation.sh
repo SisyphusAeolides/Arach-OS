@@ -11,7 +11,9 @@ test -f "$root/branding/source/arach-original.png"
 printf '%s  %s\n' "$expected" "$root/branding/arach-logo.png" | sha256sum --check --strict
 printf '%s  %s\n' "$expected" "$root/branding/source/arach-original.png" | sha256sum --check --strict
 
-test "$(grep -c '^\[\[component\]\]' "$root/components.lock.toml")" -eq 9
+test "$(grep -c '^\[\[component\]\]' "$root/components.lock.toml")" -eq 10
+grep -Fq 'repository = "https://github.com/SisyphusAeolides/Arach-Packages.git"' \
+    "$root/components.lock.toml"
 grep -Fxq 'session = "cosmic-session"' "$root/live/profile.toml"
 grep -Fxq 'framework = "calamares"' "$root/live/profile.toml"
 grep -Fxq 'allow_unmatched_binary_kernel_modules = false' "$root/live/profile.toml"
