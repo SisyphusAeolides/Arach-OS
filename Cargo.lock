@@ -3,9 +3,16 @@
 version = 4
 
 [[package]]
+name = "aether"
+version = "0.1.0"
+source = "git+https://github.com/SisyphusAeolides/Arach-Kernel.git?rev=c2507bb21c516dc68a4e45c4b29c45615dedc4df#c2507bb21c516dc68a4e45c4b29c45615dedc4df"
+
+[[package]]
 name = "arach-compose"
 version = "0.1.0"
 dependencies = [
+ "corinth",
+ "libc",
  "serde",
  "serde_json",
  "sha2",
@@ -26,6 +33,16 @@ name = "cfg-if"
 version = "1.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9330f8b2ff13f34540b44e946ef35111825727b38d33286ef986142615121801"
+
+[[package]]
+name = "corinth"
+version = "0.1.0"
+source = "git+https://github.com/SisyphusAeolides/Corinth.git?rev=3d3cfba22a74a61618f561969d3569050f6ee9f0#3d3cfba22a74a61618f561969d3569050f6ee9f0"
+dependencies = [
+ "libc",
+ "sha2",
+ "slope",
+]
 
 [[package]]
 name = "cpufeatures"
@@ -93,6 +110,11 @@ name = "itoa"
 version = "1.0.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8f42a60cbdf9a97f5d2305f08a87dc4e09308d1276d28c869c684d7777685682"
+
+[[package]]
+name = "kairos"
+version = "0.1.0"
+source = "git+https://github.com/SisyphusAeolides/Arach-Kernel.git?rev=c2507bb21c516dc68a4e45c4b29c45615dedc4df#c2507bb21c516dc68a4e45c4b29c45615dedc4df"
 
 [[package]]
 name = "libc"
@@ -185,6 +207,15 @@ dependencies = [
  "cfg-if",
  "cpufeatures",
  "digest",
+]
+
+[[package]]
+name = "slope"
+version = "0.1.0"
+source = "git+https://github.com/SisyphusAeolides/Slope.git?rev=e1279f3a9c17638a70c55493b2851b011452a403#e1279f3a9c17638a70c55493b2851b011452a403"
+dependencies = [
+ "aether",
+ "kairos",
 ]
 
 [[package]]

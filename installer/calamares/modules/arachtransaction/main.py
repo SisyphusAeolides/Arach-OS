@@ -35,7 +35,13 @@ def run():
     phase = configuration.get("phase")
     executable = configuration.get("executable")
     runtime_directory = configuration.get("runtimeDirectory")
-    if phase not in ("prepare", "commit") or not executable or not runtime_directory:
+    generation_source = configuration.get("generationSource")
+    if (
+        phase not in ("prepare", "commit")
+        or not executable
+        or not runtime_directory
+        or not generation_source
+    ):
         return ("Invalid Arach installer configuration", "Required transaction fields are absent")
 
     storage = libcalamares.globalstorage
@@ -63,6 +69,8 @@ def run():
                     str(transaction_paths["plan"]),
                     "--journal",
                     str(transaction_paths["journal"]),
+                    "--generation",
+                    str(generation_source),
                 ]
             )
         else:
@@ -99,6 +107,8 @@ def run():
                     [
                         executable,
                         "rollback",
+                        "--plan",
+                        str(transaction_paths["plan"]),
                         "--journal",
                         str(transaction_paths["journal"]),
                         "--target",

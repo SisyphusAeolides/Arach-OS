@@ -120,6 +120,8 @@ pub struct TransactionContract {
     pub module: String,
     pub executable: String,
     pub runtime_directory: String,
+    pub generation_source: String,
+    pub target_recovery_directory: String,
     pub prepare_before: String,
     pub commit_after: String,
     pub rollback_on_failure: bool,
@@ -304,6 +306,8 @@ pub fn validate_installer_contract(
     if contract.transaction.module != "arachtransaction"
         || contract.transaction.executable != "/usr/libexec/arach-install"
         || contract.transaction.runtime_directory != "/run/arach-installer"
+        || contract.transaction.generation_source != "/run/arach-live/repository/system.gen"
+        || contract.transaction.target_recovery_directory != "/var/lib/arach-installer/transactions"
         || contract.transaction.prepare_before != "partition"
         || contract.transaction.commit_after != "unpackfs"
         || !contract.transaction.rollback_on_failure
@@ -373,12 +377,20 @@ pub fn validate_installer_contract(
     require_file_tokens(
         root,
         "installer/calamares/modules/arach-prepare.conf",
-        &["phase: prepare", "executable: /usr/libexec/arach-install"],
+        &[
+            "phase: prepare",
+            "executable: /usr/libexec/arach-install",
+            "generationSource: /run/arach-live/repository/system.gen",
+        ],
     )?;
     require_file_tokens(
         root,
         "installer/calamares/modules/arach-commit.conf",
-        &["phase: commit", "executable: /usr/libexec/arach-install"],
+        &[
+            "phase: commit",
+            "executable: /usr/libexec/arach-install",
+            "generationSource: /run/arach-live/repository/system.gen",
+        ],
     )?;
     require_file_tokens(
         root,

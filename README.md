@@ -38,10 +38,12 @@ Despite the extension of the originally supplied file, its actual format is a
 
 The composition contract, component pins, Calamares configuration, private
 state handoff, and journal-bound transaction state machine are established.
-The production transaction currently fails closed before changing the target
-because durable Corinth installation and Granite activation are not implemented
-yet. A bootable live ISO, complete package repository, hardware-profile
-database, and full COSMIC behavior gate remain active implementation work.
+The production transaction can now validate and publish a canonical Corinth
+generation with a target-persistent recovery checkpoint, and can restore the
+previous generation authority after process or machine interruption. It still
+fails closed at the Granite activation gate, so package artifact deployment,
+boot activation, a bootable live ISO, the complete package repository,
+hardware-profile database, and full COSMIC behavior gate remain active work.
 
 Rust validates the executable image and installer contracts. Fortran schedules
 only trust-admitted build stages and rejects an installer missing any transaction

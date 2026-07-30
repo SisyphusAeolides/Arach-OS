@@ -12,15 +12,16 @@ fn main() {
 fn run(arguments: Vec<String>) -> Result<(), installer::InstallerError> {
     let (command, rest) = arguments
         .split_first()
-        .ok_or_else(|| invalid("expected prepare, apply, verify, or rollback"))?;
+        .ok_or_else(|| invalid("expected prepare, apply, verify, rollback, or recover"))?;
     let flags = installer::parse_flag_arguments(rest)?;
     match command.as_str() {
         "prepare" => {
-            require_flags(&flags, &["journal", "plan", "state"])?;
+            require_flags(&flags, &["generation", "journal", "plan", "state"])?;
             installer::prepare(
                 required(&flags, "state")?,
                 required(&flags, "plan")?,
                 required(&flags, "journal")?,
+                required(&flags, "generation")?,
             )
         }
         "apply" => {
@@ -40,8 +41,16 @@ fn run(arguments: Vec<String>) -> Result<(), installer::InstallerError> {
             )
         }
         "rollback" => {
-            require_flags(&flags, &["journal", "target"])?;
-            installer::rollback(required(&flags, "journal")?, required(&flags, "target")?)
+            require_flags(&flags, &["journal", "plan", "target"])?;
+            installer::rollback(
+                required(&flags, "plan")?,
+                required(&flags, "journal")?,
+                required(&flags, "target")?,
+            )
+        }
+        "recover" => {
+            require_flags(&flags, &["target"])?;
+            installer::recover(required(&flags, "target")?).map(|_| ())
         }
         _ => Err(invalid(format!("unknown command {command}"))),
     }

@@ -17,10 +17,15 @@ LUKS secrets remain inside Calamares. The `arachtransaction@commit` job runs
 after mount and unpack, then requests apply and verify and invokes rollback on
 failure. Every subprocess uses an argument array with `shell=False`.
 
-The current production backend deliberately reports unavailable before target
-mutation. Durable Corinth installation, Granite activation, and their inverse
-rollback operations must be implemented and exercised before the installer can
-produce a bootable Arach OS installation.
+Before its first Corinth mutation, the backend fsyncs an immutable plan,
+generation image, and recovery journal into the mounted target. It publishes
+the canonical Corinth generation, mirrors every subsequent journal transition
+to that checkpoint, and can recover an interrupted transaction with
+`arach-install recover --target <root>`. The Calamares failure path performs the
+same rollback immediately. The backend then deliberately reports unavailable
+at the Granite gate: package artifact deployment, measured boot activation, and
+their remaining inverse operations are not implemented, so this is not yet a
+bootable installation path.
 
 ## Required pages
 
