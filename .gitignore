@@ -1,0 +1,7 @@
+/build/
+/dist/
+/target/
+*.iso
+*.img
+*.qcow2
+*.raw

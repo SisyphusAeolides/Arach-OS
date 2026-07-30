@@ -1,0 +1,16 @@
+name: Arach OS foundation
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: scripts/verify-foundation.sh
+      - run: git diff --check

@@ -1,0 +1,56 @@
+format = 1
+distribution = "Arach OS"
+
+[[component]]
+name = "arach-kernel"
+repository = "https://github.com/SisyphusAeolides/Arach-Kernel.git"
+revision = "c2507bb21c516dc68a4e45c4b29c45615dedc4df"
+role = "kernel"
+
+[[component]]
+name = "slope"
+repository = "https://github.com/SisyphusAeolides/Slope.git"
+revision = "e1279f3a9c17638a70c55493b2851b011452a403"
+role = "userspace-abi"
+
+[[component]]
+name = "push"
+repository = "https://github.com/SisyphusAeolides/Push.git"
+revision = "98b50e957ab06793301d3b1bd351719e92b88534"
+role = "pid1"
+
+[[component]]
+name = "granite"
+repository = "https://github.com/SisyphusAeolides/Granite.git"
+revision = "c990385d767c49c508e3ca5271bf657d5a5b4836"
+role = "bootloader"
+
+[[component]]
+name = "corinth"
+repository = "https://github.com/SisyphusAeolides/Corinth.git"
+revision = "5c03a2d58e9df2b62b7b7f5b2d1402add1ae5375"
+role = "package-manager"
+
+[[component]]
+name = "libinput-rs"
+repository = "https://github.com/SisyphusAeolides/libinput-rs.git"
+revision = "8c25705118e540a01e478c39abb36a398401371f"
+role = "input-stack"
+
+[[component]]
+name = "elan-guardian"
+repository = "https://github.com/SisyphusAeolides/elan-guardian.git"
+revision = "1b3403da938ebd8be9b81de4df00680e0c3fc7ed"
+role = "input-recovery"
+
+[[component]]
+name = "tuned-rs"
+repository = "https://github.com/SisyphusAeolides/tuned-rs.git"
+revision = "28fbe938aa9afb647c1a4fa066417c6db1b2abfe"
+role = "system-tuning"
+
+[[component]]
+name = "ccze-rs"
+repository = "https://github.com/SisyphusAeolides/ccze-rs.git"
+revision = "e42cced69ca8a93087c197261e5a9e322c093422"
+role = "log-presentation"

@@ -1,0 +1,25 @@
+format = 1
+distribution = "Arach OS"
+
+[desktop]
+compositor = "cosmic-comp"
+session = "cosmic-session"
+greeter = "cosmic-greeter"
+portal = "xdg-desktop-portal-cosmic"
+
+[installer]
+framework = "calamares"
+transaction_engine = "arach-install"
+branding = "branding/arach-logo.png"
+
+[filesystems]
+efi = ["fat32"]
+root = ["btrfs", "ext4", "xfs", "f2fs"]
+home = ["btrfs", "ext4", "xfs", "f2fs"]
+experimental = ["bcachefs", "zfs"]
+
+[hardware]
+detector = "arach-hwd"
+package_manager = "corinth"
+allow_adapted_c_drivers = true
+allow_unmatched_binary_kernel_modules = false
