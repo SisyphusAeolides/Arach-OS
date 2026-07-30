@@ -23,10 +23,12 @@ into this monorepo.
 
 ## Desktop and installer
 
-The live image boots directly into COSMIC and launches a branded Calamares
-installer. The installer transaction covers storage, encryption, users,
-passwords, locale, timezone, keyboard, packages, Granite, the COSMIC greeter,
-and post-install boot verification. See [`docs/INSTALLER.md`](docs/INSTALLER.md).
+The live-image contract boots directly into COSMIC and launches a branded
+Calamares installer. Calamares 3.4.2 is pinned to an exact upstream Codeberg
+object. Its native modules own storage, encryption, users, passwords, locale,
+timezone, and keyboard configuration. The Arach transaction boundary owns the
+immutable Corinth package plan, Granite activation, COSMIC verification, and
+rollback journal. See [`docs/INSTALLER.md`](docs/INSTALLER.md).
 
 The canonical logo is [`branding/arach-logo.png`](branding/arach-logo.png).
 Despite the extension of the originally supplied file, its actual format is a
@@ -34,14 +36,18 @@ Despite the extension of the originally supplied file, its actual format is a
 
 ## Current status
 
-The composition contract and component pins are established. A bootable live
-ISO, complete package repository, hardware-profile database, and full COSMIC
-behavior gate remain active implementation work.
+The composition contract, component pins, Calamares configuration, private
+state handoff, and journal-bound transaction state machine are established.
+The production transaction currently fails closed before changing the target
+because durable Corinth installation and Granite activation are not implemented
+yet. A bootable live ISO, complete package repository, hardware-profile
+database, and full COSMIC behavior gate remain active implementation work.
 
-Rust validates the executable image contract. Fortran schedules only
-trust-admitted build stages. The total Idris model and safe Agda model require
-exact component pins and encode the boot, core, desktop, and installer readiness
-chain.
+Rust validates the executable image and installer contracts. Fortran schedules
+only trust-admitted build stages and rejects an installer missing any transaction
+guard. The total Idris model and safe Agda model require exact component pins,
+encode the readiness chain, and make mutation without a durable journal and
+secret-bearing handoff values unconstructable.
 
 ## Validation
 

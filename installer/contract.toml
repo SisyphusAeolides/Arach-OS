@@ -1,0 +1,28 @@
+format = 1
+
+[calamares]
+version = "3.4.2"
+repository = "https://codeberg.org/Calamares/calamares.git"
+revision = "36d30c492e5c7b5d6d32fed5c5d9790522e1eea3"
+settings = "installer/calamares/settings.conf"
+branding = "installer/calamares/branding/arach/branding.desc"
+
+[transaction]
+module = "arachtransaction"
+executable = "/usr/libexec/arach-install"
+runtime_directory = "/run/arach-installer"
+prepare_before = "partition"
+commit_after = "unpackfs"
+rollback_on_failure = true
+journal_before_mutation = true
+shell_commands = false
+
+[security]
+excluded_global_storage_keys = ["password", "rootPassword", "luksPassphrase"]
+state_mode = 384
+directory_mode = 448
+
+[[asset]]
+source = "branding/arach-logo.png"
+destination = "usr/share/calamares/branding/arach/arach-logo.png"
+sha256 = "87cc9d21c92c1cfd648e316e3e22e2961b644d375eec21c4ded1c0afc1de5a6e"

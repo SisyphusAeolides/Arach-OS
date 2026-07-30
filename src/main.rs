@@ -21,8 +21,8 @@ fn main() -> ExitCode {
     match validate_root(&root) {
         Ok(report) => {
             println!(
-                "validated {} components and {} root filesystems",
-                report.components, report.root_filesystems
+                "validated {} components, {} root filesystems, and {} installer assets",
+                report.components, report.root_filesystems, report.installer_assets
             );
             ExitCode::SUCCESS
         }

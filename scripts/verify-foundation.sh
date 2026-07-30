@@ -8,6 +8,9 @@ test -f "$root/components.lock.toml"
 test -f "$root/live/profile.toml"
 test -f "$root/branding/arach-logo.png"
 test -f "$root/branding/source/arach-original.png"
+test -f "$root/installer/contract.toml"
+test -f "$root/installer/calamares/settings.conf"
+test -f "$root/installer/calamares/modules/arachtransaction/main.py"
 printf '%s  %s\n' "$expected" "$root/branding/arach-logo.png" | sha256sum --check --strict
 printf '%s  %s\n' "$expected" "$root/branding/source/arach-original.png" | sha256sum --check --strict
 
@@ -18,6 +21,7 @@ grep -Fq 'repository = "https://github.com/SisyphusAeolides/Arach-HWD.git"' \
     "$root/components.lock.toml"
 python3 "$root/scripts/verify-components.py" --lock "$root/components.lock.toml"
 python3 "$root/scripts/test_verify_components.py"
+python3 "$root/installer/calamares/modules/arachtransaction/test_protocol.py"
 grep -Fxq 'session = "cosmic-session"' "$root/live/profile.toml"
 grep -Fxq 'framework = "calamares"' "$root/live/profile.toml"
 grep -Fxq 'allow_unmatched_binary_kernel_modules = false' "$root/live/profile.toml"

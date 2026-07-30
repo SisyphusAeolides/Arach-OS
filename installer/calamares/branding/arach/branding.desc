@@ -1,0 +1,36 @@
+---
+componentName: arach
+welcomeStyleCalamares: false
+welcomeExpandingLogo: true
+windowExpanding: normal
+windowSize: 900px,600px
+windowPlacement: center
+sidebar: widget
+navigation: widget
+strings:
+  productName: Arach OS
+  shortProductName: Arach
+  version: Unstable
+  shortVersion: Unstable
+  versionedName: Arach OS Unstable
+  shortVersionedName: Arach OS
+  bootloaderEntryName: Arach OS
+  productUrl: ""
+  supportUrl: ""
+  knownIssuesUrl: ""
+  releaseNotesUrl: ""
+  donateUrl: ""
+images:
+  productIcon: arach-logo.png
+  productLogo: arach-logo.png
+  productWelcome: arach-logo.png
+style:
+  SidebarBackground: "#11131a"
+  SidebarText: "#f5f5f7"
+  SidebarTextCurrent: "#ffffff"
+  SidebarBackgroundCurrent: "#7c3aed"
+slideshow: []
+uploadServer:
+  type: none
+  url: ""
+  sizeLimit: 0

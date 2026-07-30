@@ -1,4 +1,7 @@
+pub mod installer;
+
 use serde::Deserialize;
+use sha2::{Digest, Sha256};
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 use std::fs;
@@ -7,6 +10,12 @@ use std::path::Path;
 pub const LOCK_FORMAT: u32 = 1;
 pub const PROFILE_FORMAT: u32 = 1;
 pub const DISTRIBUTION: &str = "Arach OS";
+pub const INSTALLER_FORMAT: u32 = 1;
+pub const CALAMARES_VERSION: &str = "3.4.2";
+pub const CALAMARES_REPOSITORY: &str = "https://codeberg.org/Calamares/calamares.git";
+pub const CALAMARES_REVISION: &str = "36d30c492e5c7b5d6d32fed5c5d9790522e1eea3";
+pub const BRANDING_SHA256: &str =
+    "87cc9d21c92c1cfd648e316e3e22e2961b644d375eec21c4ded1c0afc1de5a6e";
 
 const EXPECTED_COMPONENTS: &[(&str, &str, &str)] = &[
     ("arach-kernel", "Arach-Kernel", "kernel"),
@@ -85,10 +94,60 @@ pub struct Hardware {
     pub allow_unmatched_binary_kernel_modules: bool,
 }
 
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct InstallerContract {
+    pub format: u32,
+    pub calamares: CalamaresContract,
+    pub transaction: TransactionContract,
+    pub security: InstallerSecurity,
+    pub asset: Vec<InstallerAsset>,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct CalamaresContract {
+    pub version: String,
+    pub repository: String,
+    pub revision: String,
+    pub settings: String,
+    pub branding: String,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct TransactionContract {
+    pub module: String,
+    pub executable: String,
+    pub runtime_directory: String,
+    pub prepare_before: String,
+    pub commit_after: String,
+    pub rollback_on_failure: bool,
+    pub journal_before_mutation: bool,
+    pub shell_commands: bool,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct InstallerSecurity {
+    pub excluded_global_storage_keys: Vec<String>,
+    pub state_mode: u32,
+    pub directory_mode: u32,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct InstallerAsset {
+    pub source: String,
+    pub destination: String,
+    pub sha256: String,
+}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CompositionReport {
     pub components: usize,
     pub root_filesystems: usize,
+    pub installer_assets: usize,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -121,6 +180,11 @@ pub fn parse_lock(text: &str) -> Result<ComponentLock, CompositionError> {
 
 pub fn parse_live_profile(text: &str) -> Result<LiveProfile, CompositionError> {
     toml::from_str(text).map_err(|error| CompositionError::new("live.profile", error.to_string()))
+}
+
+pub fn parse_installer_contract(text: &str) -> Result<InstallerContract, CompositionError> {
+    toml::from_str(text)
+        .map_err(|error| CompositionError::new("installer/contract.toml", error.to_string()))
 }
 
 pub fn validate_lock(lock: &ComponentLock) -> Result<(), CompositionError> {
@@ -221,6 +285,163 @@ pub fn validate_live_profile(profile: &LiveProfile, root: &Path) -> Result<(), C
     Ok(())
 }
 
+pub fn validate_installer_contract(
+    contract: &InstallerContract,
+    root: &Path,
+) -> Result<(), CompositionError> {
+    if contract.format != INSTALLER_FORMAT
+        || contract.calamares.version != CALAMARES_VERSION
+        || contract.calamares.repository != CALAMARES_REPOSITORY
+        || contract.calamares.revision != CALAMARES_REVISION
+        || contract.calamares.settings != "installer/calamares/settings.conf"
+        || contract.calamares.branding != "installer/calamares/branding/arach/branding.desc"
+    {
+        return Err(CompositionError::new(
+            "installer.calamares",
+            "Calamares authority is not the exact reviewed 3.4.2 source object",
+        ));
+    }
+    if contract.transaction.module != "arachtransaction"
+        || contract.transaction.executable != "/usr/libexec/arach-install"
+        || contract.transaction.runtime_directory != "/run/arach-installer"
+        || contract.transaction.prepare_before != "partition"
+        || contract.transaction.commit_after != "unpackfs"
+        || !contract.transaction.rollback_on_failure
+        || !contract.transaction.journal_before_mutation
+        || contract.transaction.shell_commands
+    {
+        return Err(CompositionError::new(
+            "installer.transaction",
+            "the journaled no-shell transaction boundary is required",
+        ));
+    }
+    require_exact_set(
+        "installer.security.excluded_global_storage_keys",
+        &contract.security.excluded_global_storage_keys,
+        &["luksPassphrase", "password", "rootPassword"],
+    )?;
+    if contract.security.state_mode != 0o600 || contract.security.directory_mode != 0o700 {
+        return Err(CompositionError::new(
+            "installer.security",
+            "installer state must be private to the installation process",
+        ));
+    }
+    let settings_path = root.join(&contract.calamares.settings);
+    let settings = fs::read_to_string(&settings_path).map_err(|error| {
+        CompositionError::new(settings_path.display().to_string(), error.to_string())
+    })?;
+    let exec = settings
+        .split_once("  - exec:\n")
+        .and_then(|(_, rest)| rest.split_once("  - show:\n").map(|(block, _)| block))
+        .ok_or_else(|| {
+            CompositionError::new(
+                "installer/calamares/settings.conf",
+                "a bounded Calamares exec block is required",
+            )
+        })?;
+    let prepare = token_position(exec, "- arachtransaction@prepare")?;
+    let partition = token_position(exec, "- partition")?;
+    let unpack = token_position(exec, "- unpackfs")?;
+    let commit = token_position(exec, "- arachtransaction@commit")?;
+    if !(prepare < partition && unpack < commit)
+        || settings.matches("arachtransaction@prepare").count() != 1
+        || settings.matches("arachtransaction@commit").count() != 1
+    {
+        return Err(CompositionError::new(
+            "installer/calamares/settings.conf",
+            "prepare must precede partition and commit must follow unpackfs",
+        ));
+    }
+    for required in [
+        &contract.calamares.branding,
+        "installer/calamares/modules/arachtransaction/module.desc",
+        "installer/calamares/modules/arachtransaction/main.py",
+        "installer/calamares/modules/arachtransaction/protocol.py",
+        "installer/calamares/modules/arach-prepare.conf",
+        "installer/calamares/modules/arach-commit.conf",
+        "installer/calamares/modules/partition.conf",
+        "installer/calamares/modules/users.conf",
+        "installer/calamares/modules/unpackfs.conf",
+    ] {
+        if !root.join(required).is_file() {
+            return Err(CompositionError::new(
+                required,
+                "required installer integration file is absent",
+            ));
+        }
+    }
+    require_file_tokens(
+        root,
+        "installer/calamares/modules/arach-prepare.conf",
+        &["phase: prepare", "executable: /usr/libexec/arach-install"],
+    )?;
+    require_file_tokens(
+        root,
+        "installer/calamares/modules/arach-commit.conf",
+        &["phase: commit", "executable: /usr/libexec/arach-install"],
+    )?;
+    require_file_tokens(
+        root,
+        "installer/calamares/modules/users.conf",
+        &[
+            "setRootPassword: true",
+            "doAutologin: false",
+            "minLength: 12",
+            "allowWeakPasswords: false",
+        ],
+    )?;
+    require_file_tokens(
+        root,
+        "installer/calamares/modules/partition.conf",
+        &[
+            "luksGeneration: luks2",
+            "defaultPartitionTableType: gpt",
+            "requiredPartitionTableType: gpt",
+        ],
+    )?;
+    let python = [
+        "installer/calamares/modules/arachtransaction/main.py",
+        "installer/calamares/modules/arachtransaction/protocol.py",
+    ]
+    .iter()
+    .map(|path| fs::read_to_string(root.join(path)))
+    .collect::<Result<Vec<_>, _>>()
+    .map_err(|error| CompositionError::new("installer.python", error.to_string()))?
+    .join("\n");
+    if python.contains("shell=True") || python.contains("os.system") {
+        return Err(CompositionError::new(
+            "installer.python",
+            "installer transaction code may not invoke a shell",
+        ));
+    }
+    if contract.asset.len() != 1 {
+        return Err(CompositionError::new(
+            "installer.asset",
+            "exactly one canonical Arach branding asset is required",
+        ));
+    }
+    let asset = &contract.asset[0];
+    if asset.source != "branding/arach-logo.png"
+        || asset.destination != "usr/share/calamares/branding/arach/arach-logo.png"
+        || asset.sha256 != BRANDING_SHA256
+    {
+        return Err(CompositionError::new(
+            "installer.asset",
+            "branding asset mapping differs from the measured contract",
+        ));
+    }
+    let bytes = fs::read(root.join(&asset.source))
+        .map_err(|error| CompositionError::new(asset.source.clone(), error.to_string()))?;
+    let digest = format!("{:x}", Sha256::digest(bytes));
+    if digest != asset.sha256 {
+        return Err(CompositionError::new(
+            "installer.asset.sha256",
+            "canonical branding digest differs from the contract",
+        ));
+    }
+    Ok(())
+}
+
 pub fn validate_root(root: &Path) -> Result<CompositionReport, CompositionError> {
     let lock_path = root.join("components.lock.toml");
     let profile_path = root.join("live/profile.toml");
@@ -230,14 +451,43 @@ pub fn validate_root(root: &Path) -> Result<CompositionReport, CompositionError>
     let profile_text = fs::read_to_string(&profile_path).map_err(|error| {
         CompositionError::new(profile_path.display().to_string(), error.to_string())
     })?;
+    let installer_path = root.join("installer/contract.toml");
+    let installer_text = fs::read_to_string(&installer_path).map_err(|error| {
+        CompositionError::new(installer_path.display().to_string(), error.to_string())
+    })?;
     let lock = parse_lock(&lock_text)?;
     let profile = parse_live_profile(&profile_text)?;
+    let installer = parse_installer_contract(&installer_text)?;
     validate_lock(&lock)?;
     validate_live_profile(&profile, root)?;
+    validate_installer_contract(&installer, root)?;
     Ok(CompositionReport {
         components: lock.component.len(),
         root_filesystems: profile.filesystems.root.len(),
+        installer_assets: installer.asset.len(),
     })
+}
+
+fn token_position(text: &str, token: &str) -> Result<usize, CompositionError> {
+    text.find(token).ok_or_else(|| {
+        CompositionError::new(
+            "installer/calamares/settings.conf",
+            format!("required sequence token is absent: {token}"),
+        )
+    })
+}
+
+fn require_file_tokens(root: &Path, path: &str, tokens: &[&str]) -> Result<(), CompositionError> {
+    let text = fs::read_to_string(root.join(path))
+        .map_err(|error| CompositionError::new(path, error.to_string()))?;
+    if tokens.iter().all(|token| text.contains(token)) {
+        Ok(())
+    } else {
+        Err(CompositionError::new(
+            path,
+            "required installer behavior is absent",
+        ))
+    }
 }
 
 fn validate_filesystems(filesystems: &Filesystems) -> Result<(), CompositionError> {
@@ -311,5 +561,56 @@ mod tests {
         let mut profile = parse_live_profile(&text).unwrap();
         profile.desktop.greeter.clear();
         assert!(validate_live_profile(&profile, root).is_err());
+    }
+
+    #[test]
+    fn reordered_installer_transaction_is_rejected() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR"));
+        let text = fs::read_to_string(root.join("installer/contract.toml")).unwrap();
+        let contract = parse_installer_contract(&text).unwrap();
+        let fixture = tempfile_root(
+            root,
+            "  - exec:\n      - partition\n      - arachtransaction@prepare\n      - arachtransaction@commit\n      - unpackfs\n  - show:\n      - finished\n",
+        );
+        assert!(validate_installer_contract(&contract, &fixture).is_err());
+        fs::remove_dir_all(fixture).unwrap();
+    }
+
+    #[test]
+    fn installer_secret_exclusion_is_exact() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR"));
+        let text = fs::read_to_string(root.join("installer/contract.toml")).unwrap();
+        let mut contract = parse_installer_contract(&text).unwrap();
+        contract.security.excluded_global_storage_keys.pop();
+        assert!(validate_installer_contract(&contract, root).is_err());
+    }
+
+    fn tempfile_root(source: &Path, settings: &str) -> std::path::PathBuf {
+        let root = std::env::temp_dir().join(format!(
+            "arach-compose-test-{}-{}",
+            std::process::id(),
+            std::thread::current().name().unwrap_or("unnamed")
+        ));
+        let _ = fs::remove_dir_all(&root);
+        for file in [
+            "installer/calamares/branding/arach/branding.desc",
+            "installer/calamares/modules/arachtransaction/module.desc",
+            "installer/calamares/modules/arachtransaction/main.py",
+            "installer/calamares/modules/arachtransaction/protocol.py",
+            "installer/calamares/modules/arach-prepare.conf",
+            "installer/calamares/modules/arach-commit.conf",
+            "installer/calamares/modules/partition.conf",
+            "installer/calamares/modules/users.conf",
+            "installer/calamares/modules/unpackfs.conf",
+            "branding/arach-logo.png",
+        ] {
+            let destination = root.join(file);
+            fs::create_dir_all(destination.parent().unwrap()).unwrap();
+            fs::copy(source.join(file), destination).unwrap();
+        }
+        let settings_path = root.join("installer/calamares/settings.conf");
+        fs::create_dir_all(settings_path.parent().unwrap()).unwrap();
+        fs::write(settings_path, settings).unwrap();
+        root
     }
 }

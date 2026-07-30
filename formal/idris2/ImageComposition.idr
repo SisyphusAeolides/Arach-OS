@@ -52,3 +52,50 @@ unpinnedCannotCompose :
   {componentName, componentRevision : String} ->
   Admitted (MkComponent componentName componentRevision Unpinned) -> Void
 unpinnedCannotCompose value impossible
+
+public export
+data Journal = Absent | Durable
+
+public export
+data Mutation = Clean | Changed
+
+public export
+data Transaction : Journal -> Mutation -> Type where
+  Fresh : Transaction Absent Clean
+  Prepared : Transaction Durable Clean
+  Applied : Transaction Durable Changed
+  Verified : Transaction Durable Changed
+  RolledBack : Transaction Durable Clean
+
+public export
+prepare : Transaction Absent Clean -> Transaction Durable Clean
+prepare Fresh = Prepared
+
+public export
+apply : Transaction Durable Clean -> Transaction Durable Changed
+apply Prepared = Applied
+apply RolledBack = Applied
+
+public export
+verify : Transaction Durable Changed -> Transaction Durable Changed
+verify Applied = Verified
+verify Verified = Verified
+
+public export
+noMutationWithoutJournal : Transaction Absent Changed -> Void
+noMutationWithoutJournal value impossible
+
+public export
+data HandoffField
+  = Firmware | Partition | Locale | Region | Zone
+  | Keyboard | Username | Fullname | Hostname
+
+public export
+data Secret = Password | RootPassword | LuksPassphrase
+
+public export
+data Crosses : Secret -> HandoffField -> Type where
+
+public export
+secretCannotCross : Crosses secret field -> Void
+secretCannotCross value impossible

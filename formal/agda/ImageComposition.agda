@@ -43,3 +43,41 @@ installer-requires-desktop (installer-ready proof) = proof
 exact-pin-unique : (proof : Admitted (component pinned)) →
                    proof ≡ exact-pin
 exact-pin-unique exact-pin = refl
+
+data Journal : Set where
+  absent durable : Journal
+
+data Mutation : Set where
+  clean changed : Mutation
+
+data Transaction : Journal → Mutation → Set where
+  fresh : Transaction absent clean
+  prepared : Transaction durable clean
+  applied : Transaction durable changed
+  verified : Transaction durable changed
+  rolled-back : Transaction durable clean
+
+prepare : Transaction absent clean → Transaction durable clean
+prepare fresh = prepared
+
+apply : Transaction durable clean → Transaction durable changed
+apply prepared = applied
+apply rolled-back = applied
+
+verify : Transaction durable changed → Transaction durable changed
+verify applied = verified
+verify verified = verified
+
+no-mutation-without-journal : Transaction absent changed → ⊥
+no-mutation-without-journal ()
+
+data HandoffField : Set where
+  firmware partition locale region zone keyboard username fullname hostname : HandoffField
+
+data Secret : Set where
+  password root-password luks-passphrase : Secret
+
+data Crosses : Secret → HandoffField → Set where
+
+secret-cannot-cross : ∀ {secret handoff} → Crosses secret handoff → ⊥
+secret-cannot-cross ()

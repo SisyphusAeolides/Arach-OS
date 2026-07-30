@@ -9,6 +9,8 @@ description = "Strict Arach OS image composition contract validator"
 
 [dependencies]
 serde = { version = "=1.0.229", features = ["derive"] }
+serde_json = "=1.0.151"
+sha2 = "=0.10.9"
 toml = "=0.9.12"
 
 [lib]
@@ -17,6 +19,10 @@ path = "src/lib.rs"
 [[bin]]
 name = "arach-compose"
 path = "src/main.rs"
+
+[[bin]]
+name = "arach-install"
+path = "src/bin/arach-install.rs"
 
 [lints.rust]
 unsafe_code = "forbid"
