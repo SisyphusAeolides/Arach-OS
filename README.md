@@ -14,7 +14,7 @@ cross-component boot and desktop gates.
 - **Slope** — userspace ABI and runtime library
 - **Corinth** — source and binary package manager
 - **Arach-Packages** — signed recipes and immutable source locks
-- **Arach-HWD** — hardware detection and driver provisioning (planned)
+- **Arach-HWD** — signed hardware detection and Corinth provisioning plans
 
 The exact revisions used by an image are recorded in
 [`components.lock.toml`](components.lock.toml). Independent repositories remain

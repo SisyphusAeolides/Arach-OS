@@ -13,4 +13,5 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - run: scripts/verify-foundation.sh
+      - run: scripts/verify-components.py --lock components.lock.toml --remote
       - run: git diff --check

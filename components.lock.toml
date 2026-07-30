@@ -34,8 +34,14 @@ role = "package-manager"
 [[component]]
 name = "arach-packages"
 repository = "https://github.com/SisyphusAeolides/Arach-Packages.git"
-revision = "891a5be7ec117fe3e93372e4fc1c084c07ac647c"
+revision = "e597346d3c7693d051ef050bb62ad23fb5bc5761"
 role = "package-recipes"
+
+[[component]]
+name = "arach-hwd"
+repository = "https://github.com/SisyphusAeolides/Arach-HWD.git"
+revision = "5239a8b246e4494208f250babe9072e8d9be6c70"
+role = "hardware-provisioning"
 
 [[component]]
 name = "libinput-rs"
