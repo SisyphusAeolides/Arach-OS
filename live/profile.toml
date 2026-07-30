@@ -2,6 +2,7 @@ format = 1
 distribution = "Arach OS"
 
 [desktop]
+package_bundle = "cosmic-desktop"
 compositor = "cosmic-comp"
 session = "cosmic-session"
 greeter = "cosmic-greeter"

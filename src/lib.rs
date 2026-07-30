@@ -62,6 +62,7 @@ pub struct LiveProfile {
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct Desktop {
+    pub package_bundle: String,
     pub compositor: String,
     pub session: String,
     pub greeter: String,
@@ -253,7 +254,8 @@ pub fn validate_live_profile(profile: &LiveProfile, root: &Path) -> Result<(), C
         ));
     }
     let desktop = &profile.desktop;
-    if desktop.compositor != "cosmic-comp"
+    if desktop.package_bundle != "cosmic-desktop"
+        || desktop.compositor != "cosmic-comp"
         || desktop.session != "cosmic-session"
         || desktop.greeter != "cosmic-greeter"
         || desktop.portal != "xdg-desktop-portal-cosmic"
