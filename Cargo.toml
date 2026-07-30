@@ -1,0 +1,22 @@
+[package]
+name = "arach-compose"
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+rust-version = "1.85"
+repository = "https://github.com/SisyphusAeolides/Arach-OS"
+description = "Strict Arach OS image composition contract validator"
+
+[dependencies]
+serde = { version = "=1.0.229", features = ["derive"] }
+toml = "=0.9.12"
+
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+name = "arach-compose"
+path = "src/main.rs"
+
+[lints.rust]
+unsafe_code = "forbid"

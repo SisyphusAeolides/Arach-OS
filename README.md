@@ -37,3 +37,18 @@ Despite the extension of the originally supplied file, its actual format is a
 The composition contract and component pins are established. A bootable live
 ISO, complete package repository, hardware-profile database, and full COSMIC
 behavior gate remain active implementation work.
+
+Rust validates the executable image contract. Fortran schedules only
+trust-admitted build stages. The total Idris model and safe Agda model require
+exact component pins and encode the boot, core, desktop, and installer readiness
+chain.
+
+## Validation
+
+    cargo fmt --all -- --check
+    cargo clippy --locked --all-targets -- -D warnings
+    cargo test --locked
+    cargo run --locked -- verify --root .
+    scripts/verify-foundation.sh
+    scripts/check-fortran.sh
+    scripts/check-formal-models.sh
