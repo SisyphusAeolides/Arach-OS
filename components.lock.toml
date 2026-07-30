@@ -10,7 +10,7 @@ role = "kernel"
 [[component]]
 name = "slope"
 repository = "https://github.com/SisyphusAeolides/Slope.git"
-revision = "e1279f3a9c17638a70c55493b2851b011452a403"
+revision = "9f12c52bc4f59181857b84b27306a1c7ff2e1e4d"
 role = "userspace-abi"
 
 [[component]]
@@ -34,7 +34,7 @@ role = "package-manager"
 [[component]]
 name = "arach-packages"
 repository = "https://github.com/SisyphusAeolides/Arach-Packages.git"
-revision = "95f0bae45affda5bb53a2830708bb9eebc81aa14"
+revision = "29d7314fbfcac756d197e9e3dcb6b5c2e6881321"
 role = "package-recipes"
 
 [[component]]
