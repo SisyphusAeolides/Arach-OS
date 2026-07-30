@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="branding/arach-logo.png" width="360" alt="Arach OS logo">
+</p>
+
 # Arach OS
 
 Arach OS is an experimental operating-system distribution built around Arach
