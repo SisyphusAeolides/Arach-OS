@@ -54,7 +54,7 @@ secret-bearing handoff values unconstructable.
     cargo fmt --all -- --check
     cargo clippy --locked --all-targets -- -D warnings
     cargo test --locked
-    cargo run --locked -- verify --root .
+    cargo run --locked --bin arach-compose -- verify --root .
     scripts/verify-foundation.sh
     scripts/check-fortran.sh
     scripts/check-formal-models.sh
