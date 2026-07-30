@@ -27,8 +27,8 @@ into this monorepo.
 
 ## Desktop and installer
 
-The live-image contract boots directly into COSMIC and launches a branded
-Calamares installer. Calamares 3.4.2 is pinned to an exact upstream Codeberg
+The live-image contract installs the locked `cosmic-desktop` bundle, boots
+directly into COSMIC, and launches a branded Calamares installer. Calamares 3.4.2 is pinned to an exact upstream Codeberg
 object. Its native modules own storage, encryption, users, passwords, locale,
 timezone, and keyboard configuration. The Arach transaction boundary owns the
 immutable Corinth package plan, Granite activation, COSMIC verification, and

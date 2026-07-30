@@ -1,8 +1,9 @@
 # COSMIC live image and installer
 
-The Arach OS installation medium starts `cosmic-comp` and `cosmic-session` as
-its live desktop, then launches a branded Calamares process. There is no
-alternate desktop in the release image.
+The Arach OS installation medium installs the `cosmic-desktop` bundle from the
+locked Arach-Packages workspace recipe, then starts `cosmic-comp` and
+`cosmic-session` as its live desktop. It launches a branded Calamares process;
+there is no alternate desktop in the release image.
 
 Calamares owns interaction and delegates Arach-specific mutations to a
 transaction engine. The reviewed installer baseline is Calamares 3.4.2 from
