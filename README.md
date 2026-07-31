@@ -57,10 +57,11 @@ Despite the extension of the originally supplied file, its actual format is a
 
 ### Desktop boundary
 
-COSMIC is the only desktop shipped by Arach OS: `greetd` launches
-`cosmic-greeter`, which starts `cosmic-comp`; the session, portal, terminal,
-and all other pinned COSMIC component outputs are copied from the complete
-`cosmic-desktop` tree. Crest is **not** a desktop environment,
+COSMIC is the only desktop shipped by Arach OS: `seatd` owns the login seat,
+`greetd` launches `cosmic-greeter`, `pipewire` and `wireplumber` provide the
+audio session, and the greeter starts `cosmic-comp`; the session, portal,
+terminal, and all other pinned COSMIC component outputs are copied from the
+complete `cosmic-desktop` tree. Crest is **not** a desktop environment,
 desktop package, compositor, session, or greeter in this distribution. The
 lowercase `crest` file retained inside the measured Granite boot bundle is a
 compatibility-named C0 bootstrap/probe payload required by the current Granite

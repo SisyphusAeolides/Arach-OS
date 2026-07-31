@@ -4,7 +4,7 @@ distribution = "Arach OS"
 [[component]]
 name = "arach-kernel"
 repository = "https://github.com/SisyphusAeolides/Arach-Kernel.git"
-revision = "93de0e51434f77ffae1b6af6d3d6d38085c532b2"
+revision = "4716ac1b1e6856ffce8a83294660cd79fddee8ca"
 role = "kernel"
 
 [[component]]
@@ -16,7 +16,7 @@ role = "userspace-abi"
 [[component]]
 name = "push"
 repository = "https://github.com/SisyphusAeolides/Push.git"
-revision = "b4e563547936595def7bc5097fb0bfbe7a1750e7"
+revision = "5bd361b86c048b60b6a8422a8e173ea0ec867bff"
 role = "pid1"
 
 [[component]]
@@ -34,7 +34,7 @@ role = "package-manager"
 [[component]]
 name = "arach-packages"
 repository = "https://github.com/SisyphusAeolides/Arach-Packages.git"
-revision = "c0d3c2f0fa54e5842b6df76f6a4d71ae1cae2380"
+revision = "383973eaf26c9ffb56fb7cf7a5922fb092555377"
 role = "package-recipes"
 
 [[component]]

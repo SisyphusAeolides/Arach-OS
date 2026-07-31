@@ -51,6 +51,13 @@ printf '%s' "$catalog_driver_source_records" \
     >> "$artifacts/arach-hardware-catalog-2026.1/etc/arach/hwd/catalog.lock"
 mkdir -p "$artifacts/dbus-broker-1/usr/bin"
 printf '\177ELF test D-Bus\n' > "$artifacts/dbus-broker-1/usr/bin/dbus-broker-launch"
+mkdir -p "$artifacts/seatd-0.9.3-1/usr/bin"
+printf '\177ELF test seatd\n' > "$artifacts/seatd-0.9.3-1/usr/bin/seatd"
+mkdir -p "$artifacts/pipewire-1.4.9-1/usr/bin"
+printf '\177ELF test PipeWire\n' > "$artifacts/pipewire-1.4.9-1/usr/bin/pipewire"
+printf '\177ELF test PipeWire Pulse\n' > "$artifacts/pipewire-1.4.9-1/usr/bin/pipewire-pulse"
+mkdir -p "$artifacts/wireplumber-0.5.9-1/usr/bin"
+printf '\177ELF test WirePlumber\n' > "$artifacts/wireplumber-0.5.9-1/usr/bin/wireplumber"
 mkdir -p "$artifacts/greetd-0.10.3-1/target/release"
 printf '\177ELF test greetd\n' > "$artifacts/greetd-0.10.3-1/target/release/greetd"
 for binary in cosmic-comp cosmic-greeter cosmic-greeter-start cosmic-session cosmic-term xdg-desktop-portal-cosmic; do

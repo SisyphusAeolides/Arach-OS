@@ -59,6 +59,47 @@ files = [
 ]
 
 [[provider]]
+name = "seatd"
+artifact_prefix = "seatd-"
+layout = "tree"
+required = true
+required_tree_path = [
+  "/usr/bin/seatd",
+]
+aliases = [
+  { source = "/usr/bin/seatd", destination = "/system/seatd", mode = 493 },
+]
+files = []
+
+[[provider]]
+name = "pipewire"
+artifact_prefix = "pipewire-"
+layout = "tree"
+required = true
+required_tree_path = [
+  "/usr/bin/pipewire",
+  "/usr/bin/pipewire-pulse",
+]
+aliases = [
+  { source = "/usr/bin/pipewire", destination = "/system/pipewire", mode = 493 },
+  { source = "/usr/bin/pipewire-pulse", destination = "/system/pipewire-pulse", mode = 493 },
+]
+files = []
+
+[[provider]]
+name = "wireplumber"
+artifact_prefix = "wireplumber-"
+layout = "tree"
+required = true
+required_tree_path = [
+  "/usr/bin/wireplumber",
+]
+aliases = [
+  { source = "/usr/bin/wireplumber", destination = "/system/wireplumber", mode = 493 },
+]
+files = []
+
+[[provider]]
 name = "greetd"
 artifact_prefix = "greetd-"
 layout = "files"

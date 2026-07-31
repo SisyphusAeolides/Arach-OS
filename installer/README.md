@@ -5,7 +5,8 @@ object recorded in `contract.toml`. The COSMIC live session installs the
 canonical Arach branding asset into the Calamares branding directory according
 to the measured asset mapping in that contract.
 
-The live session uses `greetd` with the pinned COSMIC
+The live session uses `greetd` with the pinned `seatd`, PipeWire, and
+WirePlumber runtime services plus the pinned COSMIC
 `/etc/greetd/cosmic-greeter.toml` configuration; SDDM is intentionally not a
 runtime dependency. The complete COSMIC install tree, greeter launcher,
 terminal, portal, and display-manager binary are required before the image is
