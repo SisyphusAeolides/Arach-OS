@@ -31,7 +31,8 @@ destructive operation.
 
 The catalog includes a signed hardware binary index as well as profiles.
 Corinth uses the binary index for exact driver/firmware payloads when available
-and otherwise builds the signed profile's pinned recipe. This makes Wi-Fi,
+and otherwise builds the signed profile's pinned recipe from the exact
+`recipe_repository`/`recipe_revision` carried by the catalog lock. This makes Wi-Fi,
 audio, graphics, storage, Bluetooth, and input provisioning use one
 reproducible, rollback-safe path instead of assuming a package name from a
 capability class.

@@ -44,14 +44,18 @@ sources allowed to authorize installation; upstream Linux kernel and
 linux-firmware trees remain broad, advisory lookup evidence. This preserves
 reproducibility while allowing a Calamares medium to compare its live kernel
 with the target Arach kernel and discover Wi-Fi, audio, graphics, storage,
-input, Bluetooth, and firmware candidates before partitioning.
+input, Bluetooth, and firmware candidates before partitioning. The catalog
+lock also binds the exact Arach-Packages repository revision used for source
+fallback; the installer consumes that value instead of embedding a moving
+package commit in its executable.
 
 The catalog also carries `packages.toml` and its detached signature. This is
 the scoped `package-index` for prebuilt Arach hardware payloads (kernel driver
 trees and firmware). At commit, Corinth verifies the index with the catalog
 keyring and installs an exact binary plan when every intent is covered; if a
 signed intent has no binary record, Corinth fetches the pinned Arach-Packages
-revision and builds the locked `@install-tree` recipe instead. Both paths write
+revision from the catalog lock and builds the locked `@install-tree` recipe
+instead. Both paths write
 the same owned-file receipt set under the transaction and rollback removes only
 those measured files. A missing index, profile, signature, recipe, or digest is
 a hard failure, never an unverified fallback.

@@ -21,8 +21,6 @@ const TRANSACTION_SCHEMA: u32 = 1;
 pub const BOOT_BUNDLE_SCHEMA: u32 = 1;
 const MAX_BOOT_ARTIFACT_BYTES: u64 = 32 * 1024 * 1024;
 const MAX_RECOVERY_TRANSACTIONS: usize = 128;
-const HARDWARE_RECIPES_URL: &str = "https://github.com/SisyphusAeolides/Arach-Packages.git";
-const HARDWARE_RECIPES_REVISION: &str = "ebc9dafb15e870b9740c171766447ab223cdd265";
 static TEMPORARY_SERIAL: AtomicU64 = AtomicU64::new(1);
 
 const BOOT_MANIFEST_NAME: &str = "manifest.json";
@@ -473,7 +471,7 @@ fn provision_hardware(
         ));
     }
     let plans = parse_hardware_plans(&bytes)?;
-    verify_catalog(&inputs.catalog_lock, &inputs.profiles, &inputs.keyring)
+    let catalog = verify_catalog(&inputs.catalog_lock, &inputs.profiles, &inputs.keyring)
         .map_err(|error| InstallerError::invalid(format!("hardware catalog: {error}")))?;
     let keyring = Keyring::load(&inputs.keyring)
         .map_err(|error| InstallerError::invalid(format!("hardware keyring: {error}")))?;
@@ -538,7 +536,7 @@ fn provision_hardware(
         // whether a build may use network access.
         provisioner.allow_network = true;
         let recipes = provisioner
-            .acquire_recipe_repository(HARDWARE_RECIPES_URL, HARDWARE_RECIPES_REVISION, false)
+            .acquire_recipe_repository(&catalog.recipe_repository, &catalog.recipe_revision, false)
             .map_err(|error| InstallerError::invalid(format!("hardware recipes: {error}")))?;
         let receipts = provisioner
             .build_verified_set(&verified, &recipes)

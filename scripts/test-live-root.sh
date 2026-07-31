@@ -30,7 +30,7 @@ printf 'fixture signature\n' > "$artifacts/arach-hardware-catalog-2026.1/etc/ara
 catalog_keyring_sha=$(sha256sum "$artifacts/arach-hardware-catalog-2026.1/etc/arach/hwd/keys.toml" | cut -d' ' -f1)
 catalog_profile_sha=$(sha256sum "$artifacts/arach-hardware-catalog-2026.1/etc/arach/hwd/profiles/fixture.toml" | cut -d' ' -f1)
 catalog_signature_sha=$(sha256sum "$artifacts/arach-hardware-catalog-2026.1/etc/arach/hwd/profiles/fixture.toml.sig" | cut -d' ' -f1)
-printf 'format = 1\nsnapshot = "test"\nkeyring_sha256 = "%s"\n\n[[profile]]\npath = "fixture.toml"\nprofile_sha256 = "%s"\nsignature_sha256 = "%s"\n' \
+printf 'format = 1\nsnapshot = "test"\nkeyring_sha256 = "%s"\nrecipe_repository = "https://github.com/SisyphusAeolides/Arach-Packages.git"\nrecipe_revision = "87bf665cb99d6c153dad4282411bf0012f0412b8"\n\n[[profile]]\npath = "fixture.toml"\nprofile_sha256 = "%s"\nsignature_sha256 = "%s"\n' \
     "$catalog_keyring_sha" "$catalog_profile_sha" "$catalog_signature_sha" \
     > "$artifacts/arach-hardware-catalog-2026.1/etc/arach/hwd/catalog.lock"
 mkdir -p "$artifacts/dbus-broker-1/usr/bin"
