@@ -16,6 +16,8 @@ test -f "$root/branding/arach-logo.png"
 test -f "$root/branding/source/arach-original.png"
 test -f "$root/installer/contract.toml"
 test -f "$root/installer/calamares/settings.conf"
+test -f "$root/installer/calamares/modules/arachhardware/repository.py"
+test -f "$root/installer/calamares/modules/arachhardware/test_repository.py"
 test -f "$root/installer/calamares/modules/arachtransaction/main.py"
 printf '%s  %s\n' "$expected" "$root/branding/arach-logo.png" | sha256sum --check --strict
 printf '%s  %s\n' "$expected" "$root/branding/source/arach-original.png" | sha256sum --check --strict
@@ -29,16 +31,25 @@ python3 "$root/scripts/verify-components.py" \
     --lock "$root/components.lock.toml" \
     --manifest "$root/Cargo.toml"
 python3 "$root/scripts/test_verify_components.py"
+python3 "$root/installer/calamares/modules/arachhardware/test_repository.py"
 python3 "$root/installer/calamares/modules/arachtransaction/test_protocol.py"
 grep -Fxq 'session = "cosmic-session"' "$root/live/profile.toml"
 grep -Fxq 'framework = "calamares"' "$root/live/profile.toml"
 grep -Fxq 'allow_unmatched_binary_kernel_modules = false' "$root/live/profile.toml"
+grep -Fq '/system/arach-hwd-catalog-sync' \
+    "$root/installer/calamares/modules/arachhardware.conf"
+grep -Fq '/etc/arach/hwd/repository.toml' \
+    "$root/installer/calamares/modules/arachhardware.conf"
+grep -Fq '/run/arach-installer/catalog' \
+    "$root/installer/calamares/modules/arachhardware.conf"
 grep -Fq '/etc/arach/hwd/driver-sources/modules.alias' \
     "$root/installer/calamares/modules/arachhardware.conf"
 grep -Fq '/etc/arach/hwd/driver-sources/modules.firmware' \
     "$root/installer/calamares/modules/arachhardware.conf"
 grep -Fq '/etc/arach/hwd/driver-sources/modules.builtin.modinfo' \
     "$root/installer/calamares/modules/arachhardware.conf"
+grep -Fq 'target/release/arach-hwd-catalog-sync' "$root/live/system.toml"
+grep -Fq 'arachhardware/repository.py' "$root/live/system.toml"
 
 "$root/scripts/test-live-root.sh"
 
