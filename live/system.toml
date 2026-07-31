@@ -160,6 +160,19 @@ layout = "files"
 required = true
 files = [
   { source = "target/release/arach-install", destination = "/usr/libexec/arach-install", mode = 493 },
+  { source = "installer/calamares/settings.conf", destination = "/etc/calamares/settings.conf", mode = 420 },
+  { source = "installer/calamares/modules/arach-hardware.conf", destination = "/etc/calamares/modules/arach-hardware.conf", mode = 420 },
+  { source = "installer/calamares/modules/arach-prepare.conf", destination = "/etc/calamares/modules/arach-prepare.conf", mode = 420 },
+  { source = "installer/calamares/modules/arach-commit.conf", destination = "/etc/calamares/modules/arach-commit.conf", mode = 420 },
+  { source = "installer/calamares/modules/partition.conf", destination = "/etc/calamares/modules/partition.conf", mode = 420 },
+  { source = "installer/calamares/modules/users.conf", destination = "/etc/calamares/modules/users.conf", mode = 420 },
+  { source = "installer/calamares/modules/unpackfs.conf", destination = "/etc/calamares/modules/unpackfs.conf", mode = 420 },
+  { source = "installer/calamares/modules/arachhardware/module.desc", destination = "/usr/lib/arach/calamares/modules/arachhardware/module.desc", mode = 420 },
+  { source = "installer/calamares/modules/arachhardware/main.py", destination = "/usr/lib/arach/calamares/modules/arachhardware/main.py", mode = 420 },
+  { source = "installer/calamares/modules/arachtransaction/module.desc", destination = "/usr/lib/arach/calamares/modules/arachtransaction/module.desc", mode = 420 },
+  { source = "installer/calamares/modules/arachtransaction/main.py", destination = "/usr/lib/arach/calamares/modules/arachtransaction/main.py", mode = 420 },
+  { source = "installer/calamares/modules/arachtransaction/protocol.py", destination = "/usr/lib/arach/calamares/modules/arachtransaction/protocol.py", mode = 420 },
+  { source = "installer/calamares/branding/arach/branding.desc", destination = "/usr/share/calamares/branding/arach/branding.desc", mode = 420 },
 ]
 
 [[provider]]
