@@ -32,6 +32,37 @@ const EXPECTED_COMPONENTS: &[(&str, &str, &str)] = &[
     ("ccze-rs", "ccze-rs", "log-presentation"),
 ];
 
+const EXPECTED_COSMIC_COMPONENTS: &[&str] = &[
+    "cosmic-applets",
+    "cosmic-applibrary",
+    "cosmic-bg",
+    "cosmic-comp",
+    "cosmic-edit",
+    "cosmic-files",
+    "cosmic-greeter",
+    "cosmic-icons",
+    "cosmic-idle",
+    "cosmic-initial-setup",
+    "cosmic-launcher",
+    "cosmic-monitor",
+    "cosmic-notifications",
+    "cosmic-osd",
+    "cosmic-panel",
+    "cosmic-player",
+    "cosmic-randr",
+    "cosmic-screenshot",
+    "cosmic-session",
+    "cosmic-settings",
+    "cosmic-settings-daemon",
+    "cosmic-sound-theme",
+    "cosmic-store",
+    "cosmic-term",
+    "cosmic-wallpapers",
+    "cosmic-workspaces-epoch",
+    "pop-launcher",
+    "xdg-desktop-portal-cosmic",
+];
+
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct ComponentLock {
@@ -118,6 +149,7 @@ pub struct LiveAlias {
 #[serde(deny_unknown_fields)]
 pub struct Desktop {
     pub package_bundle: String,
+    pub components: Vec<String>,
     pub display_manager: String,
     pub compositor: String,
     pub session: String,
@@ -331,6 +363,21 @@ pub fn validate_live_profile(profile: &LiveProfile, root: &Path) -> Result<(), C
         return Err(CompositionError::new(
             "desktop",
             "the complete COSMIC session contract is required",
+        ));
+    }
+    let expected_cosmic = EXPECTED_COSMIC_COMPONENTS
+        .iter()
+        .copied()
+        .collect::<BTreeSet<_>>();
+    let actual_cosmic = desktop
+        .components
+        .iter()
+        .map(String::as_str)
+        .collect::<BTreeSet<_>>();
+    if actual_cosmic != expected_cosmic || desktop.components.len() != actual_cosmic.len() {
+        return Err(CompositionError::new(
+            "desktop.components",
+            "the desktop bundle must enumerate every pinned COSMIC component",
         ));
     }
     if profile.installer.framework != "calamares"

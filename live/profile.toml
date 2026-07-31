@@ -3,6 +3,36 @@ distribution = "Arach OS"
 
 [desktop]
 package_bundle = "cosmic-desktop"
+components = [
+  "cosmic-applets",
+  "cosmic-applibrary",
+  "cosmic-bg",
+  "cosmic-comp",
+  "cosmic-edit",
+  "cosmic-files",
+  "cosmic-greeter",
+  "cosmic-icons",
+  "cosmic-idle",
+  "cosmic-initial-setup",
+  "cosmic-launcher",
+  "cosmic-monitor",
+  "cosmic-notifications",
+  "cosmic-osd",
+  "cosmic-panel",
+  "cosmic-player",
+  "cosmic-randr",
+  "cosmic-screenshot",
+  "cosmic-session",
+  "cosmic-settings",
+  "cosmic-settings-daemon",
+  "cosmic-sound-theme",
+  "cosmic-store",
+  "cosmic-term",
+  "cosmic-wallpapers",
+  "cosmic-workspaces-epoch",
+  "pop-launcher",
+  "xdg-desktop-portal-cosmic",
+]
 display_manager = "greetd"
 compositor = "cosmic-comp"
 session = "cosmic-session"
