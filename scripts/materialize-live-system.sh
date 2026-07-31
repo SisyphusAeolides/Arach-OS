@@ -203,6 +203,35 @@ for provider in providers:
             }
             if listed_paths != actual_paths:
                 raise SystemExit("hardware catalog lock does not enumerate its profiles")
+            required_sources = {
+                "driver-sources/modules.alias",
+                "driver-sources/modules.dep",
+                "driver-sources/modules.builtin",
+                "driver-sources/modules.firmware",
+            }
+            source_records = catalog_lock.get("driver_source", [])
+            if not isinstance(source_records, list):
+                raise SystemExit("hardware catalog driver source lock is invalid")
+            source_paths = set()
+            for record in source_records:
+                if not isinstance(record, dict) or set(record) != {"path", "sha256"}:
+                    raise SystemExit("hardware catalog driver source record is invalid")
+                relative = record["path"]
+                if (
+                    not isinstance(relative, str)
+                    or relative not in required_sources
+                    or relative in source_paths
+                    or len(record["sha256"]) != 64
+                    or any(char not in "0123456789abcdef" for char in record["sha256"])
+                ):
+                    raise SystemExit("hardware catalog driver source record is invalid")
+                source_paths.add(relative)
+                source_path = artifact / "etc/arach/hwd" / pathlib.PurePosixPath(relative)
+                real_regular(source_path, "hardware driver metadata")
+                if hashlib.sha256(source_path.read_bytes()).hexdigest() != record["sha256"]:
+                    raise SystemExit(f"hardware driver metadata digest differs from lock: {relative}")
+            if source_paths != required_sources:
+                raise SystemExit("hardware catalog lock does not enumerate the complete driver metadata snapshot")
         for alias in aliases:
             mode = alias.get("mode")
             if not isinstance(mode, int) or mode & ~0o7777:

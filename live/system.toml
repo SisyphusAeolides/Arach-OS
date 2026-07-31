@@ -42,6 +42,10 @@ required_tree_path = [
   "/etc/arach/hwd/catalog.lock",
   "/etc/arach/hwd/packages.toml",
   "/etc/arach/hwd/packages.toml.sig",
+  "/etc/arach/hwd/driver-sources/modules.alias",
+  "/etc/arach/hwd/driver-sources/modules.dep",
+  "/etc/arach/hwd/driver-sources/modules.builtin",
+  "/etc/arach/hwd/driver-sources/modules.firmware",
 ]
 files = []
 

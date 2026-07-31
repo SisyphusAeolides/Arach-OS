@@ -11,6 +11,15 @@ runtime dependency. The complete COSMIC install tree, greeter launcher,
 terminal, portal, and display-manager binary are required before the image is
 published.
 
+The hardware catalog is equally complete at the discovery boundary. Its lock
+ships signed profile/index data plus hashed `modules.alias`, `modules.dep`,
+`modules.builtin`, and `modules.firmware` snapshots under
+`/etc/arach/hwd/driver-sources`. Calamares feeds those exact tables to
+`arach-hwd` before it considers live, target, or offline module roots, so
+Wi-Fi, audio, graphics, storage, input, Bluetooth, and firmware lookup is
+reproducible for the target rather than dependent on the temporary live
+kernel.
+
 The external `arachtransaction` module has two instances. `prepare` runs before
 the partition job and requires `arach-install` to create the immutable plan and
 recovery journal. `commit` runs after the root filesystem has been mounted and

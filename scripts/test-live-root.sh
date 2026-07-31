@@ -21,18 +21,34 @@ printf '\177ELF test Corinth\n' > "$artifacts/corinth-0.1.0-9/target/release/cor
 mkdir -p "$artifacts/arach-hwd-0.1.0-1/target/release"
 printf '\177ELF test Arach HWD\n' > "$artifacts/arach-hwd-0.1.0-1/target/release/arach-hwd"
 mkdir -p "$artifacts/arach-hardware-catalog-2026.1/etc/arach/hwd/profiles"
+mkdir -p "$artifacts/arach-hardware-catalog-2026.1/etc/arach/hwd/driver-sources"
 printf '[key]\n' > "$artifacts/arach-hardware-catalog-2026.1/etc/arach/hwd/keys.toml"
 printf '1.0\n' > "$artifacts/arach-hardware-catalog-2026.1/etc/arach/hwd/driver-abi"
 printf 'format = 1\nrepository = "arach-hardware"\nkey_id = "fixture"\n\n[[package]]\nname = "fixture-driver"\nversion = "1.0.0"\nrelease = 1\nscope = "driver"\nrepository = "arach-hardware"\nmetadata_sha256 = "%064d"\nartifact_sha256 = "%064d"\nsource_lock_sha256 = "%064d"\nurl = "https://packages.example.invalid/fixture.pkg"\nsize = 1\n' 0 1 2 > "$artifacts/arach-hardware-catalog-2026.1/etc/arach/hwd/packages.toml"
 printf 'key_id = "fixture"\nsignature = "fixture"\n' > "$artifacts/arach-hardware-catalog-2026.1/etc/arach/hwd/packages.toml.sig"
 printf 'fixture profile\n' > "$artifacts/arach-hardware-catalog-2026.1/etc/arach/hwd/profiles/fixture.toml"
 printf 'fixture signature\n' > "$artifacts/arach-hardware-catalog-2026.1/etc/arach/hwd/profiles/fixture.toml.sig"
+for source_name in modules.alias modules.dep modules.builtin modules.firmware; do
+    printf 'fixture %s\n' "$source_name" \
+        > "$artifacts/arach-hardware-catalog-2026.1/etc/arach/hwd/driver-sources/$source_name"
+done
 catalog_keyring_sha=$(sha256sum "$artifacts/arach-hardware-catalog-2026.1/etc/arach/hwd/keys.toml" | cut -d' ' -f1)
 catalog_profile_sha=$(sha256sum "$artifacts/arach-hardware-catalog-2026.1/etc/arach/hwd/profiles/fixture.toml" | cut -d' ' -f1)
 catalog_signature_sha=$(sha256sum "$artifacts/arach-hardware-catalog-2026.1/etc/arach/hwd/profiles/fixture.toml.sig" | cut -d' ' -f1)
+catalog_driver_source_records=""
+for source_name in modules.alias modules.dep modules.builtin modules.firmware; do
+    source_sha=$(sha256sum \
+        "$artifacts/arach-hardware-catalog-2026.1/etc/arach/hwd/driver-sources/$source_name" \
+        | cut -d' ' -f1)
+    catalog_driver_source_records+=$'[[driver_source]]\n'
+    catalog_driver_source_records+="path = \"driver-sources/$source_name\""$'\n'
+    catalog_driver_source_records+="sha256 = \"$source_sha\""$'\n\n'
+done
 printf 'format = 1\nsnapshot = "test"\nkeyring_sha256 = "%s"\nrecipe_repository = "https://github.com/SisyphusAeolides/Arach-Packages.git"\nrecipe_revision = "054ca7af378ab33c48112603546653436aea7d56"\n\n[[profile]]\npath = "fixture.toml"\nprofile_sha256 = "%s"\nsignature_sha256 = "%s"\n' \
     "$catalog_keyring_sha" "$catalog_profile_sha" "$catalog_signature_sha" \
     > "$artifacts/arach-hardware-catalog-2026.1/etc/arach/hwd/catalog.lock"
+printf '%s' "$catalog_driver_source_records" \
+    >> "$artifacts/arach-hardware-catalog-2026.1/etc/arach/hwd/catalog.lock"
 mkdir -p "$artifacts/dbus-broker-1/usr/bin"
 printf '\177ELF test D-Bus\n' > "$artifacts/dbus-broker-1/usr/bin/dbus-broker-launch"
 mkdir -p "$artifacts/greetd-0.10.3-1/target/release"

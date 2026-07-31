@@ -42,7 +42,11 @@ The medium also ships `/system/arach-hwd` and the signed
 `arach-hardware-catalog` at `/etc/arach/hwd`. Its Calamares preflight
 enumerates network/Wi-Fi, audio, graphics, storage, input, Bluetooth, and
 firmware capability evidence, resolves the detached-signature profile set, and
-writes the exact Corinth plan before partitioning. A physical device with no
+writes the exact Corinth plan before partitioning. The catalog lock also
+carries hashed `modules.alias`, `modules.dep`, `modules.builtin`, and
+`modules.firmware` target metadata under `/etc/arach/hwd/driver-sources`; HWD
+uses those files first, then compares any live/target/offline module and
+firmware trees it can see. A physical device with no
 bound driver or compatible signed profile stops the install; no package is
 guessed from an interface name. The catalog is therefore a required release
 artifact, not an optional fallback.
