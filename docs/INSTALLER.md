@@ -36,6 +36,11 @@ process or machine interruption. Artifact deployment is implemented, while the
 complete live ISO and bounded QEMU/C0 session qualification remain release
 gates.
 
+Image assembly should use `scripts/assemble-boot-bundle.sh`; it rejects
+symlinks, oversized or incorrectly typed artifacts, writes the canonical JSON
+manifest, and publishes the directory only after all files and the manifest
+have been synchronized.
+
 ## Required pages
 
 1. language, locale, timezone, and keyboard;

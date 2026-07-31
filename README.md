@@ -66,3 +66,11 @@ secret-bearing handoff values unconstructable.
     scripts/verify-foundation.sh
     scripts/check-fortran.sh
     scripts/check-formal-models.sh
+
+Build the installer input bundle with:
+
+    scripts/assemble-boot-bundle.sh ARTIFACT_DIR /run/arach-live/boot-bundle
+
+`ARTIFACT_DIR` must contain the measured Granite PE/COFF image and ELF
+`arach`, `push`, and `crest` artifacts. The assembler writes the bounded,
+digest-bound manifest consumed by `arach-install`.
