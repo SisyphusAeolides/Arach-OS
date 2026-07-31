@@ -33,6 +33,7 @@ def run():
     catalog_lock = configuration.get("catalogLock")
     driver_abi_path = configuration.get("driverAbi")
     plan = configuration.get("plan")
+    require_target_profiles = configuration.get("requireTargetProfiles")
     if (
         executable != "/system/arach-hwd"
         or sysfs != "/sys"
@@ -42,6 +43,7 @@ def run():
         or catalog_lock != "/etc/arach/hwd/catalog.lock"
         or driver_abi_path != "/etc/arach/hwd/driver-abi"
         or plan != "/run/arach-installer/hardware.plan.toml"
+        or require_target_profiles is not True
     ):
         return (_("Invalid hardware preflight configuration"), _("Required paths are absent"))
     try:
@@ -82,6 +84,7 @@ def run():
             driver_abi,
             "--output",
             plan,
+            "--require-target-profiles",
         ],
     ]
     for command in commands:

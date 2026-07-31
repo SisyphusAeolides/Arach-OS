@@ -14,11 +14,14 @@ transaction.
 The Calamares medium carries `/system/arach-hwd` plus the signed
 `arach-hardware-catalog` tree at `/etc/arach/hwd`. Its first execution job
 runs `arach-hwd preflight --sysfs /sys` and then resolves the same inventory
-through the detached-signature profiles and keyring with `arach-hwd plan`.
+through the detached-signature profiles and keyring with
+`arach-hwd plan --require-target-profiles`.
 The report is written to `/run/arach-installer/hardware.toml` and the exact
 Corinth plan to `/run/arach-installer/hardware.plan.toml`. An unbound physical
-device, missing profile, invalid signature, or incompatible Driver ABI stops
-the installation before partitioning. Virtual network interfaces and child
+device, a physical function with no target profile, invalid signature, or
+incompatible Driver ABI stops the installation before partitioning. A driver
+bound by the temporary live Linux kernel is not treated as proof that the
+target Arach kernel has that driver. Virtual network interfaces and child
 ALSA/DRM/block/input class nodes are not mistaken for missing drivers.
 
 The catalog also carries `packages.toml` and its detached signature. This is

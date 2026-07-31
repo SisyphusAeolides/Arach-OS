@@ -188,6 +188,7 @@ pub struct Hardware {
     pub binary_signature: String,
     pub driver_abi: String,
     pub plan: String,
+    pub require_target_profiles: bool,
     pub capabilities: Vec<String>,
     pub allow_adapted_c_drivers: bool,
     pub allow_unmatched_binary_kernel_modules: bool,
@@ -412,6 +413,7 @@ pub fn validate_live_profile(profile: &LiveProfile, root: &Path) -> Result<(), C
         || profile.hardware.binary_signature != "/etc/arach/hwd/packages.toml.sig"
         || profile.hardware.driver_abi != "/etc/arach/hwd/driver-abi"
         || profile.hardware.plan != "/run/arach-installer/hardware.plan.toml"
+        || !profile.hardware.require_target_profiles
         || !profile.hardware.allow_adapted_c_drivers
         || profile.hardware.allow_unmatched_binary_kernel_modules
     {
@@ -751,6 +753,7 @@ pub fn validate_installer_contract(
             "catalogLock: /etc/arach/hwd/catalog.lock",
             "driverAbi: /etc/arach/hwd/driver-abi",
             "plan: /run/arach-installer/hardware.plan.toml",
+            "requireTargetProfiles: true",
         ],
     )?;
     require_file_tokens(

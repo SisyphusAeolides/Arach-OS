@@ -62,6 +62,7 @@ binary_index = "/etc/arach/hwd/packages.toml"
 binary_signature = "/etc/arach/hwd/packages.toml.sig"
 driver_abi = "/etc/arach/hwd/driver-abi"
 plan = "/run/arach-installer/hardware.plan.toml"
+require_target_profiles = true
 capabilities = ["network", "wireless", "audio", "graphics", "storage", "input", "bluetooth", "firmware"]
 allow_adapted_c_drivers = true
 allow_unmatched_binary_kernel_modules = false
