@@ -4,7 +4,7 @@ distribution = "Arach OS"
 [[component]]
 name = "arach-kernel"
 repository = "https://github.com/SisyphusAeolides/Arach-Kernel.git"
-revision = "42570b168732847d16da959348e5ffe58d7688c1"
+revision = "615b6e81fa48dac6ce40be9112dceee08494a3c6"
 role = "kernel"
 
 [[component]]
