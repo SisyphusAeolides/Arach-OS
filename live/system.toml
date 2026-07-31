@@ -161,7 +161,7 @@ required = true
 files = [
   { source = "target/release/arach-install", destination = "/usr/libexec/arach-install", mode = 493 },
   { source = "installer/calamares/settings.conf", destination = "/etc/calamares/settings.conf", mode = 420 },
-  { source = "installer/calamares/modules/arach-hardware.conf", destination = "/etc/calamares/modules/arach-hardware.conf", mode = 420 },
+  { source = "installer/calamares/modules/arachhardware.conf", destination = "/etc/calamares/modules/arach-hardware.conf", mode = 420 },
   { source = "installer/calamares/modules/arach-prepare.conf", destination = "/etc/calamares/modules/arach-prepare.conf", mode = 420 },
   { source = "installer/calamares/modules/arach-commit.conf", destination = "/etc/calamares/modules/arach-commit.conf", mode = 420 },
   { source = "installer/calamares/modules/partition.conf", destination = "/etc/calamares/modules/partition.conf", mode = 420 },
