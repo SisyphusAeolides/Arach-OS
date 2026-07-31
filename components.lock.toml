@@ -4,7 +4,7 @@ distribution = "Arach OS"
 [[component]]
 name = "arach-kernel"
 repository = "https://github.com/SisyphusAeolides/Arach-Kernel.git"
-revision = "eb212d3a64298fce3a81b0d0dae6c72f1cc22183"
+revision = "2bc49ef73f108e7c615c234ef93e23511bcd736b"
 role = "kernel"
 
 [[component]]
@@ -28,13 +28,13 @@ role = "bootloader"
 [[component]]
 name = "corinth"
 repository = "https://github.com/SisyphusAeolides/Corinth.git"
-revision = "4a11021c217c1fa4862fac136f019ab2f8e51b30"
+revision = "017a20599e68c5d374890de33ea611c491e07ec6"
 role = "package-manager"
 
 [[component]]
 name = "arach-packages"
 repository = "https://github.com/SisyphusAeolides/Arach-Packages.git"
-revision = "9f2f73781ff2c06a071ae4fbe57318446cde96d1"
+revision = "aaaa3294fe9f0e9c6efbd0973e871f3acbb39d01"
 role = "package-recipes"
 
 [[component]]
