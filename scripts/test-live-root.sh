@@ -56,6 +56,9 @@ printf 'MZ test Granite\n' > "$bundle_inputs/granite.efi"
 printf '\177ELF test Arach\n' > "$bundle_inputs/arach"
 printf '\177ELF test Push\n' > "$bundle_inputs/push"
 printf '\177ELF test Crest\n' > "$bundle_inputs/crest"
+for artifact in dbus-broker cosmic-comp cosmic-greeter cosmic-session xdg-desktop-portal-cosmic; do
+    printf '\177ELF test %s\n' "$artifact" > "$bundle_inputs/$artifact"
+done
 "$root/scripts/assemble-boot-bundle.sh" "$bundle_inputs" "$bundle"
 printf 'generation test\n' > "$generation"
 
@@ -63,6 +66,9 @@ printf 'generation test\n' > "$generation"
 test -s "$output/run/arach-live/image.json"
 test -s "$output/run/arach-live/system.json"
 test -s "$output/run/arach-live/boot-bundle/manifest.json"
+for artifact in dbus-broker cosmic-comp cosmic-greeter cosmic-session xdg-desktop-portal-cosmic; do
+    test -s "$output/run/arach-live/boot-bundle/$artifact"
+done
 test -s "$output/run/arach-live/repository/system.gen"
 test -s "$output/system/greetd"
 test -s "$output/etc/greetd/cosmic-greeter.toml"
@@ -78,6 +84,21 @@ assert manifest["schema"] == 1
 assert manifest["distribution"] == "Arach OS"
 assert manifest["entry_count"] > 10
 assert len(manifest["root_sha256"]) == 64
+PY
+python3 - "$output/run/arach-live/boot-bundle/manifest.json" <<'PY'
+import json
+import sys
+
+with open(sys.argv[1], encoding="utf-8") as stream:
+    boot = json.load(stream)
+for name in (
+    "cosmic_dbus_sha256",
+    "cosmic_compositor_sha256",
+    "cosmic_greeter_sha256",
+    "cosmic_session_sha256",
+    "cosmic_portal_sha256",
+):
+    assert len(boot[name]) == 64
 PY
 printf '%s\n' 'Arach OS live-root assembly verified'
 

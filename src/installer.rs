@@ -34,6 +34,11 @@ const TARGET_GRANITE_PATH: &str = "boot/EFI/BOOT/BOOTX64.EFI";
 const TARGET_ARACH_PATH: &str = "boot/BOOT/ARACH";
 const TARGET_PUSH_PATH: &str = "boot/BOOT/PUSH";
 const TARGET_CREST_PATH: &str = "boot/BOOT/CREST";
+const TARGET_COSMIC_DBUS_PATH: &str = "boot/BOOT/DBUS.BIN";
+const TARGET_COSMIC_COMPOSITOR_PATH: &str = "boot/BOOT/COSCOMP.BIN";
+const TARGET_COSMIC_GREETER_PATH: &str = "boot/BOOT/COSGREETER.BIN";
+const TARGET_COSMIC_SESSION_PATH: &str = "boot/BOOT/COSSESSION.BIN";
+const TARGET_COSMIC_PORTAL_PATH: &str = "boot/BOOT/COSPORTAL.BIN";
 const TARGET_MANIFEST_PATH: &str = "boot/BOOT/ARACH-MANIFEST.json";
 
 #[derive(Clone, Debug, Deserialize, Serialize, Eq, PartialEq)]
@@ -44,6 +49,16 @@ pub struct BootBundleManifest {
     pub arach_sha256: String,
     pub push_sha256: String,
     pub crest_sha256: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cosmic_dbus_sha256: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cosmic_compositor_sha256: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cosmic_greeter_sha256: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cosmic_session_sha256: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cosmic_portal_sha256: Option<String>,
 }
 
 struct BootBundle {
@@ -52,6 +67,15 @@ struct BootBundle {
     arach: Vec<u8>,
     push: Vec<u8>,
     crest: Vec<u8>,
+    cosmic: Option<CosmicBootBundle>,
+}
+
+struct CosmicBootBundle {
+    dbus: Vec<u8>,
+    compositor: Vec<u8>,
+    greeter: Vec<u8>,
+    session: Vec<u8>,
+    portal: Vec<u8>,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
@@ -892,12 +916,85 @@ fn read_boot_bundle(root: &Path) -> Result<BootBundle, InstallerError> {
         "Crest",
         b"\x7fELF",
     )?;
+    let cosmic_digests = [
+        manifest.cosmic_dbus_sha256.as_deref(),
+        manifest.cosmic_compositor_sha256.as_deref(),
+        manifest.cosmic_greeter_sha256.as_deref(),
+        manifest.cosmic_session_sha256.as_deref(),
+        manifest.cosmic_portal_sha256.as_deref(),
+    ];
+    let cosmic_count = cosmic_digests
+        .iter()
+        .filter(|digest| digest.is_some())
+        .count();
+    if cosmic_count != 0 && cosmic_count != cosmic_digests.len() {
+        return Err(InstallerError::invalid(
+            "boot manifest contains an incomplete COSMIC service set",
+        ));
+    }
+    let cosmic = if cosmic_count == cosmic_digests.len() {
+        Some(CosmicBootBundle {
+            dbus: read_boot_artifact(
+                &root,
+                "dbus-broker",
+                manifest
+                    .cosmic_dbus_sha256
+                    .as_deref()
+                    .expect("checked above"),
+                "COSMIC D-Bus broker",
+                b"\x7fELF",
+            )?,
+            compositor: read_boot_artifact(
+                &root,
+                "cosmic-comp",
+                manifest
+                    .cosmic_compositor_sha256
+                    .as_deref()
+                    .expect("checked above"),
+                "COSMIC compositor",
+                b"\x7fELF",
+            )?,
+            greeter: read_boot_artifact(
+                &root,
+                "cosmic-greeter",
+                manifest
+                    .cosmic_greeter_sha256
+                    .as_deref()
+                    .expect("checked above"),
+                "COSMIC greeter",
+                b"\x7fELF",
+            )?,
+            session: read_boot_artifact(
+                &root,
+                "cosmic-session",
+                manifest
+                    .cosmic_session_sha256
+                    .as_deref()
+                    .expect("checked above"),
+                "COSMIC session",
+                b"\x7fELF",
+            )?,
+            portal: read_boot_artifact(
+                &root,
+                "xdg-desktop-portal-cosmic",
+                manifest
+                    .cosmic_portal_sha256
+                    .as_deref()
+                    .expect("checked above"),
+                "COSMIC portal",
+                b"\x7fELF",
+            )?,
+        })
+    } else {
+        None
+    };
     Ok(BootBundle {
         manifest_bytes,
         granite,
         arach,
         push,
         crest,
+        cosmic,
     })
 }
 
@@ -954,13 +1051,22 @@ fn activate_boot_bundle(
     }
     let backup_root = checkpoint.join("boot-backup");
     ensure_private_directory(&backup_root)?;
-    let files: [(&str, &[u8]); 5] = [
+    let mut files: Vec<(&str, &[u8])> = vec![
         (TARGET_GRANITE_PATH, &bundle.granite),
         (TARGET_ARACH_PATH, &bundle.arach),
         (TARGET_PUSH_PATH, &bundle.push),
         (TARGET_CREST_PATH, &bundle.crest),
         (TARGET_MANIFEST_PATH, &bundle.manifest_bytes),
     ];
+    if let Some(cosmic) = bundle.cosmic.as_ref() {
+        files.extend([
+            (TARGET_COSMIC_DBUS_PATH, cosmic.dbus.as_slice()),
+            (TARGET_COSMIC_COMPOSITOR_PATH, cosmic.compositor.as_slice()),
+            (TARGET_COSMIC_GREETER_PATH, cosmic.greeter.as_slice()),
+            (TARGET_COSMIC_SESSION_PATH, cosmic.session.as_slice()),
+            (TARGET_COSMIC_PORTAL_PATH, cosmic.portal.as_slice()),
+        ]);
+    }
     let mut entries = Vec::with_capacity(files.len());
     for (index, (destination, _)) in files.iter().enumerate() {
         let destination_path = target_boot_path(target, destination)?;
@@ -1054,6 +1160,74 @@ fn verify_installed_boot_bundle(target: &Path, plan: &InstallPlan) -> Result<(),
         "Crest",
         b"\x7fELF",
     )?;
+    let cosmic_digests = [
+        manifest.cosmic_dbus_sha256.as_deref(),
+        manifest.cosmic_compositor_sha256.as_deref(),
+        manifest.cosmic_greeter_sha256.as_deref(),
+        manifest.cosmic_session_sha256.as_deref(),
+        manifest.cosmic_portal_sha256.as_deref(),
+    ];
+    let cosmic_count = cosmic_digests
+        .iter()
+        .filter(|digest| digest.is_some())
+        .count();
+    if cosmic_count != 0 && cosmic_count != cosmic_digests.len() {
+        return Err(InstallerError::invalid(
+            "installed boot manifest contains an incomplete COSMIC service set",
+        ));
+    }
+    if cosmic_count == cosmic_digests.len() {
+        verify_installed_artifact(
+            target,
+            TARGET_COSMIC_DBUS_PATH,
+            manifest
+                .cosmic_dbus_sha256
+                .as_deref()
+                .expect("checked above"),
+            "COSMIC D-Bus broker",
+            b"\x7fELF",
+        )?;
+        verify_installed_artifact(
+            target,
+            TARGET_COSMIC_COMPOSITOR_PATH,
+            manifest
+                .cosmic_compositor_sha256
+                .as_deref()
+                .expect("checked above"),
+            "COSMIC compositor",
+            b"\x7fELF",
+        )?;
+        verify_installed_artifact(
+            target,
+            TARGET_COSMIC_GREETER_PATH,
+            manifest
+                .cosmic_greeter_sha256
+                .as_deref()
+                .expect("checked above"),
+            "COSMIC greeter",
+            b"\x7fELF",
+        )?;
+        verify_installed_artifact(
+            target,
+            TARGET_COSMIC_SESSION_PATH,
+            manifest
+                .cosmic_session_sha256
+                .as_deref()
+                .expect("checked above"),
+            "COSMIC session",
+            b"\x7fELF",
+        )?;
+        verify_installed_artifact(
+            target,
+            TARGET_COSMIC_PORTAL_PATH,
+            manifest
+                .cosmic_portal_sha256
+                .as_deref()
+                .expect("checked above"),
+            "COSMIC portal",
+            b"\x7fELF",
+        )?;
+    }
     Ok(())
 }
 
@@ -2039,6 +2213,11 @@ mod tests {
             arach_sha256: digest(arach),
             push_sha256: digest(push),
             crest_sha256: digest(crest),
+            cosmic_dbus_sha256: None,
+            cosmic_compositor_sha256: None,
+            cosmic_greeter_sha256: None,
+            cosmic_session_sha256: None,
+            cosmic_portal_sha256: None,
         };
         create_private(
             &bundle.join(BOOT_MANIFEST_NAME),
@@ -2046,6 +2225,43 @@ mod tests {
         )
         .unwrap();
         bundle
+    }
+
+    fn add_cosmic_boot_bundle(bundle: &Path) {
+        let services = [
+            ("dbus-broker", b"\x7fELF-dbus".as_slice()),
+            ("cosmic-comp", b"\x7fELF-comp".as_slice()),
+            ("cosmic-greeter", b"\x7fELF-greeter".as_slice()),
+            ("cosmic-session", b"\x7fELF-session".as_slice()),
+            ("xdg-desktop-portal-cosmic", b"\x7fELF-portal".as_slice()),
+        ];
+        for (name, bytes) in services {
+            create_private(&bundle.join(name), bytes).unwrap();
+        }
+        let manifest_path = bundle.join(BOOT_MANIFEST_NAME);
+        let mut manifest: BootBundleManifest =
+            serde_json::from_slice(&fs::read(&manifest_path).unwrap()).unwrap();
+        manifest.cosmic_dbus_sha256 = Some(digest(b"\x7fELF-dbus"));
+        manifest.cosmic_compositor_sha256 = Some(digest(b"\x7fELF-comp"));
+        manifest.cosmic_greeter_sha256 = Some(digest(b"\x7fELF-greeter"));
+        manifest.cosmic_session_sha256 = Some(digest(b"\x7fELF-session"));
+        manifest.cosmic_portal_sha256 = Some(digest(b"\x7fELF-portal"));
+        fs::write(&manifest_path, canonical_json(&manifest).unwrap()).unwrap();
+        fs::set_permissions(&manifest_path, fs::Permissions::from_mode(0o600)).unwrap();
+    }
+
+    #[test]
+    fn read_boot_bundle_accepts_complete_native_cosmic_set() {
+        let root = TestRoot::new();
+        let bundle = write_boot_bundle(&root.0);
+        add_cosmic_boot_bundle(&bundle);
+        let loaded = read_boot_bundle(&bundle).unwrap();
+        let cosmic = loaded.cosmic.unwrap();
+        assert!(cosmic.dbus.starts_with(b"\x7fELF"));
+        assert!(cosmic.compositor.starts_with(b"\x7fELF"));
+        assert!(cosmic.greeter.starts_with(b"\x7fELF"));
+        assert!(cosmic.session.starts_with(b"\x7fELF"));
+        assert!(cosmic.portal.starts_with(b"\x7fELF"));
     }
 
     #[test]

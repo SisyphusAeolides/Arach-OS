@@ -50,10 +50,13 @@ to that checkpoint, and can recover an interrupted transaction with
 same rollback immediately.
 
 The live medium supplies `/run/arach-live/boot-bundle`, containing a bounded
-`manifest.json` and four measured files: `granite.efi`, `arach`, `push`, and
-the C0 probe in the compatibility slot named `crest`. That probe is not a
-desktop image. `prepare` binds the exact manifest bytes to the immutable plan.
-`apply` verifies every artifact, atomically installs Granite at
+`manifest.json` and four base measured files: `granite.efi`, `arach`, `push`,
+and the C0 probe in the compatibility slot named `crest`. A production native
+COSMIC bundle may add all five measured services (`dbus-broker`, `cosmic-comp`,
+`cosmic-greeter`, `cosmic-session`, and `xdg-desktop-portal-cosmic`); the
+manifest and installer enforce an all-or-nothing service set. The C0 probe is
+not a desktop image. `prepare` binds the exact manifest bytes to the immutable
+plan. `apply` verifies every artifact, atomically installs Granite at
 `/boot/EFI/BOOT/BOOTX64.EFI` and the three measured payloads under `/boot/BOOT`,
 and retains backups in the target recovery checkpoint. `verify` re-hashes the
 installed files; rollback restores the previous boot files, including after a

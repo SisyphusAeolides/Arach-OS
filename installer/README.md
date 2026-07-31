@@ -33,12 +33,24 @@ restart, `arach-install recover --target <root>` performs the same recovery
 from the target bundle. The complete live ISO and bounded QEMU/C0 session gate
 remain separate release work.
 
+The production native-COSMIC bundle may additionally contain the complete
+measured service set: `dbus-broker`, `cosmic-comp`, `cosmic-greeter`,
+`cosmic-session`, and `xdg-desktop-portal-cosmic`. The installer accepts this
+set only when all five ELF files and all five manifest digests are present;
+partial sets are rejected. The C0-only four-artifact bundle remains valid for
+the compatibility qualification path.
+
 The boot bundle directory is fixed and contains:
 
 ```text
-manifest.json       # schema = 1, four lowercase SHA-256 fields
+manifest.json       # schema = 1, four base fields plus optional five COSMIC fields
 granite.efi         # PE/COFF UEFI image
 arach               # ELF kernel image
 push                # ELF PID 1 image
 crest               # ELF measured C0 bootstrap/probe image; not a desktop
+dbus-broker         # optional native COSMIC D-Bus service
+cosmic-comp         # optional native COSMIC compositor
+cosmic-greeter      # optional native COSMIC greeter
+cosmic-session      # optional native COSMIC session
+xdg-desktop-portal-cosmic # optional native COSMIC portal
 ```

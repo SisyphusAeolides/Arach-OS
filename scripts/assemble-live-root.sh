@@ -53,6 +53,17 @@ for relative in manifest.json granite.efi arach push crest; do
     path="$boot_bundle/$relative"
     [[ -f "$path" && ! -L "$path" ]] || { echo "boot bundle member missing: $relative" >&2; exit 1; }
 done
+cosmic_artifacts=(dbus-broker cosmic-comp cosmic-greeter cosmic-session xdg-desktop-portal-cosmic)
+cosmic_count=0
+for relative in "${cosmic_artifacts[@]}"; do
+    if [[ -e "$boot_bundle/$relative" ]]; then
+        cosmic_count=$((cosmic_count + 1))
+    fi
+done
+if [[ "$cosmic_count" -ne 0 && "$cosmic_count" -ne "${#cosmic_artifacts[@]}" ]]; then
+    echo 'boot bundle contains an incomplete native COSMIC service set' >&2
+    exit 1
+fi
 
 parent=$(dirname -- "$output_root")
 mkdir -p -- "$parent"
@@ -68,6 +79,11 @@ mkdir -p -- "$stage/run/arach-live/boot-bundle" "$stage/run/arach-live/repositor
 for relative in manifest.json granite.efi arach push crest; do
     cp -a -- "$boot_bundle/$relative" "$stage/run/arach-live/boot-bundle/$relative"
 done
+if [[ "$cosmic_count" -eq "${#cosmic_artifacts[@]}" ]]; then
+    for relative in "${cosmic_artifacts[@]}"; do
+        cp -a -- "$boot_bundle/$relative" "$stage/run/arach-live/boot-bundle/$relative"
+    done
+fi
 cp -a -- "$generation" "$stage/run/arach-live/repository/system.gen"
 system_manifest="$stage/run/arach-live/system.json"
 [[ -f "$system_manifest" && ! -L "$system_manifest" ]] || {

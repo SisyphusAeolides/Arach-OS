@@ -43,6 +43,17 @@ for path in \
         exit 1
     }
 done
+cosmic_artifacts=(dbus-broker cosmic-comp cosmic-greeter cosmic-session xdg-desktop-portal-cosmic)
+cosmic_count=0
+for relative in "${cosmic_artifacts[@]}"; do
+    if [[ -e "$bundle/$relative" ]]; then
+        cosmic_count=$((cosmic_count + 1))
+    fi
+done
+if [[ "$cosmic_count" -ne 0 && "$cosmic_count" -ne "${#cosmic_artifacts[@]}" ]]; then
+    echo 'live ISO contains an incomplete native COSMIC service set' >&2
+    exit 1
+fi
 
 parent=$(dirname -- "$output_iso")
 mkdir -p -- "$parent"
@@ -77,6 +88,13 @@ install -m 0644 -- "$bundle/granite.efi" "$stage/EFI/BOOT/BOOTX64.EFI"
 install -m 0644 -- "$bundle/arach" "$stage/BOOT/ARACH"
 install -m 0644 -- "$bundle/push" "$stage/BOOT/PUSH"
 install -m 0644 -- "$bundle/crest" "$stage/BOOT/CREST"
+if [[ "$cosmic_count" -eq "${#cosmic_artifacts[@]}" ]]; then
+    install -m 0644 -- "$bundle/dbus-broker" "$stage/BOOT/DBUS.BIN"
+    install -m 0644 -- "$bundle/cosmic-comp" "$stage/BOOT/COSCOMP.BIN"
+    install -m 0644 -- "$bundle/cosmic-greeter" "$stage/BOOT/COSGREETER.BIN"
+    install -m 0644 -- "$bundle/cosmic-session" "$stage/BOOT/COSSESSION.BIN"
+    install -m 0644 -- "$bundle/xdg-desktop-portal-cosmic" "$stage/BOOT/COSPORTAL.BIN"
+fi
 
 # UEFI does not boot a raw PE file as an El Torito image. It boots a FAT EFI
 # System Partition. Granite opens the filesystem that firmware used to load
@@ -93,6 +111,13 @@ mcopy -i "$esp" "$bundle/manifest.json" ::/BOOT/MANIFEST.JSON
 mcopy -i "$esp" "$bundle/arach" ::/BOOT/ARACH
 mcopy -i "$esp" "$bundle/push" ::/BOOT/PUSH
 mcopy -i "$esp" "$bundle/crest" ::/BOOT/CREST
+if [[ "$cosmic_count" -eq "${#cosmic_artifacts[@]}" ]]; then
+    mcopy -i "$esp" "$bundle/dbus-broker" ::/BOOT/DBUS.BIN
+    mcopy -i "$esp" "$bundle/cosmic-comp" ::/BOOT/COSCOMP.BIN
+    mcopy -i "$esp" "$bundle/cosmic-greeter" ::/BOOT/COSGREETER.BIN
+    mcopy -i "$esp" "$bundle/cosmic-session" ::/BOOT/COSSESSION.BIN
+    mcopy -i "$esp" "$bundle/xdg-desktop-portal-cosmic" ::/BOOT/COSPORTAL.BIN
+fi
 cp -- "$esp" "$stage/EFI/BOOT/efiboot.img"
 
 temporary="$work/image.iso"
