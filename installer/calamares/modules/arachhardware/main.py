@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import gettext
+from pathlib import Path
 import subprocess
 
 import libcalamares
@@ -32,6 +33,11 @@ def run():
         or report != "/run/arach-installer/hardware.toml"
     ):
         return (_("Invalid hardware preflight configuration"), _("Required paths are absent"))
+    try:
+        report_parent = Path(report).parent
+        report_parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+    except OSError as error:
+        return (_("Hardware preflight failed"), str(error))
     try:
         result = subprocess.run(
             [executable, "preflight", "--sysfs", sysfs, "--output", report],
