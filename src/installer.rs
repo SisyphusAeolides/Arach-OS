@@ -229,9 +229,7 @@ fn prepare_internal(
     })?;
     let generation_sha256 = digest(&generation_bytes);
     let boot_bundle = read_boot_bundle(boot_bundle_path)?;
-    let hardware_plan = hardware_plan_path
-        .map(|path| read_hardware_plan(path))
-        .transpose()?;
+    let hardware_plan = hardware_plan_path.map(read_hardware_plan).transpose()?;
     let staged_generation = staged_generation_path(plan_path)?;
     let staged_hardware_plan = staged_hardware_plan_path(plan_path)?;
     let state_bytes = canonical_json(&state)?;
