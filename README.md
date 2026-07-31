@@ -84,6 +84,8 @@ Corinth, D-Bus, COSMIC, Calamares, and installer paths, and writes
 `/run/arach-live/system.json`. `scripts/assemble-live-root.sh` then consumes
 that POSIX root, the manifest-bound Granite/Arach/Push/Crest bundle, and a
 signed Corinth generation. It refuses to publish a root unless both system and
-image manifests are present and the complete runtime path set is present. An
-ISO writer still consumes this assembled root as a separate, tool-qualified
-release step.
+image manifests are present and the complete runtime path set is present.
+Finally, `scripts/build-live-iso.sh` creates the UEFI-bootable ISO with
+xorriso, placing Granite at `/EFI/BOOT/BOOTX64.EFI` and preserving its
+measured `/BOOT` inputs; the command exits with status 69 when xorriso is not
+installed rather than publishing an unqualified image.

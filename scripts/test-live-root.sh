@@ -65,3 +65,16 @@ if "$root/scripts/materialize-live-system.sh" "$bad_artifacts" "$tmp/bad-root"; 
     exit 1
 fi
 printf '%s\n' 'Arach OS materializer rejection gate verified'
+
+if command -v xorriso >/dev/null 2>&1; then
+    "$root/scripts/build-live-iso.sh" "$output" "$tmp/arach-os.iso"
+    test -s "$tmp/arach-os.iso"
+    test -s "$tmp/arach-os.iso.json"
+else
+    set +e
+    "$root/scripts/build-live-iso.sh" "$output" "$tmp/arach-os.iso"
+    iso_status=$?
+    set -e
+    test "$iso_status" -eq 69
+fi
+printf '%s\n' 'Arach OS ISO tool gate verified'

@@ -68,7 +68,7 @@ package generation, Granite is installed and measured, the account database is
 readable, COSMIC greeter configuration is present, the target root can be
 mounted read-write, and an isolated boot probe reaches the configured session.
 
-The live medium is assembled in three bounded stages. First,
+The live medium is assembled in four bounded stages. First,
 `scripts/materialize-live-system.sh` consumes the versioned Corinth artifact
 directories described by `live/system.toml`, creates the `/system` and `/usr`
 runtime paths, and records `/run/arach-live/system.json`. Next,
@@ -79,4 +79,6 @@ publishes the exact `/run/arach-live/system.json`,
 `/run/arach-live/boot-bundle`, and `/run/arach-live/repository/system.gen`
 paths only when every required Push/COSMIC/Calamares executable in
 `live/image.toml` is present, and records the resulting root in
-`/run/arach-live/image.json`.
+`/run/arach-live/image.json`. Finally, `scripts/build-live-iso.sh` invokes
+xorriso with the measured Granite EFI path and `/BOOT` artifacts; it returns
+status 69 when the ISO tool is unavailable and never publishes a partial ISO.

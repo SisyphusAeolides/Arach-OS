@@ -426,6 +426,12 @@ pub fn validate_live_image_contract(
             "the signed package-to-live-system materializer is absent",
         ));
     }
+    if !root.join("scripts/build-live-iso.sh").is_file() {
+        return Err(CompositionError::new(
+            "scripts/build-live-iso.sh",
+            "the bootable ISO assembler is absent",
+        ));
+    }
     Ok(())
 }
 
