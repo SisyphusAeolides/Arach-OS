@@ -473,6 +473,8 @@ fn provision_hardware(
 
     let hardware_state =
         target_transaction_directory(target, &journal.transaction_id).join("hardware-state");
+    validate_hardware_package_set(&verified)?;
+    let (binary_plans, source_plans) = partition_hardware_plans(&binary_index, &verified);
     let expected_packages = verified
         .iter()
         .flat_map(|plan| plan.plan.package.iter().map(|intent| intent.name.clone()))
@@ -482,24 +484,27 @@ fn provision_hardware(
         journal.mutations.push("hardware-provisioning".into());
         rewrite_journal_copies(runtime_journal, Some(checkpoint_journal), journal)?;
     }
-    let packages = if verified.is_empty() {
-        Vec::new()
-    } else if binary_index_covers(&binary_index, &verified) {
+    let mut packages = Vec::new();
+    if !binary_plans.is_empty() {
         let mut provisioner = BinaryProvisioner::new(inputs.artifacts.clone())
             .map_err(|error| InstallerError::invalid(format!("hardware binaries: {error}")))?;
         provisioner.allow_network = true;
-        provisioner
-            .install_hardware_plan_set_to_root(
-                hardware_state.clone(),
-                target.to_path_buf(),
-                &binary_index,
-                &verified,
-            )
-            .map_err(|error| InstallerError::invalid(format!("hardware binary install: {error}")))?
-            .into_iter()
-            .map(|receipt| receipt.package)
-            .collect()
-    } else {
+        packages.extend(
+            provisioner
+                .install_hardware_plan_set_to_root(
+                    hardware_state.clone(),
+                    target.to_path_buf(),
+                    &binary_index,
+                    &binary_plans,
+                )
+                .map_err(|error| {
+                    InstallerError::invalid(format!("hardware binary install: {error}"))
+                })?
+                .into_iter()
+                .map(|receipt| receipt.package),
+        );
+    }
+    if !source_plans.is_empty() {
         let mut provisioner =
             HardwareProvisioner::new(inputs.work.clone(), inputs.artifacts.clone())
                 .map_err(|error| InstallerError::invalid(format!("hardware builder: {error}")))?;
@@ -518,15 +523,12 @@ fn provision_hardware(
             .install_plan_set_to_root(
                 hardware_state.clone(),
                 target.to_path_buf(),
-                &verified,
+                &source_plans,
                 &receipts,
             )
             .map_err(|error| InstallerError::invalid(format!("hardware install: {error}")))?;
-        receipts
-            .into_iter()
-            .map(|receipt| receipt.package)
-            .collect()
-    };
+        packages.extend(receipts.into_iter().map(|receipt| receipt.package));
+    }
     journal.hardware_packages = packages;
     journal.hardware_packages.sort();
     journal.hardware_packages.dedup();
@@ -552,23 +554,78 @@ fn parse_hardware_plans(bytes: &[u8]) -> Result<PlanSet, InstallerError> {
     })
 }
 
-fn binary_index_covers(
+fn binary_intent_covers(
+    index: &corinth::binary::VerifiedBinaryIndex,
+    intent: &arach_hwd::plan::CorinthIntent,
+) -> bool {
+    matches!(
+        intent.scope,
+        arach_hwd::profile::PackageScope::Driver | arach_hwd::profile::PackageScope::Firmware
+    ) && index.index.packages.iter().any(|package| {
+        package.name == intent.name
+            && package.version == intent.version
+            && package.scope == intent.scope
+            && package.repository == intent.repository
+            && package.metadata_sha256 == intent.metadata_sha256
+            && package.artifact_sha256 == intent.artifact_sha256
+            && package.source_lock_sha256 == intent.source_lock_sha256
+    })
+}
+
+fn partition_hardware_plans(
     index: &corinth::binary::VerifiedBinaryIndex,
     plans: &[corinth::hardware::VerifiedHardwarePlan],
-) -> bool {
-    plans.iter().all(|plan| {
-        plan.plan.package.iter().all(|intent| {
-            index.index.packages.iter().any(|package| {
-                package.name == intent.name
-                    && package.version == intent.version
-                    && package.scope == intent.scope
-                    && package.repository == intent.repository
-                    && package.metadata_sha256 == intent.metadata_sha256
-                    && package.artifact_sha256 == intent.artifact_sha256
-                    && package.source_lock_sha256 == intent.source_lock_sha256
-            })
-        })
-    })
+) -> (
+    Vec<corinth::hardware::VerifiedHardwarePlan>,
+    Vec<corinth::hardware::VerifiedHardwarePlan>,
+) {
+    let mut binary = Vec::new();
+    let mut source = Vec::new();
+    for verified in plans {
+        let mut binary_plan = verified.plan.clone();
+        binary_plan.package.clear();
+        let mut source_plan = verified.plan.clone();
+        source_plan.package.clear();
+        for intent in &verified.plan.package {
+            if binary_intent_covers(index, intent) {
+                binary_plan.package.push(intent.clone());
+            } else {
+                source_plan.package.push(intent.clone());
+            }
+        }
+        if !binary_plan.package.is_empty() {
+            binary.push(corinth::hardware::VerifiedHardwarePlan { plan: binary_plan });
+        }
+        if !source_plan.package.is_empty() {
+            source.push(corinth::hardware::VerifiedHardwarePlan { plan: source_plan });
+        }
+    }
+    (binary, source)
+}
+
+fn validate_hardware_package_set(
+    plans: &[corinth::hardware::VerifiedHardwarePlan],
+) -> Result<(), InstallerError> {
+    let mut packages = BTreeMap::<String, arach_hwd::plan::CorinthIntent>::new();
+    for plan in plans {
+        for intent in &plan.plan.package {
+            if let Some(previous) = packages.insert(intent.name.clone(), intent.clone()) {
+                if previous.version != intent.version
+                    || previous.scope != intent.scope
+                    || previous.repository != intent.repository
+                    || previous.metadata_sha256 != intent.metadata_sha256
+                    || previous.artifact_sha256 != intent.artifact_sha256
+                    || previous.source_lock_sha256 != intent.source_lock_sha256
+                {
+                    return Err(InstallerError::invalid(format!(
+                        "conflicting hardware package intents: {}",
+                        intent.name
+                    )));
+                }
+            }
+        }
+    }
+    Ok(())
 }
 
 fn load_hardware_profile_documents(
