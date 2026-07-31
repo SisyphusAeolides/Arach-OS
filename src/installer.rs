@@ -22,7 +22,7 @@ pub const BOOT_BUNDLE_SCHEMA: u32 = 1;
 const MAX_BOOT_ARTIFACT_BYTES: u64 = 32 * 1024 * 1024;
 const MAX_RECOVERY_TRANSACTIONS: usize = 128;
 const HARDWARE_RECIPES_URL: &str = "https://github.com/SisyphusAeolides/Arach-Packages.git";
-const HARDWARE_RECIPES_REVISION: &str = "755c43389e60b0d22ba0d33a3a106426c6fce700";
+const HARDWARE_RECIPES_REVISION: &str = "6ce93ae05c5fc6da206497452c5d62867b4606bf";
 static TEMPORARY_SERIAL: AtomicU64 = AtomicU64::new(1);
 
 const BOOT_MANIFEST_NAME: &str = "manifest.json";
