@@ -28,7 +28,7 @@ role = "bootloader"
 [[component]]
 name = "corinth"
 repository = "https://github.com/SisyphusAeolides/Corinth.git"
-revision = "898741db9a7b2a8708cc80a16fbced0ef3a0ecfc"
+revision = "c9990e385b28db5ab35b9c256c7c191db7dc96ab"
 role = "package-manager"
 
 [[component]]
@@ -40,7 +40,7 @@ role = "package-recipes"
 [[component]]
 name = "arach-hwd"
 repository = "https://github.com/SisyphusAeolides/Arach-HWD.git"
-revision = "8d515e481fd6d3367bce20815ff032eac3f2eaeb"
+revision = "d8729257c6dcea5ea152f816d0055f08812a680d"
 role = "hardware-provisioning"
 
 [[component]]
