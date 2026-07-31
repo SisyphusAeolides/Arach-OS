@@ -16,8 +16,8 @@ mkdir -p "$artifacts" "$bundle_inputs"
 
 mkdir -p "$artifacts/push-0.1.0-5/target/release"
 printf '\177ELF test Push\n' > "$artifacts/push-0.1.0-5/target/release/push"
-mkdir -p "$artifacts/corinth-0.1.0-9/target/release"
-printf '\177ELF test Corinth\n' > "$artifacts/corinth-0.1.0-9/target/release/corinth"
+mkdir -p "$artifacts/corinth-0.1.0-9/target/x86_64-arach/release"
+printf '\177ELF test Corinth\n' > "$artifacts/corinth-0.1.0-9/target/x86_64-arach/release/corinth"
 mkdir -p "$artifacts/arach-hwd-0.1.0-1/target/release"
 printf '\177ELF test Arach HWD\n' > "$artifacts/arach-hwd-0.1.0-1/target/release/arach-hwd"
 printf '\177ELF test Arach HWD catalog sync\n' \

@@ -19,7 +19,7 @@ artifact_prefix = "corinth-"
 layout = "files"
 required = true
 files = [
-  { source = "target/release/corinth", destination = "/system/corinth", mode = 493 },
+  { source = "target/x86_64-arach/release/corinth", destination = "/system/corinth", mode = 493 },
 ]
 
 [[provider]]
