@@ -23,7 +23,7 @@ dependencies = [
 [[package]]
 name = "arach-hwd"
 version = "0.1.0"
-source = "git+https://github.com/SisyphusAeolides/Arach-HWD.git?rev=fd4fd4a7d2958f584702a9c9ea4732516af6d8b4#fd4fd4a7d2958f584702a9c9ea4732516af6d8b4"
+source = "git+https://github.com/SisyphusAeolides/Arach-HWD.git?rev=8d515e481fd6d3367bce20815ff032eac3f2eaeb#8d515e481fd6d3367bce20815ff032eac3f2eaeb"
 dependencies = [
  "ed25519-dalek",
  "serde",
@@ -58,7 +58,7 @@ checksum = "9330f8b2ff13f34540b44e946ef35111825727b38d33286ef986142615121801"
 [[package]]
 name = "corinth"
 version = "0.1.0"
-source = "git+https://github.com/SisyphusAeolides/Corinth.git?rev=a2a064ecfa8bbe8340a478de2773d8d98c9f874e#a2a064ecfa8bbe8340a478de2773d8d98c9f874e"
+source = "git+https://github.com/SisyphusAeolides/Corinth.git?rev=898741db9a7b2a8708cc80a16fbced0ef3a0ecfc#898741db9a7b2a8708cc80a16fbced0ef3a0ecfc"
 dependencies = [
  "arach-hwd",
  "libc",
