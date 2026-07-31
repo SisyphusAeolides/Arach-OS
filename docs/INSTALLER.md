@@ -1,7 +1,8 @@
 # COSMIC live image and installer
 
-The Arach OS installation medium installs the `cosmic-desktop` bundle from the
-locked Arach-Packages workspace recipe, then starts `cosmic-comp` and
+The Arach OS installation medium installs the `cosmic-desktop` bundle and the
+`arach-os-installer` recipe outputs from the locked Arach-Packages workspace,
+then starts `cosmic-comp` and
 `cosmic-session` as its live desktop. It launches a branded Calamares process;
 there is no alternate desktop in the release image.
 
