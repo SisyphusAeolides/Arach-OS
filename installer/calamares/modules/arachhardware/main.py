@@ -27,6 +27,8 @@ def run():
     configuration = libcalamares.job.configuration
     executable = configuration.get("executable")
     sysfs = configuration.get("sysfs")
+    modules_alias = configuration.get("modulesAlias")
+    modules_firmware = configuration.get("modulesFirmware")
     report = configuration.get("report")
     profiles = configuration.get("profiles")
     keyring = configuration.get("keyring")
@@ -37,6 +39,8 @@ def run():
     if (
         executable != "/system/arach-hwd"
         or sysfs != "/sys"
+        or not isinstance(modules_alias, list)
+        or not isinstance(modules_firmware, list)
         or report != "/run/arach-installer/hardware.toml"
         or profiles != "/etc/arach/hwd/profiles"
         or keyring != "/etc/arach/hwd/keys.toml"
@@ -67,13 +71,43 @@ def run():
     if not re.fullmatch(r"[0-9]+\.[0-9]+", driver_abi):
         return (_("Hardware catalog is invalid"), "driver ABI must be MAJOR.MINOR")
 
+    def metadata_arguments(values, option):
+        result = []
+        for value in values:
+            if (
+                not isinstance(value, str)
+                or not value.startswith("/")
+                or "\x00" in value
+            ):
+                raise ValueError(f"{option} entries must be absolute paths")
+            path = Path(value)
+            if not path.is_file() or path.is_symlink():
+                raise ValueError(f"metadata path is not a regular file: {path}")
+            result.extend((option, value))
+        return result
+
+    try:
+        metadata = metadata_arguments(modules_alias, "--modules-alias")
+        metadata.extend(metadata_arguments(modules_firmware, "--modules-firmware"))
+    except ValueError as error:
+        return (_("Hardware catalog is invalid"), str(error))
+
     commands = [
-        [executable, "preflight", "--sysfs", sysfs, "--output", report],
+        [
+            executable,
+            "preflight",
+            "--sysfs",
+            sysfs,
+            *metadata,
+            "--output",
+            report,
+        ],
         [
             executable,
             "plan",
             "--sysfs",
             sysfs,
+            *metadata,
             "--profiles",
             profiles,
             "--keyring",
