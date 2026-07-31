@@ -10,7 +10,7 @@ role = "kernel"
 [[component]]
 name = "slope"
 repository = "https://github.com/SisyphusAeolides/Slope.git"
-revision = "28ca34ba1a66e9ca94d236ed804152f9ca6425a7"
+revision = "c6acafacd8ce5c4f65dbe50ccfda58712cc3c47d"
 role = "userspace-abi"
 
 [[component]]
@@ -28,13 +28,13 @@ role = "bootloader"
 [[component]]
 name = "corinth"
 repository = "https://github.com/SisyphusAeolides/Corinth.git"
-revision = "6cd63b94ecd4e6ec072f9690828b4fa7a660e09c"
+revision = "7d99f585ed081ea8252b63ef109dd46b1304a305"
 role = "package-manager"
 
 [[component]]
 name = "arach-packages"
 repository = "https://github.com/SisyphusAeolides/Arach-Packages.git"
-revision = "a50346a381e94e4262814296bc5d689e1932a9bd"
+revision = "7fe08909eda1248f68f92ec7fa39913bed3b1ecb"
 role = "package-recipes"
 
 [[component]]

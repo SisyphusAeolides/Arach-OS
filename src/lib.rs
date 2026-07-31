@@ -11,6 +11,7 @@ pub const LOCK_FORMAT: u32 = 1;
 pub const PROFILE_FORMAT: u32 = 1;
 pub const DISTRIBUTION: &str = "Arach OS";
 pub const INSTALLER_FORMAT: u32 = 1;
+pub const LIVE_IMAGE_FORMAT: u32 = 1;
 pub const CALAMARES_VERSION: &str = "3.4.2";
 pub const CALAMARES_REPOSITORY: &str = "https://codeberg.org/Calamares/calamares.git";
 pub const CALAMARES_REVISION: &str = "36d30c492e5c7b5d6d32fed5c5d9790522e1eea3";
@@ -57,6 +58,19 @@ pub struct LiveProfile {
     pub installer: Installer,
     pub filesystems: Filesystems,
     pub hardware: Hardware,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct LiveImageContract {
+    pub format: u32,
+    pub distribution: String,
+    pub root_layout: String,
+    pub boot_bundle_source: String,
+    pub repository_generation: String,
+    pub manifest: String,
+    pub init: String,
+    pub required_path: Vec<String>,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
@@ -186,6 +200,11 @@ pub fn parse_live_profile(text: &str) -> Result<LiveProfile, CompositionError> {
     toml::from_str(text).map_err(|error| CompositionError::new("live.profile", error.to_string()))
 }
 
+pub fn parse_live_image_contract(text: &str) -> Result<LiveImageContract, CompositionError> {
+    toml::from_str(text)
+        .map_err(|error| CompositionError::new("live/image.toml", error.to_string()))
+}
+
 pub fn parse_installer_contract(text: &str) -> Result<InstallerContract, CompositionError> {
     toml::from_str(text)
         .map_err(|error| CompositionError::new("installer/contract.toml", error.to_string()))
@@ -285,6 +304,75 @@ pub fn validate_live_profile(profile: &LiveProfile, root: &Path) -> Result<(), C
         return Err(CompositionError::new(
             "hardware",
             "hardware provisioning must use Arach-HWD, Corinth, and the measured C-driver boundary",
+        ));
+    }
+    Ok(())
+}
+
+pub fn validate_live_image_contract(
+    image: &LiveImageContract,
+    root: &Path,
+) -> Result<(), CompositionError> {
+    if image.format != LIVE_IMAGE_FORMAT || image.distribution != DISTRIBUTION {
+        return Err(CompositionError::new(
+            "live/image.toml",
+            "format or distribution identity differs from the image contract",
+        ));
+    }
+    if image.root_layout != "posix"
+        || image.boot_bundle_source != "/run/arach-live/boot-bundle"
+        || image.repository_generation != "/run/arach-live/repository/system.gen"
+        || image.manifest != "/run/arach-live/image.json"
+        || image.init != "/system/push"
+    {
+        return Err(CompositionError::new(
+            "live/image.toml",
+            "live root paths do not match the measured Arach runtime boundary",
+        ));
+    }
+    let expected = [
+        "/system/push",
+        "/system/corinth",
+        "/system/slope-net",
+        "/system/crest",
+        "/system/dbus-broker-launch",
+        "/system/cosmic-comp",
+        "/system/cosmic-greeter",
+        "/system/cosmic-session",
+        "/system/xdg-desktop-portal-cosmic",
+        "/usr/libexec/arach-install",
+        "/usr/bin/calamares",
+        "/usr/share/calamares/branding/arach/arach-logo.png",
+    ];
+    let actual = image
+        .required_path
+        .iter()
+        .map(String::as_str)
+        .collect::<BTreeSet<_>>();
+    let expected_set = expected.iter().copied().collect::<BTreeSet<_>>();
+    if actual != expected_set || image.required_path.len() != actual.len() {
+        return Err(CompositionError::new(
+            "live/image.toml.required_path",
+            "the live root must contain the complete measured Push/COSMIC/Calamares path set",
+        ));
+    }
+    for path in &image.required_path {
+        let path = Path::new(path);
+        if !path.is_absolute()
+            || path
+                .components()
+                .any(|component| matches!(component, std::path::Component::ParentDir))
+        {
+            return Err(CompositionError::new(
+                "live/image.toml.required_path",
+                "required paths must be absolute and cannot escape the live root",
+            ));
+        }
+    }
+    if !root.join("scripts/assemble-live-root.sh").is_file() {
+        return Err(CompositionError::new(
+            "scripts/assemble-live-root.sh",
+            "the live root assembler is absent",
         ));
     }
     Ok(())
@@ -469,15 +557,21 @@ pub fn validate_root(root: &Path) -> Result<CompositionReport, CompositionError>
     let profile_text = fs::read_to_string(&profile_path).map_err(|error| {
         CompositionError::new(profile_path.display().to_string(), error.to_string())
     })?;
+    let image_path = root.join("live/image.toml");
+    let image_text = fs::read_to_string(&image_path).map_err(|error| {
+        CompositionError::new(image_path.display().to_string(), error.to_string())
+    })?;
     let installer_path = root.join("installer/contract.toml");
     let installer_text = fs::read_to_string(&installer_path).map_err(|error| {
         CompositionError::new(installer_path.display().to_string(), error.to_string())
     })?;
     let lock = parse_lock(&lock_text)?;
     let profile = parse_live_profile(&profile_text)?;
+    let image = parse_live_image_contract(&image_text)?;
     let installer = parse_installer_contract(&installer_text)?;
     validate_lock(&lock)?;
     validate_live_profile(&profile, root)?;
+    validate_live_image_contract(&image, root)?;
     validate_installer_contract(&installer, root)?;
     Ok(CompositionReport {
         components: lock.component.len(),
@@ -579,6 +673,15 @@ mod tests {
         let mut profile = parse_live_profile(&text).unwrap();
         profile.desktop.greeter.clear();
         assert!(validate_live_profile(&profile, root).is_err());
+    }
+
+    #[test]
+    fn incomplete_live_root_contract_is_rejected() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR"));
+        let text = fs::read_to_string(root.join("live/image.toml")).unwrap();
+        let mut image = parse_live_image_contract(&text).unwrap();
+        image.required_path.pop();
+        assert!(validate_live_image_contract(&image, root).is_err());
     }
 
     #[test]

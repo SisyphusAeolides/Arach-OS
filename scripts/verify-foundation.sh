@@ -6,6 +6,9 @@ expected="87cc9d21c92c1cfd648e316e3e22e2961b644d375eec21c4ded1c0afc1de5a6e"
 
 test -f "$root/components.lock.toml"
 test -f "$root/live/profile.toml"
+test -f "$root/live/image.toml"
+test -x "$root/scripts/assemble-live-root.sh"
+test -x "$root/scripts/test-live-root.sh"
 test -f "$root/branding/arach-logo.png"
 test -f "$root/branding/source/arach-original.png"
 test -f "$root/installer/contract.toml"
@@ -25,5 +28,7 @@ python3 "$root/installer/calamares/modules/arachtransaction/test_protocol.py"
 grep -Fxq 'session = "cosmic-session"' "$root/live/profile.toml"
 grep -Fxq 'framework = "calamares"' "$root/live/profile.toml"
 grep -Fxq 'allow_unmatched_binary_kernel_modules = false' "$root/live/profile.toml"
+
+"$root/scripts/test-live-root.sh"
 
 printf '%s\n' 'Arach OS foundation verified'

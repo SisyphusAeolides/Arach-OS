@@ -19,6 +19,7 @@ jobs:
       - run: cargo clippy --locked --all-targets -- -D warnings
       - run: cargo test --locked
       - run: cargo run --locked --bin arach-compose -- verify --root .
+      - run: scripts/test-live-root.sh
 
   verify:
     runs-on: ubuntu-24.04

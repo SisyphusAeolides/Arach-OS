@@ -1,0 +1,22 @@
+format = 1
+distribution = "Arach OS"
+root_layout = "posix"
+boot_bundle_source = "/run/arach-live/boot-bundle"
+repository_generation = "/run/arach-live/repository/system.gen"
+manifest = "/run/arach-live/image.json"
+init = "/system/push"
+
+required_path = [
+  "/system/push",
+  "/system/corinth",
+  "/system/slope-net",
+  "/system/crest",
+  "/system/dbus-broker-launch",
+  "/system/cosmic-comp",
+  "/system/cosmic-greeter",
+  "/system/cosmic-session",
+  "/system/xdg-desktop-portal-cosmic",
+  "/usr/libexec/arach-install",
+  "/usr/bin/calamares",
+  "/usr/share/calamares/branding/arach/arach-logo.png",
+]

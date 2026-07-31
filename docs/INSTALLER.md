@@ -67,3 +67,12 @@ An installation is successful only after Corinth verifies the installed
 package generation, Granite is installed and measured, the account database is
 readable, COSMIC greeter configuration is present, the target root can be
 mounted read-write, and an isolated boot probe reaches the configured session.
+
+The live medium is assembled in two bounded stages. First,
+`scripts/assemble-boot-bundle.sh` creates the manifest-bound Granite/Arach/
+Push/Crest directory. Then `scripts/assemble-live-root.sh` consumes that bundle,
+the package-built POSIX root, and the signed Corinth generation. It publishes
+the exact `/run/arach-live/boot-bundle` and
+`/run/arach-live/repository/system.gen` paths only when every required
+Push/COSMIC/Calamares executable in `live/image.toml` is present, and records
+the resulting root in `/run/arach-live/image.json`.

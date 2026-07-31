@@ -74,3 +74,11 @@ Build the installer input bundle with:
 `ARTIFACT_DIR` must contain the measured Granite PE/COFF image and ELF
 `arach`, `push`, and `crest` artifacts. The assembler writes the bounded,
 digest-bound manifest consumed by `arach-install`.
+
+The live-root boundary is explicit in [`live/image.toml`](live/image.toml).
+`scripts/assemble-live-root.sh` consumes a package-built POSIX root, the
+manifest-bound Granite/Arach/Push/Crest bundle, and a signed Corinth
+generation. It refuses to publish a root unless the complete Push, COSMIC,
+Calamares, and installer executable set is present, then writes a deterministic
+image manifest. An ISO writer still consumes this assembled root as a separate,
+tool-qualified release step.
