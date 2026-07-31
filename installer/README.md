@@ -16,9 +16,21 @@ invokes binaries with argument arrays and never through a shell.
 
 `arach-install prepare` validates the private state document and Corinth
 generation, then binds both to a private canonical plan and SHA-256 journal.
-Apply persists a second recovery bundle under the mounted target before it
-publishes Corinth authority. Calamares rolls that authority back on failure;
-after a restart, `arach-install recover --target <root>` performs the same
-recovery from the target bundle. Apply still returns unavailable at the
-unimplemented package-artifact and Granite activation boundary. This is an
-intentional release gate, not a successful installation path.
+It also binds the SHA-256 of the live boot-bundle manifest. Apply persists a
+second recovery bundle under the mounted target before it publishes Corinth
+authority, then atomically installs the manifest-verified Granite, Arach, Push,
+and Crest artifacts into the EFI layout. Verify re-hashes those files, and
+Calamares rolls both boot files and Corinth authority back on failure; after a
+restart, `arach-install recover --target <root>` performs the same recovery
+from the target bundle. The complete live ISO and bounded QEMU/C0 session gate
+remain separate release work.
+
+The boot bundle directory is fixed and contains:
+
+```text
+manifest.json       # schema = 1, four lowercase SHA-256 fields
+granite.efi         # PE/COFF UEFI image
+arach               # ELF kernel image
+push                # ELF PID 1 image
+crest               # ELF measured bootstrap/session image
+```

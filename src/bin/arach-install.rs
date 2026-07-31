@@ -16,20 +16,25 @@ fn run(arguments: Vec<String>) -> Result<(), installer::InstallerError> {
     let flags = installer::parse_flag_arguments(rest)?;
     match command.as_str() {
         "prepare" => {
-            require_flags(&flags, &["generation", "journal", "plan", "state"])?;
+            require_flags(
+                &flags,
+                &["boot-bundle", "generation", "journal", "plan", "state"],
+            )?;
             installer::prepare(
                 required(&flags, "state")?,
                 required(&flags, "plan")?,
                 required(&flags, "journal")?,
                 required(&flags, "generation")?,
+                required(&flags, "boot-bundle")?,
             )
         }
         "apply" => {
-            require_flags(&flags, &["journal", "plan", "target"])?;
+            require_flags(&flags, &["boot-bundle", "journal", "plan", "target"])?;
             installer::apply(
                 required(&flags, "plan")?,
                 required(&flags, "journal")?,
                 required(&flags, "target")?,
+                required(&flags, "boot-bundle")?,
             )
         }
         "verify" => {

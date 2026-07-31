@@ -43,11 +43,13 @@ Despite the extension of the originally supplied file, its actual format is a
 The composition contract, component pins, Calamares configuration, private
 state handoff, and journal-bound transaction state machine are established.
 The production transaction can now validate and publish a canonical Corinth
-generation with a target-persistent recovery checkpoint, and can restore the
-previous generation authority after process or machine interruption. It still
-fails closed at the Granite activation gate, so package artifact deployment,
-boot activation, a bootable live ISO, the complete package repository,
-hardware-profile database, and full COSMIC behavior gate remain active work.
+generation with a target-persistent recovery checkpoint, atomically activate a
+manifest-bound Granite/Arach/Push/Crest boot bundle, verify the installed
+artifacts, and restore both boot files and package authority after process or
+machine interruption. A bootable live ISO, complete package repository,
+hardware-profile database, and full COSMIC behavior gate remain active work;
+the installer still fails closed when the live boot bundle is absent or does
+not match its plan.
 
 Rust validates the executable image and installer contracts. Fortran schedules
 only trust-admitted build stages and rejects an installer missing any transaction

@@ -13,8 +13,39 @@ use std::sync::atomic::{AtomicU64, Ordering};
 
 const DOCUMENT_LIMIT: u64 = 1024 * 1024;
 const TRANSACTION_SCHEMA: u32 = 1;
+pub const BOOT_BUNDLE_SCHEMA: u32 = 1;
+const MAX_BOOT_ARTIFACT_BYTES: u64 = 32 * 1024 * 1024;
 const MAX_RECOVERY_TRANSACTIONS: usize = 128;
 static TEMPORARY_SERIAL: AtomicU64 = AtomicU64::new(1);
+
+const BOOT_MANIFEST_NAME: &str = "manifest.json";
+const GRANITE_ARTIFACT_NAME: &str = "granite.efi";
+const ARACH_ARTIFACT_NAME: &str = "arach";
+const PUSH_ARTIFACT_NAME: &str = "push";
+const CREST_ARTIFACT_NAME: &str = "crest";
+const TARGET_GRANITE_PATH: &str = "boot/EFI/BOOT/BOOTX64.EFI";
+const TARGET_ARACH_PATH: &str = "boot/BOOT/ARACH";
+const TARGET_PUSH_PATH: &str = "boot/BOOT/PUSH";
+const TARGET_CREST_PATH: &str = "boot/BOOT/CREST";
+const TARGET_MANIFEST_PATH: &str = "boot/BOOT/ARACH-MANIFEST.json";
+
+#[derive(Clone, Debug, Deserialize, Serialize, Eq, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BootBundleManifest {
+    pub schema: u32,
+    pub granite_sha256: String,
+    pub arach_sha256: String,
+    pub push_sha256: String,
+    pub crest_sha256: String,
+}
+
+struct BootBundle {
+    manifest_bytes: Vec<u8>,
+    granite: Vec<u8>,
+    arach: Vec<u8>,
+    push: Vec<u8>,
+    crest: Vec<u8>,
+}
 
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
 #[serde(deny_unknown_fields)]
@@ -55,6 +86,7 @@ pub struct InstallPlan {
     pub transaction_id: String,
     pub state_sha256: String,
     pub generation_sha256: String,
+    pub boot_bundle_sha256: String,
     pub distribution: String,
     pub operations: Vec<InstallOperation>,
 }
@@ -106,13 +138,6 @@ impl InstallerError {
             unavailable: false,
         }
     }
-
-    fn unavailable(message: impl Into<String>) -> Self {
-        Self {
-            message: message.into(),
-            unavailable: true,
-        }
-    }
 }
 
 impl fmt::Display for InstallerError {
@@ -128,8 +153,15 @@ pub fn prepare(
     plan_path: &Path,
     journal_path: &Path,
     generation_path: &Path,
+    boot_bundle_path: &Path,
 ) -> Result<(), InstallerError> {
-    require_distinct_paths(&[state_path, plan_path, journal_path, generation_path])?;
+    require_distinct_paths(&[
+        state_path,
+        plan_path,
+        journal_path,
+        generation_path,
+        boot_bundle_path,
+    ])?;
     let state: InstallerState = read_private_json(state_path)?;
     validate_transaction_id(&state.transaction_id)?;
     if state.schema != TRANSACTION_SCHEMA {
@@ -142,6 +174,7 @@ pub fn prepare(
         InstallerError::invalid(format!("invalid Corinth generation: {error:?}"))
     })?;
     let generation_sha256 = digest(&generation_bytes);
+    let boot_bundle = read_boot_bundle(boot_bundle_path)?;
     let staged_generation = staged_generation_path(plan_path)?;
     let state_bytes = canonical_json(&state)?;
     let plan = InstallPlan {
@@ -150,6 +183,7 @@ pub fn prepare(
         state_sha256: digest(&state_bytes),
         generation_sha256: generation_sha256.clone(),
         distribution: crate::DISTRIBUTION.into(),
+        boot_bundle_sha256: digest(&boot_bundle.manifest_bytes),
         operations: vec![
             InstallOperation::CorinthInstall,
             InstallOperation::GraniteActivate,
@@ -181,7 +215,12 @@ pub fn prepare(
     Ok(())
 }
 
-pub fn apply(plan_path: &Path, journal_path: &Path, target: &Path) -> Result<(), InstallerError> {
+pub fn apply(
+    plan_path: &Path,
+    journal_path: &Path,
+    target: &Path,
+    boot_bundle_path: &Path,
+) -> Result<(), InstallerError> {
     let target = validate_target(target)?;
     let (plan, mut journal) = load_bound_documents(plan_path, journal_path)?;
     if journal.status != JournalStatus::Prepared {
@@ -197,6 +236,12 @@ pub fn apply(plan_path: &Path, journal_path: &Path, target: &Path) -> Result<(),
     GenerationImage::decode(&generation_bytes).map_err(|error| {
         InstallerError::invalid(format!("invalid staged Corinth generation: {error:?}"))
     })?;
+    let boot_bundle = read_boot_bundle(boot_bundle_path)?;
+    if digest(&boot_bundle.manifest_bytes) != plan.boot_bundle_sha256 {
+        return Err(InstallerError::invalid(
+            "boot bundle manifest differs from the immutable install plan",
+        ));
+    }
     let store_root = target_store_root(&target)?;
     let previous = FilesystemGenerationStore::inspect_active(&store_root).map_err(|error| {
         InstallerError::invalid(format!("cannot read Corinth authority: {error}"))
@@ -223,16 +268,21 @@ pub fn apply(plan_path: &Path, journal_path: &Path, target: &Path) -> Result<(),
     journal.mutations.push("corinth-generation".into());
     rewrite_journal_copies(journal_path, Some(&checkpoint_journal), &journal)?;
 
-    journal.status = JournalStatus::ApplyFailed;
+    if let Err(error) = activate_boot_bundle(&target, &plan, &boot_bundle) {
+        journal.status = JournalStatus::ApplyFailed;
+        rewrite_journal_copies(journal_path, Some(&checkpoint_journal), &journal)?;
+        return Err(error);
+    }
+    journal.status = JournalStatus::Applied;
+    journal.mutations.push("boot-bundle".into());
     rewrite_journal_copies(journal_path, Some(&checkpoint_journal), &journal)?;
-    Err(InstallerError::unavailable(
-        "Granite activation is not implemented; the published Corinth generation requires rollback",
-    ))
+    Ok(())
 }
 
 pub fn verify(plan_path: &Path, journal_path: &Path, target: &Path) -> Result<(), InstallerError> {
     let target = validate_target(target)?;
-    let (_plan, journal) = load_bound_documents(plan_path, journal_path)?;
+    let (plan, runtime_journal) = load_bound_documents(plan_path, journal_path)?;
+    let (mut journal, checkpoint_journal) = authoritative_journal(&target, &plan, runtime_journal)?;
     if journal.status != JournalStatus::Applied
         || journal.target.as_deref() != Some(target.to_string_lossy().as_ref())
     {
@@ -240,9 +290,10 @@ pub fn verify(plan_path: &Path, journal_path: &Path, target: &Path) -> Result<()
             "only an applied transaction may enter verification",
         ));
     }
-    Err(InstallerError::unavailable(
-        "installed Corinth generation, Granite measurement, and COSMIC session verification are not implemented",
-    ))
+    verify_installed_boot_bundle(&target, &plan)?;
+    journal.status = JournalStatus::Verified;
+    rewrite_journal_copies(journal_path, checkpoint_journal.as_deref(), &journal)?;
+    Ok(())
 }
 
 pub fn rollback(
@@ -260,6 +311,7 @@ pub fn rollback(
             | JournalStatus::CorinthPublished
             | JournalStatus::ApplyFailed
             | JournalStatus::Applied
+            | JournalStatus::Verified
     ) {
         return Err(InstallerError::invalid(
             "transaction state cannot be rolled back",
@@ -273,6 +325,19 @@ pub fn rollback(
         return Err(InstallerError::invalid(
             "rollback target differs from the journaled target",
         ));
+    }
+    let had_boot_bundle = journal
+        .mutations
+        .iter()
+        .any(|mutation| mutation == "boot-bundle");
+    rollback_boot_bundle(&target, &plan)?;
+    if had_boot_bundle
+        && !journal
+            .mutations
+            .iter()
+            .any(|mutation| mutation == "boot-bundle:rolled-back")
+    {
+        journal.mutations.push("boot-bundle:rolled-back".into());
     }
     rollback_corinth(&target, &plan, &journal)?;
     journal.status = JournalStatus::RolledBack;
@@ -345,6 +410,430 @@ pub fn recover(target: &Path) -> Result<u32, InstallerError> {
     Ok(recovered)
 }
 
+#[derive(Clone, Debug, Deserialize, Serialize, Eq, PartialEq)]
+#[serde(deny_unknown_fields)]
+struct BootMutationRecord {
+    schema: u32,
+    manifest_sha256: String,
+    complete: bool,
+    entries: Vec<BootMutationEntry>,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize, Eq, PartialEq)]
+#[serde(deny_unknown_fields)]
+struct BootMutationEntry {
+    destination: String,
+    backup: Option<String>,
+    installed: bool,
+}
+
+fn read_boot_bundle(root: &Path) -> Result<BootBundle, InstallerError> {
+    let root = validate_boot_bundle_root(root)?;
+    let manifest_path = root.join(BOOT_MANIFEST_NAME);
+    let manifest_bytes = read_regular(&manifest_path, DOCUMENT_LIMIT, false)?;
+    let manifest: BootBundleManifest = serde_json::from_slice(&manifest_bytes)
+        .map_err(|error| InstallerError::invalid(format!("boot manifest: {error}")))?;
+    if manifest.schema != BOOT_BUNDLE_SCHEMA
+        || !valid_digest(&manifest.granite_sha256)
+        || !valid_digest(&manifest.arach_sha256)
+        || !valid_digest(&manifest.push_sha256)
+        || !valid_digest(&manifest.crest_sha256)
+    {
+        return Err(InstallerError::invalid(
+            "boot manifest has an unsupported schema or digest",
+        ));
+    }
+    let granite = read_boot_artifact(
+        &root,
+        GRANITE_ARTIFACT_NAME,
+        &manifest.granite_sha256,
+        "Granite",
+        b"MZ",
+    )?;
+    let arach = read_boot_artifact(
+        &root,
+        ARACH_ARTIFACT_NAME,
+        &manifest.arach_sha256,
+        "Arach",
+        b"\x7fELF",
+    )?;
+    let push = read_boot_artifact(
+        &root,
+        PUSH_ARTIFACT_NAME,
+        &manifest.push_sha256,
+        "Push",
+        b"\x7fELF",
+    )?;
+    let crest = read_boot_artifact(
+        &root,
+        CREST_ARTIFACT_NAME,
+        &manifest.crest_sha256,
+        "Crest",
+        b"\x7fELF",
+    )?;
+    Ok(BootBundle {
+        manifest_bytes,
+        granite,
+        arach,
+        push,
+        crest,
+    })
+}
+
+fn validate_boot_bundle_root(root: &Path) -> Result<PathBuf, InstallerError> {
+    if !root.is_absolute() {
+        return Err(InstallerError::invalid(
+            "boot bundle source must be an absolute directory",
+        ));
+    }
+    let metadata = fs::symlink_metadata(root)
+        .map_err(|error| InstallerError::invalid(format!("{}: {error}", root.display())))?;
+    if !metadata.is_dir() || metadata.file_type().is_symlink() {
+        return Err(InstallerError::invalid(
+            "boot bundle source must be a real directory",
+        ));
+    }
+    Ok(root.to_path_buf())
+}
+
+fn read_boot_artifact(
+    root: &Path,
+    name: &str,
+    expected: &str,
+    label: &str,
+    magic: &[u8],
+) -> Result<Vec<u8>, InstallerError> {
+    let bytes = read_regular(&root.join(name), MAX_BOOT_ARTIFACT_BYTES, false)?;
+    if bytes.is_empty() || !bytes.starts_with(magic) {
+        return Err(InstallerError::invalid(format!(
+            "{label} boot artifact has an invalid executable header",
+        )));
+    }
+    let actual = digest(&bytes);
+    if actual != expected {
+        return Err(InstallerError::invalid(format!(
+            "{label} boot artifact digest differs from its manifest",
+        )));
+    }
+    Ok(bytes)
+}
+
+fn activate_boot_bundle(
+    target: &Path,
+    plan: &InstallPlan,
+    bundle: &BootBundle,
+) -> Result<(), InstallerError> {
+    let checkpoint = target_transaction_directory(target, &plan.transaction_id);
+    validate_private_directory(&checkpoint)?;
+    let mutation_path = checkpoint.join("boot-mutation.json");
+    if fs::symlink_metadata(&mutation_path).is_ok() {
+        return Err(InstallerError::invalid(
+            "boot activation checkpoint already exists",
+        ));
+    }
+    let backup_root = checkpoint.join("boot-backup");
+    ensure_private_directory(&backup_root)?;
+    let files: [(&str, &[u8]); 5] = [
+        (TARGET_GRANITE_PATH, &bundle.granite),
+        (TARGET_ARACH_PATH, &bundle.arach),
+        (TARGET_PUSH_PATH, &bundle.push),
+        (TARGET_CREST_PATH, &bundle.crest),
+        (TARGET_MANIFEST_PATH, &bundle.manifest_bytes),
+    ];
+    let mut entries = Vec::with_capacity(files.len());
+    for (index, (destination, _)) in files.iter().enumerate() {
+        let destination_path = target_boot_path(target, destination)?;
+        ensure_target_parent(&destination_path)?;
+        let backup = match fs::symlink_metadata(&destination_path) {
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => None,
+            Err(error) => {
+                return Err(InstallerError::invalid(format!(
+                    "{}: {error}",
+                    destination_path.display()
+                )));
+            }
+            Ok(metadata) if metadata.file_type().is_symlink() || !metadata.is_file() => {
+                return Err(InstallerError::invalid(format!(
+                    "{} is not a replaceable regular file",
+                    destination_path.display()
+                )));
+            }
+            Ok(_) => {
+                let name = format!("file-{index}");
+                let backup_path = backup_root.join(&name);
+                let bytes = read_regular(&destination_path, MAX_BOOT_ARTIFACT_BYTES, false)?;
+                create_private(&backup_path, &bytes)?;
+                Some(format!("boot-backup/{name}"))
+            }
+        };
+        entries.push(BootMutationEntry {
+            destination: (*destination).into(),
+            backup,
+            installed: false,
+        });
+    }
+    let mut record = BootMutationRecord {
+        schema: BOOT_BUNDLE_SCHEMA,
+        manifest_sha256: plan.boot_bundle_sha256.clone(),
+        complete: false,
+        entries,
+    };
+    create_private(&mutation_path, &canonical_json(&record)?)?;
+    for (index, (_, bytes)) in files.iter().enumerate() {
+        let destination_path = target_boot_path(target, &record.entries[index].destination)?;
+        atomic_target_file(&destination_path, bytes)?;
+        record.entries[index].installed = true;
+        rewrite_private(&mutation_path, &canonical_json(&record)?)?;
+    }
+    record.complete = true;
+    rewrite_private(&mutation_path, &canonical_json(&record)?)?;
+    Ok(())
+}
+
+fn verify_installed_boot_bundle(target: &Path, plan: &InstallPlan) -> Result<(), InstallerError> {
+    let manifest_path = target_boot_path(target, TARGET_MANIFEST_PATH)?;
+    let manifest_bytes = read_regular(&manifest_path, DOCUMENT_LIMIT, false)?;
+    if digest(&manifest_bytes) != plan.boot_bundle_sha256 {
+        return Err(InstallerError::invalid(
+            "installed boot manifest differs from the install plan",
+        ));
+    }
+    let manifest: BootBundleManifest = serde_json::from_slice(&manifest_bytes)
+        .map_err(|error| InstallerError::invalid(format!("installed boot manifest: {error}")))?;
+    if manifest.schema != BOOT_BUNDLE_SCHEMA {
+        return Err(InstallerError::invalid(
+            "installed boot manifest has an unsupported schema",
+        ));
+    }
+    verify_installed_artifact(
+        target,
+        TARGET_GRANITE_PATH,
+        &manifest.granite_sha256,
+        "Granite",
+        b"MZ",
+    )?;
+    verify_installed_artifact(
+        target,
+        TARGET_ARACH_PATH,
+        &manifest.arach_sha256,
+        "Arach",
+        b"\x7fELF",
+    )?;
+    verify_installed_artifact(
+        target,
+        TARGET_PUSH_PATH,
+        &manifest.push_sha256,
+        "Push",
+        b"\x7fELF",
+    )?;
+    verify_installed_artifact(
+        target,
+        TARGET_CREST_PATH,
+        &manifest.crest_sha256,
+        "Crest",
+        b"\x7fELF",
+    )?;
+    Ok(())
+}
+
+fn verify_installed_artifact(
+    target: &Path,
+    relative: &str,
+    expected: &str,
+    label: &str,
+    magic: &[u8],
+) -> Result<(), InstallerError> {
+    let bytes = read_regular(
+        &target_boot_path(target, relative)?,
+        MAX_BOOT_ARTIFACT_BYTES,
+        false,
+    )?;
+    if !bytes.starts_with(magic) || digest(&bytes) != expected {
+        return Err(InstallerError::invalid(format!(
+            "installed {label} artifact failed digest or header verification",
+        )));
+    }
+    Ok(())
+}
+
+fn rollback_boot_bundle(target: &Path, plan: &InstallPlan) -> Result<(), InstallerError> {
+    let checkpoint = target_transaction_directory(target, &plan.transaction_id);
+    let mutation_path = checkpoint.join("boot-mutation.json");
+    let metadata = match fs::symlink_metadata(&mutation_path) {
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(()),
+        Err(error) => {
+            return Err(InstallerError::invalid(format!(
+                "{}: {error}",
+                mutation_path.display()
+            )));
+        }
+        Ok(metadata) => metadata,
+    };
+    if metadata.file_type().is_symlink() || !metadata.is_file() {
+        return Err(InstallerError::invalid(
+            "boot activation checkpoint is not a regular file",
+        ));
+    }
+    let record: BootMutationRecord = read_private_json(&mutation_path)?;
+    if record.schema != BOOT_BUNDLE_SCHEMA
+        || record.manifest_sha256 != plan.boot_bundle_sha256
+        || record.entries.iter().any(|entry| {
+            !is_boot_destination(&entry.destination)
+                || entry
+                    .backup
+                    .as_deref()
+                    .is_some_and(|path| !path.starts_with("boot-backup/"))
+        })
+    {
+        return Err(InstallerError::invalid(
+            "boot activation checkpoint does not match the install plan",
+        ));
+    }
+    for entry in record.entries.iter().rev().filter(|entry| entry.installed) {
+        let destination = target_boot_path(target, &entry.destination)?;
+        if let Some(backup) = entry.backup.as_deref() {
+            let backup_path = checkpoint.join(backup);
+            let bytes = read_regular(&backup_path, MAX_BOOT_ARTIFACT_BYTES, true)?;
+            atomic_target_file(&destination, &bytes)?;
+        } else {
+            remove_target_file(&destination)?;
+        }
+    }
+    fs::remove_file(&mutation_path).map_err(|error| {
+        InstallerError::invalid(format!("{}: {error}", mutation_path.display()))
+    })?;
+    sync_parent(&checkpoint)?;
+    Ok(())
+}
+
+fn is_boot_destination(path: &str) -> bool {
+    matches!(
+        path,
+        TARGET_GRANITE_PATH
+            | TARGET_ARACH_PATH
+            | TARGET_PUSH_PATH
+            | TARGET_CREST_PATH
+            | TARGET_MANIFEST_PATH
+    )
+}
+
+fn target_boot_path(target: &Path, relative: &str) -> Result<PathBuf, InstallerError> {
+    if !is_boot_destination(relative) {
+        return Err(InstallerError::invalid(
+            "boot destination is not allow-listed",
+        ));
+    }
+    let path = target.join(relative);
+    let mut current = target.to_path_buf();
+    let relative_path = Path::new(relative);
+    for component in relative_path.components() {
+        let std::path::Component::Normal(name) = component else {
+            return Err(InstallerError::invalid("boot destination is not relative"));
+        };
+        current.push(name);
+        if current == path {
+            break;
+        }
+        if let Ok(metadata) = fs::symlink_metadata(&current) {
+            if metadata.file_type().is_symlink() || !metadata.is_dir() {
+                return Err(InstallerError::invalid(format!(
+                    "{} is not a real boot directory",
+                    current.display()
+                )));
+            }
+        }
+    }
+    Ok(path)
+}
+
+fn ensure_target_parent(path: &Path) -> Result<(), InstallerError> {
+    let parent = path
+        .parent()
+        .ok_or_else(|| InstallerError::invalid("boot destination has no parent"))?;
+    let mut missing = Vec::new();
+    let mut current = parent.to_path_buf();
+    while !current.exists() {
+        missing.push(current.clone());
+        current = current
+            .parent()
+            .ok_or_else(|| InstallerError::invalid("boot parent has no root"))?
+            .to_path_buf();
+    }
+    let metadata = fs::symlink_metadata(&current)
+        .map_err(|error| InstallerError::invalid(format!("{}: {error}", current.display())))?;
+    if metadata.file_type().is_symlink() || !metadata.is_dir() {
+        return Err(InstallerError::invalid(
+            "boot parent is not a real directory",
+        ));
+    }
+    for directory in missing.into_iter().rev() {
+        fs::create_dir(&directory).map_err(|error| {
+            InstallerError::invalid(format!("{}: {error}", directory.display()))
+        })?;
+        fs::set_permissions(&directory, fs::Permissions::from_mode(0o755)).map_err(|error| {
+            InstallerError::invalid(format!("{}: {error}", directory.display()))
+        })?;
+        sync_parent(&directory)?;
+    }
+    Ok(())
+}
+
+fn atomic_target_file(path: &Path, bytes: &[u8]) -> Result<(), InstallerError> {
+    let parent = path
+        .parent()
+        .ok_or_else(|| InstallerError::invalid("target file has no parent"))?;
+    ensure_target_parent(path)?;
+    let serial = TEMPORARY_SERIAL.fetch_add(1, Ordering::Relaxed);
+    let temporary = parent.join(format!(".arach-boot-{}-{serial}.tmp", std::process::id()));
+    let result = (|| {
+        let mut file = OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .custom_flags(libc::O_NOFOLLOW)
+            .mode(0o644)
+            .open(&temporary)
+            .map_err(|error| {
+                InstallerError::invalid(format!("{}: {error}", temporary.display()))
+            })?;
+        file.write_all(bytes)
+            .and_then(|()| file.sync_all())
+            .map_err(|error| {
+                InstallerError::invalid(format!("{}: {error}", temporary.display()))
+            })?;
+        fs::rename(&temporary, path)
+            .map_err(|error| InstallerError::invalid(format!("{}: {error}", path.display())))?;
+        sync_parent(parent)
+    })();
+    if result.is_err() {
+        let _ = fs::remove_file(&temporary);
+    }
+    result
+}
+
+fn remove_target_file(path: &Path) -> Result<(), InstallerError> {
+    match fs::symlink_metadata(path) {
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(()),
+        Err(error) => Err(InstallerError::invalid(format!(
+            "{}: {error}",
+            path.display()
+        ))),
+        Ok(metadata) if metadata.file_type().is_symlink() || !metadata.is_file() => {
+            Err(InstallerError::invalid(format!(
+                "{} is not a removable regular file",
+                path.display()
+            )))
+        }
+        Ok(_) => {
+            fs::remove_file(path)
+                .map_err(|error| InstallerError::invalid(format!("{}: {error}", path.display())))?;
+            if let Some(parent) = path.parent() {
+                sync_parent(parent)?;
+            }
+            Ok(())
+        }
+    }
+}
+
 pub fn parse_flag_arguments(
     arguments: &[String],
 ) -> Result<BTreeMap<String, PathBuf>, InstallerError> {
@@ -356,7 +845,10 @@ pub fn parse_flag_arguments(
         let flag = pair[0]
             .strip_prefix("--")
             .ok_or_else(|| InstallerError::invalid(format!("invalid flag {}", pair[0])))?;
-        if !matches!(flag, "state" | "plan" | "journal" | "target" | "generation") {
+        if !matches!(
+            flag,
+            "state" | "plan" | "journal" | "target" | "generation" | "boot-bundle"
+        ) {
             return Err(InstallerError::invalid(format!("unknown flag --{flag}")));
         }
         if parsed
@@ -382,6 +874,7 @@ fn load_bound_documents(
         || plan.transaction_id != journal.transaction_id
         || journal.plan_sha256 != digest(&canonical_json(&plan)?)
         || !valid_digest(&plan.generation_sha256)
+        || !valid_digest(&plan.boot_bundle_sha256)
         || journal.intended_corinth_generation != plan.generation_sha256
         || plan.operations
             != [
@@ -407,10 +900,20 @@ fn validate_journal(journal: &InstallJournal) -> Result<(), InstallerError> {
         .iter()
         .filter(|mutation| mutation.as_str() == "corinth-generation")
         .count();
+    let boot_mutations = journal
+        .mutations
+        .iter()
+        .filter(|mutation| mutation.as_str() == "boot-bundle")
+        .count();
     let rollback_mutations = journal
         .mutations
         .iter()
         .filter(|mutation| mutation.as_str() == "corinth-generation:rolled-back")
+        .count();
+    let boot_rollback_mutations = journal
+        .mutations
+        .iter()
+        .filter(|mutation| mutation.as_str() == "boot-bundle:rolled-back")
         .count();
     let coherent_transition = match journal.status {
         JournalStatus::Prepared => {
@@ -430,11 +933,14 @@ fn validate_journal(journal: &InstallJournal) -> Result<(), InstallerError> {
                 && journal.corinth_published
                 && published_mutations == 1
                 && rollback_mutations == 0
+                && boot_mutations <= 1
+                && boot_rollback_mutations == 0
         }
         JournalStatus::RolledBack => {
             journal.target.is_some()
                 && !journal.corinth_published
                 && rollback_mutations == 1
+                && boot_rollback_mutations == boot_mutations
                 && published_mutations <= 1
         }
     };
@@ -446,7 +952,10 @@ fn validate_journal(journal: &InstallJournal) -> Result<(), InstallerError> {
         || journal.mutations.iter().any(|mutation| {
             !matches!(
                 mutation.as_str(),
-                "corinth-generation" | "corinth-generation:rolled-back"
+                "corinth-generation"
+                    | "corinth-generation:rolled-back"
+                    | "boot-bundle"
+                    | "boot-bundle:rolled-back"
             )
         })
         || !coherent_transition
@@ -932,14 +1441,42 @@ mod tests {
         path
     }
 
+    fn write_boot_bundle(root: &Path) -> PathBuf {
+        let bundle = root.join("boot-bundle");
+        fs::create_dir(&bundle).unwrap();
+        fs::set_permissions(&bundle, fs::Permissions::from_mode(0o700)).unwrap();
+        let granite = b"MZ-granite-test";
+        let arach = b"\x7fELF-arach-test";
+        let push = b"\x7fELF-push-test";
+        let crest = b"\x7fELF-crest-test";
+        create_private(&bundle.join(GRANITE_ARTIFACT_NAME), granite).unwrap();
+        create_private(&bundle.join(ARACH_ARTIFACT_NAME), arach).unwrap();
+        create_private(&bundle.join(PUSH_ARTIFACT_NAME), push).unwrap();
+        create_private(&bundle.join(CREST_ARTIFACT_NAME), crest).unwrap();
+        let manifest = BootBundleManifest {
+            schema: BOOT_BUNDLE_SCHEMA,
+            granite_sha256: digest(granite),
+            arach_sha256: digest(arach),
+            push_sha256: digest(push),
+            crest_sha256: digest(crest),
+        };
+        create_private(
+            &bundle.join(BOOT_MANIFEST_NAME),
+            &canonical_json(&manifest).unwrap(),
+        )
+        .unwrap();
+        bundle
+    }
+
     #[test]
     fn prepare_binds_plan_and_private_journal() {
         let root = TestRoot::new();
         let state = write_state(&root.0, "");
         let generation = write_generation(&root.0);
+        let boot_bundle = write_boot_bundle(&root.0);
         let plan = root.0.join("plan.json");
         let journal = root.0.join("journal.json");
-        prepare(&state, &plan, &journal, &generation).unwrap();
+        prepare(&state, &plan, &journal, &generation, &boot_bundle).unwrap();
         let (_, loaded) = load_bound_documents(&plan, &journal).unwrap();
         assert_eq!(loaded.status, JournalStatus::Prepared);
         assert!(staged_generation_path(&plan).unwrap().is_file());
@@ -954,30 +1491,34 @@ mod tests {
         let root = TestRoot::new();
         let state = write_state(&root.0, ",\"password\":\"never\"");
         let generation = write_generation(&root.0);
+        let boot_bundle = write_boot_bundle(&root.0);
         let error = prepare(
             &state,
             &root.0.join("plan.json"),
             &root.0.join("journal.json"),
             &generation,
+            &boot_bundle,
         )
         .unwrap_err();
         assert!(error.message.contains("unknown field"));
     }
 
     #[test]
-    fn production_apply_fails_closed_and_can_roll_back() {
+    fn production_apply_activates_and_can_roll_back() {
         let root = TestRoot::new();
         let target = root.0.join("target");
         fs::create_dir_all(target.join("var/lib")).unwrap();
         let state = write_state(&root.0, "");
         let generation = write_generation(&root.0);
+        let boot_bundle = write_boot_bundle(&root.0);
         let plan = root.0.join("plan.json");
         let journal = root.0.join("journal.json");
-        prepare(&state, &plan, &journal, &generation).unwrap();
-        let error = apply(&plan, &journal, &target).unwrap_err();
-        assert!(error.unavailable);
+        prepare(&state, &plan, &journal, &generation, &boot_bundle).unwrap();
+        apply(&plan, &journal, &target, &boot_bundle).unwrap();
+        verify(&plan, &journal, &target).unwrap();
         let store = FilesystemGenerationStore::open(&target.join("var/lib/corinth")).unwrap();
         assert!(store.active().unwrap().is_some());
+        assert!(target.join(TARGET_GRANITE_PATH).is_file());
         rollback(&plan, &journal, &target).unwrap();
         assert_eq!(store.active().unwrap(), None);
         let value: InstallJournal = read_private_json(&journal).unwrap();
@@ -997,16 +1538,17 @@ mod tests {
         fs::create_dir_all(target.join("var/lib")).unwrap();
         let state = write_state(&root.0, "");
         let generation = write_generation(&root.0);
+        let boot_bundle = write_boot_bundle(&root.0);
         let plan = root.0.join("plan.json");
         let journal = root.0.join("journal.json");
-        prepare(&state, &plan, &journal, &generation).unwrap();
+        prepare(&state, &plan, &journal, &generation, &boot_bundle).unwrap();
 
         let transaction = target_transaction_directory(&target, "0123456789abcdef0123456789abcdef");
         ensure_private_directory(transaction.parent().unwrap().parent().unwrap()).unwrap();
         ensure_private_directory(transaction.parent().unwrap()).unwrap();
         ensure_private_directory(&transaction).unwrap();
 
-        let error = apply(&plan, &journal, &target).unwrap_err();
+        let error = apply(&plan, &journal, &target, &boot_bundle).unwrap_err();
         assert!(error.message.contains("checkpoint already exists"));
         assert!(!target.join("var/lib/corinth").exists());
         let loaded: InstallJournal = read_private_json(&journal).unwrap();
@@ -1025,10 +1567,11 @@ mod tests {
 
         let child = write_generation_with_parent(&root.0, parent, &[10, 20], "child.gen");
         let state = write_state(&root.0, "");
+        let boot_bundle = write_boot_bundle(&root.0);
         let plan = root.0.join("plan.json");
         let journal = root.0.join("journal.json");
-        prepare(&state, &plan, &journal, &child).unwrap();
-        assert!(apply(&plan, &journal, &target).unwrap_err().unavailable);
+        prepare(&state, &plan, &journal, &child, &boot_bundle).unwrap();
+        apply(&plan, &journal, &target, &boot_bundle).unwrap();
         assert_ne!(store.active().unwrap(), Some(parent));
 
         rollback(&plan, &journal, &target).unwrap();
@@ -1042,9 +1585,10 @@ mod tests {
         fs::create_dir_all(target.join("var/lib")).unwrap();
         let state = write_state(&root.0, "");
         let generation = write_generation(&root.0);
+        let boot_bundle = write_boot_bundle(&root.0);
         let plan_path = root.0.join("plan.json");
         let journal_path = root.0.join("journal.json");
-        prepare(&state, &plan_path, &journal_path, &generation).unwrap();
+        prepare(&state, &plan_path, &journal_path, &generation, &boot_bundle).unwrap();
 
         let (plan, mut journal) = load_bound_documents(&plan_path, &journal_path).unwrap();
         let store_root = target_store_root(&target).unwrap();

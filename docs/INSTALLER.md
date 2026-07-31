@@ -23,10 +23,18 @@ generation image, and recovery journal into the mounted target. It publishes
 the canonical Corinth generation, mirrors every subsequent journal transition
 to that checkpoint, and can recover an interrupted transaction with
 `arach-install recover --target <root>`. The Calamares failure path performs the
-same rollback immediately. The backend then deliberately reports unavailable
-at the Granite gate: package artifact deployment, measured boot activation, and
-their remaining inverse operations are not implemented, so this is not yet a
-bootable installation path.
+same rollback immediately.
+
+The live medium supplies `/run/arach-live/boot-bundle`, containing a bounded
+`manifest.json` and four measured files: `granite.efi`, `arach`, `push`, and
+`crest`. `prepare` binds the exact manifest bytes to the immutable plan.
+`apply` verifies every artifact, atomically installs Granite at
+`/boot/EFI/BOOT/BOOTX64.EFI` and the three measured payloads under `/boot/BOOT`,
+and retains backups in the target recovery checkpoint. `verify` re-hashes the
+installed files; rollback restores the previous boot files, including after a
+process or machine interruption. Artifact deployment is implemented, while the
+complete live ISO and bounded QEMU/C0 session qualification remain release
+gates.
 
 ## Required pages
 

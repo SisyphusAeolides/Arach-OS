@@ -36,11 +36,13 @@ def run():
     executable = configuration.get("executable")
     runtime_directory = configuration.get("runtimeDirectory")
     generation_source = configuration.get("generationSource")
+    boot_bundle_source = configuration.get("bootBundleSource")
     if (
         phase not in ("prepare", "commit")
         or not executable
         or not runtime_directory
         or not generation_source
+        or not boot_bundle_source
     ):
         return ("Invalid Arach installer configuration", "Required transaction fields are absent")
 
@@ -71,6 +73,8 @@ def run():
                     str(transaction_paths["journal"]),
                     "--generation",
                     str(generation_source),
+                    "--boot-bundle",
+                    str(boot_bundle_source),
                 ]
             )
         else:
@@ -88,6 +92,8 @@ def run():
                         str(transaction_paths["journal"]),
                         "--target",
                         str(target),
+                        "--boot-bundle",
+                        str(boot_bundle_source),
                     ]
                 )
                 execute(

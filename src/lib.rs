@@ -122,6 +122,7 @@ pub struct TransactionContract {
     pub executable: String,
     pub runtime_directory: String,
     pub generation_source: String,
+    pub boot_bundle_source: String,
     pub target_recovery_directory: String,
     pub prepare_before: String,
     pub commit_after: String,
@@ -309,6 +310,7 @@ pub fn validate_installer_contract(
         || contract.transaction.executable != "/usr/libexec/arach-install"
         || contract.transaction.runtime_directory != "/run/arach-installer"
         || contract.transaction.generation_source != "/run/arach-live/repository/system.gen"
+        || contract.transaction.boot_bundle_source != "/run/arach-live/boot-bundle"
         || contract.transaction.target_recovery_directory != "/var/lib/arach-installer/transactions"
         || contract.transaction.prepare_before != "partition"
         || contract.transaction.commit_after != "unpackfs"
@@ -383,6 +385,7 @@ pub fn validate_installer_contract(
             "phase: prepare",
             "executable: /usr/libexec/arach-install",
             "generationSource: /run/arach-live/repository/system.gen",
+            "bootBundleSource: /run/arach-live/boot-bundle",
         ],
     )?;
     require_file_tokens(
@@ -392,6 +395,7 @@ pub fn validate_installer_contract(
             "phase: commit",
             "executable: /usr/libexec/arach-install",
             "generationSource: /run/arach-live/repository/system.gen",
+            "bootBundleSource: /run/arach-live/boot-bundle",
         ],
     )?;
     require_file_tokens(
