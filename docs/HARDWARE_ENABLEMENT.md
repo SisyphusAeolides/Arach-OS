@@ -16,13 +16,15 @@ The Calamares medium carries `/system/arach-hwd` plus the signed
 runs `arach-hwd preflight --sysfs /sys` and then resolves the same inventory
 through the detached-signature profiles and keyring with
 `arach-hwd plan --require-target-profiles`.
-The installer configuration accepts repeatable absolute `modulesAlias` and
-`modulesFirmware` paths; image builders may pin both live and target kernel
-metadata tables. Empty lists now discover every regular table in the live
-kernel, `/usr/lib/modules`, `/run/arach/target-modules`, and staged `/mnt`
-module roots, so driver and firmware candidates do not depend on which kernel
-booted the medium. Every configured table is required to be a regular file
-before Calamares invokes HWD.
+The installer configuration accepts repeatable absolute `modulesAlias`,
+`modulesFirmware`, `modulesDep`, and `modulesBuiltin` paths; image builders may
+pin both live and target kernel metadata tables. Empty lists now discover every
+regular table in the live kernel, `/usr/lib/modules`,
+`/run/arach/target-modules`, and staged `/mnt` module roots, so driver and
+firmware candidates do not depend on which kernel booted the medium. `modules.dep`
+binds candidates to exact payload paths and `modules.builtin` records
+drivers compiled into the target kernel. Every configured table is required to
+be a regular file before Calamares invokes HWD.
 The report is written to `/run/arach-installer/hardware.toml` and the exact
 Corinth plan to `/run/arach-installer/hardware.plan.toml`. An unbound physical
 device, a physical function with no target profile, invalid signature, or

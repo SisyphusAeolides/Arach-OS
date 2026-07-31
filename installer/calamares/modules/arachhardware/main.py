@@ -29,6 +29,8 @@ def run():
     sysfs = configuration.get("sysfs")
     modules_alias = configuration.get("modulesAlias")
     modules_firmware = configuration.get("modulesFirmware")
+    modules_dep = configuration.get("modulesDep")
+    modules_builtin = configuration.get("modulesBuiltin")
     report = configuration.get("report")
     profiles = configuration.get("profiles")
     keyring = configuration.get("keyring")
@@ -41,6 +43,8 @@ def run():
         or sysfs != "/sys"
         or not isinstance(modules_alias, list)
         or not isinstance(modules_firmware, list)
+        or not isinstance(modules_dep, list)
+        or not isinstance(modules_builtin, list)
         or report != "/run/arach-installer/hardware.toml"
         or profiles != "/etc/arach/hwd/profiles"
         or keyring != "/etc/arach/hwd/keys.toml"
@@ -89,6 +93,8 @@ def run():
     try:
         metadata = metadata_arguments(modules_alias, "--modules-alias")
         metadata.extend(metadata_arguments(modules_firmware, "--modules-firmware"))
+        metadata.extend(metadata_arguments(modules_dep, "--modules-dep"))
+        metadata.extend(metadata_arguments(modules_builtin, "--modules-builtin"))
     except ValueError as error:
         return (_("Hardware catalog is invalid"), str(error))
 
