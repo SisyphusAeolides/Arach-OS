@@ -20,10 +20,14 @@ mkdir -p "$artifacts/corinth-0.1.0-9/target/release"
 printf '\177ELF test Corinth\n' > "$artifacts/corinth-0.1.0-9/target/release/corinth"
 mkdir -p "$artifacts/dbus-broker-1/usr/bin"
 printf '\177ELF test D-Bus\n' > "$artifacts/dbus-broker-1/usr/bin/dbus-broker-launch"
-for binary in cosmic-comp cosmic-greeter cosmic-session cosmic-term xdg-desktop-portal-cosmic; do
+mkdir -p "$artifacts/greetd-0.10.3-1/target/release"
+printf '\177ELF test greetd\n' > "$artifacts/greetd-0.10.3-1/target/release/greetd"
+for binary in cosmic-comp cosmic-greeter cosmic-greeter-start cosmic-session cosmic-term xdg-desktop-portal-cosmic; do
     mkdir -p "$artifacts/cosmic-desktop-0.1.0-1/usr/bin"
     printf '\177ELF test %s\n' "$binary" > "$artifacts/cosmic-desktop-0.1.0-1/usr/bin/$binary"
 done
+mkdir -p "$artifacts/cosmic-desktop-0.1.0-1/etc/greetd"
+printf '[default_session]\ncommand = "cosmic-greeter-start"\n' > "$artifacts/cosmic-desktop-0.1.0-1/etc/greetd/cosmic-greeter.toml"
 mkdir -p "$artifacts/firefox-140.4.0esr-1/usr/bin"
 printf '\177ELF test Firefox\n' > "$artifacts/firefox-140.4.0esr-1/usr/bin/firefox"
 mkdir -p "$artifacts/calamares-3.4.2-1/usr/bin"
@@ -45,6 +49,10 @@ test -s "$output/run/arach-live/image.json"
 test -s "$output/run/arach-live/system.json"
 test -s "$output/run/arach-live/boot-bundle/manifest.json"
 test -s "$output/run/arach-live/repository/system.gen"
+test -s "$output/system/greetd"
+test -s "$output/etc/greetd/cosmic-greeter.toml"
+test -s "$output/etc/greetd/config.toml"
+test -s "$output/usr/bin/cosmic-greeter-start"
 python3 - "$output/run/arach-live/image.json" <<'PY'
 import json
 import sys
@@ -81,6 +89,13 @@ if command -v xorriso >/dev/null 2>&1; then
     "$root/scripts/build-live-iso.sh" "$output" "$tmp/arach-os.iso"
     test -s "$tmp/arach-os.iso"
     test -s "$tmp/arach-os.iso.json"
+    set +e
+    "$root/scripts/build-live-iso.sh" >/dev/null 2>&1
+    missing_args_status=$?
+    set -e
+    test "$missing_args_status" -eq 64
+    xorriso -indev "$tmp/arach-os.iso" -report_el_torito plain 2>&1 \
+        | grep -i -F 'efiboot.img' >/dev/null
 else
     set +e
     "$root/scripts/build-live-iso.sh" "$output" "$tmp/arach-os.iso"

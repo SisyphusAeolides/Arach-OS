@@ -1,10 +1,12 @@
 # COSMIC live image and installer
 
-The Arach OS installation medium installs the `cosmic-desktop` bundle,
-including `cosmic-term`, the signed Firefox runtime artifact, and the
-`arach-os-installer` recipe outputs from the locked Arach-Packages workspace,
-then starts `cosmic-comp` and
-`cosmic-session` as its live desktop. It launches a branded Calamares process;
+The Arach OS installation medium installs the complete pinned `cosmic-desktop`
+tree, the pinned `greetd` display manager, the upstream
+`/etc/greetd/cosmic-greeter.toml` session definition, `cosmic-term`, the signed
+Firefox runtime artifact, and the `arach-os-installer` recipe outputs from the
+locked Arach-Packages workspace. `greetd` launches `cosmic-greeter`, which runs
+inside `cosmic-comp`; the live session then starts `cosmic-session`. SDDM is
+not used. The medium launches a branded Calamares process;
 
 Crest is deliberately absent from this desktop and package graph. The
 compatibility-named `crest` file in the boot bundle is only the measured C0
@@ -86,7 +88,8 @@ materialized root, that boot bundle, and the signed Corinth generation. It
 publishes the exact `/run/arach-live/system.json`,
 `/run/arach-live/boot-bundle`, and `/run/arach-live/repository/system.gen`
 paths only when every required Push/COSMIC/Calamares executable in
-`live/image.toml` is present, and records the resulting root in
+`live/image.toml` is present—including `greetd`, the COSMIC greetd config, and
+the complete COSMIC component tree—and records the resulting root in
 `/run/arach-live/image.json`. Finally, `scripts/build-live-iso.sh` invokes
 xorriso with the measured Granite EFI path and `/BOOT` artifacts; it returns
 status 69 when the ISO tool is unavailable and never publishes a partial ISO.

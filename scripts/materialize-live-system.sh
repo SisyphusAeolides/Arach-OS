@@ -61,6 +61,7 @@ expected = {
     "push",
     "corinth",
     "dbus-broker",
+    "greetd",
     "cosmic-desktop",
     "firefox",
     "calamares",

@@ -28,8 +28,11 @@ into this monorepo.
 ## Desktop and installer
 
 The live-image contract installs the locked `cosmic-desktop` bundle, including
-the `cosmic-term` terminal, plus the signed Firefox runtime artifact. It boots
-directly into COSMIC and launches a branded Calamares installer. Calamares 3.4.2 is pinned to an exact upstream Codeberg
+the complete pinned COSMIC Epoch component tree, plus the pinned `greetd`
+display manager, its `cosmic-greeter` session configuration, the `cosmic-term`
+terminal, and the signed Firefox runtime artifact. It boots directly into
+COSMIC and launches a branded Calamares installer; SDDM is not part of this
+path. Calamares 3.4.2 is pinned to an exact upstream Codeberg
 object. Its native modules own storage, encryption, users, passwords, locale,
 timezone, and keyboard configuration. The Arach transaction boundary owns the
 immutable Corinth package plan, Granite activation, COSMIC verification, and
@@ -41,9 +44,10 @@ Despite the extension of the originally supplied file, its actual format is a
 
 ### Desktop boundary
 
-COSMIC is the only desktop shipped by Arach OS: `cosmic-comp`,
-`cosmic-session`, `cosmic-greeter`, `cosmic-term`, and the COSMIC portal are
-the complete live desktop contract. Crest is **not** a desktop environment,
+COSMIC is the only desktop shipped by Arach OS: `greetd` launches
+`cosmic-greeter`, which starts `cosmic-comp`; the session, portal, terminal,
+and all other pinned COSMIC component outputs are copied from the complete
+`cosmic-desktop` tree. Crest is **not** a desktop environment,
 desktop package, compositor, session, or greeter in this distribution. The
 lowercase `crest` file retained inside the measured Granite boot bundle is a
 compatibility-named C0 bootstrap/probe payload required by the current Granite
@@ -94,10 +98,12 @@ The live-root boundary is explicit in [`live/image.toml`](live/image.toml), and
 the package-to-runtime mapping is locked in [`live/system.toml`](live/system.toml).
 `scripts/materialize-live-system.sh` consumes the versioned Corinth artifact
 directories, rejects symlinks and path escapes, installs the measured Push,
-Corinth, D-Bus, COSMIC (including `cosmic-term`), Firefox, Calamares, and
-installer paths, and writes `/run/arach-live/system.json`. The materializer
-requires the terminal and browser before it publishes the live root, so the
-Calamares session never starts without them. `scripts/assemble-live-root.sh`
+Corinth, D-Bus, greetd, the complete COSMIC tree (including its greetd config
+and `cosmic-term`), Firefox, Calamares, and installer paths, and writes
+`/run/arach-live/system.json`. The materializer requires the display manager,
+greeter configuration, terminal, and browser before it publishes the live
+root, so the Calamares session never starts without them.
+`scripts/assemble-live-root.sh`
 then consumes
 that POSIX root, the manifest-bound Granite/Arach/Push/C0 bundle, and a
 signed Corinth generation. It refuses to publish a root unless both system and

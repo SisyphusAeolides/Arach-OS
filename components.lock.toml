@@ -16,7 +16,7 @@ role = "userspace-abi"
 [[component]]
 name = "push"
 repository = "https://github.com/SisyphusAeolides/Push.git"
-revision = "b19d286e15baec0fd418697c5a126bd3b541befc"
+revision = "9eae5dbbee7dae90030b45f84950ca2efdf0d634"
 role = "pid1"
 
 [[component]]
@@ -28,13 +28,13 @@ role = "bootloader"
 [[component]]
 name = "corinth"
 repository = "https://github.com/SisyphusAeolides/Corinth.git"
-revision = "56cfb4578c10fc42129d346881caa3367b740755"
+revision = "6c6bf75b68dbadfb8a8e310f3128435d0ff5ad11"
 role = "package-manager"
 
 [[component]]
 name = "arach-packages"
 repository = "https://github.com/SisyphusAeolides/Arach-Packages.git"
-revision = "b11ee50de50ea754dac8c5c17818f946cc36e937"
+revision = "c71ff02336966f711008dcde661f15b70967017a"
 role = "package-recipes"
 
 [[component]]

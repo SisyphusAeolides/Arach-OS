@@ -25,6 +25,12 @@ command -v "$xorriso_bin" >/dev/null 2>&1 || {
     echo "xorriso is required to produce a bootable Arach ISO" >&2
     exit 69
 }
+for tool in mkfs.fat mmd mcopy; do
+    command -v "$tool" >/dev/null 2>&1 || {
+        echo "$tool is required to produce the EFI System Partition" >&2
+        exit 69
+    }
+done
 
 bundle="$live_root/run/arach-live/boot-bundle"
 system_manifest="$live_root/run/arach-live/system.json"
@@ -72,6 +78,23 @@ install -m 0644 -- "$bundle/arach" "$stage/BOOT/ARACH"
 install -m 0644 -- "$bundle/push" "$stage/BOOT/PUSH"
 install -m 0644 -- "$bundle/crest" "$stage/BOOT/CREST"
 
+# UEFI does not boot a raw PE file as an El Torito image. It boots a FAT EFI
+# System Partition. Granite opens the filesystem that firmware used to load
+# it, so the measured Arach/Push/C0 payloads must be present in that same FAT
+# image rather than only in the surrounding ISO directory tree.
+esp="$work/efiboot.img"
+truncate -s $((128 * 1024 * 1024)) "$esp"
+mkfs.fat -F 32 -n ARACHEFI "$esp" >/dev/null
+mmd -i "$esp" ::/EFI
+mmd -i "$esp" ::/EFI/BOOT
+mmd -i "$esp" ::/BOOT
+mcopy -i "$esp" "$bundle/granite.efi" ::/EFI/BOOT/BOOTX64.EFI
+mcopy -i "$esp" "$bundle/manifest.json" ::/BOOT/MANIFEST.JSON
+mcopy -i "$esp" "$bundle/arach" ::/BOOT/ARACH
+mcopy -i "$esp" "$bundle/push" ::/BOOT/PUSH
+mcopy -i "$esp" "$bundle/crest" ::/BOOT/CREST
+cp -- "$esp" "$stage/EFI/BOOT/efiboot.img"
+
 temporary="$work/image.iso"
 "$xorriso_bin" \
     -as mkisofs \
@@ -80,7 +103,7 @@ temporary="$work/image.iso"
     -J -joliet-long -R \
     -V ARACH_OS \
     -eltorito-alt-boot \
-    -e EFI/BOOT/BOOTX64.EFI \
+    -e EFI/BOOT/efiboot.img \
     -no-emul-boot \
     -o "$temporary" \
     "$stage"

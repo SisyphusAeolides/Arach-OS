@@ -32,6 +32,15 @@ files = [
 ]
 
 [[provider]]
+name = "greetd"
+artifact_prefix = "greetd-"
+layout = "files"
+required = true
+files = [
+  { source = "target/release/greetd", destination = "/system/greetd", mode = 493 },
+]
+
+[[provider]]
 name = "cosmic-desktop"
 artifact_prefix = "cosmic-desktop-"
 layout = "tree"
@@ -39,9 +48,11 @@ required = true
 required_tree_path = [
   "/usr/bin/cosmic-comp",
   "/usr/bin/cosmic-greeter",
+  "/usr/bin/cosmic-greeter-start",
   "/usr/bin/cosmic-session",
   "/usr/bin/cosmic-term",
   "/usr/bin/xdg-desktop-portal-cosmic",
+  "/etc/greetd/cosmic-greeter.toml",
 ]
 aliases = [
   { source = "/usr/bin/cosmic-comp", destination = "/system/cosmic-comp", mode = 493 },
@@ -49,6 +60,7 @@ aliases = [
   { source = "/usr/bin/cosmic-session", destination = "/system/cosmic-session", mode = 493 },
   { source = "/usr/bin/cosmic-term", destination = "/system/cosmic-term", mode = 493 },
   { source = "/usr/bin/xdg-desktop-portal-cosmic", destination = "/system/xdg-desktop-portal-cosmic", mode = 493 },
+  { source = "/etc/greetd/cosmic-greeter.toml", destination = "/etc/greetd/config.toml", mode = 420 },
 ]
 files = []
 
