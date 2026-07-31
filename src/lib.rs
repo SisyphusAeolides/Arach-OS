@@ -179,6 +179,9 @@ pub struct Filesystems {
 pub struct Hardware {
     pub detector: String,
     pub package_manager: String,
+    pub preflight: String,
+    pub preflight_report: String,
+    pub capabilities: Vec<String>,
     pub allow_adapted_c_drivers: bool,
     pub allow_unmatched_binary_kernel_modules: bool,
 }
@@ -393,6 +396,8 @@ pub fn validate_live_profile(profile: &LiveProfile, root: &Path) -> Result<(), C
     validate_filesystems(&profile.filesystems)?;
     if profile.hardware.detector != "arach-hwd"
         || profile.hardware.package_manager != "corinth"
+        || profile.hardware.preflight != "/system/arach-hwd"
+        || profile.hardware.preflight_report != "/run/arach-installer/hardware.toml"
         || !profile.hardware.allow_adapted_c_drivers
         || profile.hardware.allow_unmatched_binary_kernel_modules
     {
@@ -401,6 +406,20 @@ pub fn validate_live_profile(profile: &LiveProfile, root: &Path) -> Result<(), C
             "hardware provisioning must use Arach-HWD, Corinth, and the measured C-driver boundary",
         ));
     }
+    require_exact_set(
+        "hardware.capabilities",
+        &profile.hardware.capabilities,
+        &[
+            "network",
+            "wireless",
+            "audio",
+            "graphics",
+            "storage",
+            "input",
+            "bluetooth",
+            "firmware",
+        ],
+    )?;
     Ok(())
 }
 
@@ -429,6 +448,7 @@ pub fn validate_live_image_contract(
     let expected = [
         "/system/push",
         "/system/corinth",
+        "/system/arach-hwd",
         "/system/dbus-broker-launch",
         "/system/greetd",
         "/system/cosmic-comp",
@@ -506,6 +526,7 @@ pub fn validate_live_system_contract(
     let expected = [
         "push",
         "corinth",
+        "arach-hwd",
         "dbus-broker",
         "greetd",
         "cosmic-desktop",
@@ -654,12 +675,14 @@ pub fn validate_installer_contract(
             )
         })?;
     let prepare = token_position(exec, "- arachtransaction@prepare")?;
+    let hardware = token_position(exec, "- arachhardware@preflight")?;
     let partition = token_position(exec, "- partition")?;
     let unpack = token_position(exec, "- unpackfs")?;
     let commit = token_position(exec, "- arachtransaction@commit")?;
-    if !(prepare < partition && unpack < commit)
+    if !(hardware < prepare && prepare < partition && unpack < commit)
         || settings.matches("arachtransaction@prepare").count() != 1
         || settings.matches("arachtransaction@commit").count() != 1
+        || settings.matches("arachhardware@preflight").count() != 1
     {
         return Err(CompositionError::new(
             "installer/calamares/settings.conf",
@@ -671,6 +694,8 @@ pub fn validate_installer_contract(
         "installer/calamares/modules/arachtransaction/module.desc",
         "installer/calamares/modules/arachtransaction/main.py",
         "installer/calamares/modules/arachtransaction/protocol.py",
+        "installer/calamares/modules/arachhardware/module.desc",
+        "installer/calamares/modules/arachhardware/main.py",
         "installer/calamares/modules/arach-prepare.conf",
         "installer/calamares/modules/arach-commit.conf",
         "installer/calamares/modules/partition.conf",
@@ -692,6 +717,15 @@ pub fn validate_installer_contract(
             "executable: /usr/libexec/arach-install",
             "generationSource: /run/arach-live/repository/system.gen",
             "bootBundleSource: /run/arach-live/boot-bundle",
+        ],
+    )?;
+    require_file_tokens(
+        root,
+        "installer/calamares/modules/arachhardware.conf",
+        &[
+            "executable: /system/arach-hwd",
+            "sysfs: /sys",
+            "report: /run/arach-installer/hardware.toml",
         ],
     )?;
     require_file_tokens(
@@ -726,6 +760,7 @@ pub fn validate_installer_contract(
     let python = [
         "installer/calamares/modules/arachtransaction/main.py",
         "installer/calamares/modules/arachtransaction/protocol.py",
+        "installer/calamares/modules/arachhardware/main.py",
     ]
     .iter()
     .map(|path| fs::read_to_string(root.join(path)))
@@ -993,6 +1028,9 @@ mod tests {
             "installer/calamares/modules/arachtransaction/module.desc",
             "installer/calamares/modules/arachtransaction/main.py",
             "installer/calamares/modules/arachtransaction/protocol.py",
+            "installer/calamares/modules/arachhardware/module.desc",
+            "installer/calamares/modules/arachhardware/main.py",
+            "installer/calamares/modules/arachhardware.conf",
             "installer/calamares/modules/arach-prepare.conf",
             "installer/calamares/modules/arach-commit.conf",
             "installer/calamares/modules/partition.conf",

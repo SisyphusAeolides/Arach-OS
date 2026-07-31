@@ -60,6 +60,7 @@ for provider in providers:
 expected = {
     "push",
     "corinth",
+    "arach-hwd",
     "dbus-broker",
     "greetd",
     "cosmic-desktop",

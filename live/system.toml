@@ -23,6 +23,15 @@ files = [
 ]
 
 [[provider]]
+name = "arach-hwd"
+artifact_prefix = "arach-hwd-"
+layout = "files"
+required = true
+files = [
+  { source = "target/release/arach-hwd", destination = "/system/arach-hwd", mode = 493 },
+]
+
+[[provider]]
 name = "dbus-broker"
 artifact_prefix = "dbus-broker-"
 layout = "files"

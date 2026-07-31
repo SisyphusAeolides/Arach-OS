@@ -53,5 +53,8 @@ experimental = ["bcachefs", "zfs"]
 [hardware]
 detector = "arach-hwd"
 package_manager = "corinth"
+preflight = "/system/arach-hwd"
+preflight_report = "/run/arach-installer/hardware.toml"
+capabilities = ["network", "wireless", "audio", "graphics", "storage", "input", "bluetooth", "firmware"]
 allow_adapted_c_drivers = true
 allow_unmatched_binary_kernel_modules = false

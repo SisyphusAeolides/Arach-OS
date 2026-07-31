@@ -38,6 +38,12 @@ timezone, and keyboard configuration. The Arach transaction boundary owns the
 immutable Corinth package plan, Granite activation, COSMIC verification, and
 rollback journal. See [`docs/INSTALLER.md`](docs/INSTALLER.md).
 
+The medium also ships `/system/arach-hwd`. Its Calamares preflight enumerates
+network/Wi-Fi, audio, graphics, storage, input, Bluetooth, and firmware
+capability evidence and fails before partitioning if a physical device has no
+bound driver. Corinth receives the exact modalias and bus identity for signed
+driver/firmware resolution; no package is guessed from an interface name.
+
 The canonical logo is [`branding/arach-logo.png`](branding/arach-logo.png).
 Despite the extension of the originally supplied file, its actual format is a
 706×706 RGBA PNG; the original bytes are retained under `branding/source/`.
