@@ -22,7 +22,7 @@ role = "pid1"
 [[component]]
 name = "granite"
 repository = "https://github.com/SisyphusAeolides/Granite.git"
-revision = "c990385d767c49c508e3ca5271bf657d5a5b4836"
+revision = "cc717de31e6946457e2bb43fe5fa188335c5ef51"
 role = "bootloader"
 
 [[component]]
@@ -34,7 +34,7 @@ role = "package-manager"
 [[component]]
 name = "arach-packages"
 repository = "https://github.com/SisyphusAeolides/Arach-Packages.git"
-revision = "c0e707237158e38f8847412044ec2eb451bd0fbe"
+revision = "40b895555f6a96b3135f4c8a368bb1fceb4839a3"
 role = "package-recipes"
 
 [[component]]
