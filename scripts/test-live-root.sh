@@ -6,22 +6,31 @@ tmp=$(mktemp -d "${TMPDIR:-/tmp}/arach-live-test.XXXXXX")
 cleanup() { rm -rf -- "$tmp"; }
 trap cleanup EXIT
 
+artifacts="$tmp/artifacts"
 source="$tmp/source"
 bundle_inputs="$tmp/bundle-inputs"
 bundle="$tmp/boot-bundle"
 generation="$tmp/system.gen"
 output="$tmp/live-root"
-mkdir -p "$source" "$bundle_inputs"
+mkdir -p "$artifacts" "$bundle_inputs"
 
-for path in \
-    system/push system/corinth \
-    system/dbus-broker-launch system/cosmic-comp system/cosmic-greeter \
-    system/cosmic-session system/xdg-desktop-portal-cosmic \
-    usr/libexec/arach-install usr/bin/calamares \
-    usr/share/calamares/branding/arach/arach-logo.png; do
-    mkdir -p "$source/$(dirname "$path")"
-    printf '\177ELF test artifact\n' > "$source/$path"
+mkdir -p "$artifacts/push-0.1.0-5/target/release"
+printf '\177ELF test Push\n' > "$artifacts/push-0.1.0-5/target/release/push"
+mkdir -p "$artifacts/corinth-0.1.0-9/target/release"
+printf '\177ELF test Corinth\n' > "$artifacts/corinth-0.1.0-9/target/release/corinth"
+mkdir -p "$artifacts/dbus-broker-1/usr/bin"
+printf '\177ELF test D-Bus\n' > "$artifacts/dbus-broker-1/usr/bin/dbus-broker-launch"
+for binary in cosmic-comp cosmic-greeter cosmic-session xdg-desktop-portal-cosmic; do
+    mkdir -p "$artifacts/cosmic-desktop-0.1.0-1/usr/bin"
+    printf '\177ELF test %s\n' "$binary" > "$artifacts/cosmic-desktop-0.1.0-1/usr/bin/$binary"
 done
+mkdir -p "$artifacts/calamares-3.4.2-1/usr/bin"
+printf '\177ELF test Calamares\n' > "$artifacts/calamares-3.4.2-1/usr/bin/calamares"
+mkdir -p "$artifacts/arach-os-0.1.0-1/usr/libexec" "$artifacts/arach-os-0.1.0-1/branding"
+printf '\177ELF test Installer\n' > "$artifacts/arach-os-0.1.0-1/usr/libexec/arach-install"
+printf 'PNG test branding\n' > "$artifacts/arach-os-0.1.0-1/branding/arach-logo.png"
+
+"$root/scripts/materialize-live-system.sh" "$artifacts" "$source"
 printf 'MZ test Granite\n' > "$bundle_inputs/granite.efi"
 printf '\177ELF test Arach\n' > "$bundle_inputs/arach"
 printf '\177ELF test Push\n' > "$bundle_inputs/push"
@@ -31,6 +40,7 @@ printf 'generation test\n' > "$generation"
 
 "$root/scripts/assemble-live-root.sh" "$source" "$bundle" "$generation" "$output"
 test -s "$output/run/arach-live/image.json"
+test -s "$output/run/arach-live/system.json"
 test -s "$output/run/arach-live/boot-bundle/manifest.json"
 test -s "$output/run/arach-live/repository/system.gen"
 python3 - "$output/run/arach-live/image.json" <<'PY'
@@ -45,3 +55,13 @@ assert manifest["entry_count"] > 10
 assert len(manifest["root_sha256"]) == 64
 PY
 printf '%s\n' 'Arach OS live-root assembly verified'
+
+bad_artifacts="$tmp/bad-artifacts"
+cp -a -- "$artifacts" "$bad_artifacts"
+rm -- "$bad_artifacts/push-0.1.0-5/target/release/push"
+ln -s /etc/passwd -- "$bad_artifacts/push-0.1.0-5/target/release/push"
+if "$root/scripts/materialize-live-system.sh" "$bad_artifacts" "$tmp/bad-root"; then
+    echo 'materializer accepted a symlinked package output' >&2
+    exit 1
+fi
+printf '%s\n' 'Arach OS materializer rejection gate verified'

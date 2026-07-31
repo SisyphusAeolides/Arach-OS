@@ -69,8 +69,49 @@ pub struct LiveImageContract {
     pub boot_bundle_source: String,
     pub repository_generation: String,
     pub manifest: String,
+    pub system_manifest: String,
     pub init: String,
     pub required_path: Vec<String>,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct LiveSystemContract {
+    pub format: u32,
+    pub distribution: String,
+    pub artifact_layout: String,
+    pub provider: Vec<LiveProvider>,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct LiveProvider {
+    pub name: String,
+    pub artifact_prefix: String,
+    pub layout: String,
+    pub required: bool,
+    #[serde(default)]
+    pub files: Vec<LiveFile>,
+    #[serde(default)]
+    pub aliases: Vec<LiveAlias>,
+    #[serde(default)]
+    pub required_tree_path: Vec<String>,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct LiveFile {
+    pub source: String,
+    pub destination: String,
+    pub mode: u32,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct LiveAlias {
+    pub source: String,
+    pub destination: String,
+    pub mode: u32,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
@@ -205,6 +246,11 @@ pub fn parse_live_image_contract(text: &str) -> Result<LiveImageContract, Compos
         .map_err(|error| CompositionError::new("live/image.toml", error.to_string()))
 }
 
+pub fn parse_live_system_contract(text: &str) -> Result<LiveSystemContract, CompositionError> {
+    toml::from_str(text)
+        .map_err(|error| CompositionError::new("live/system.toml", error.to_string()))
+}
+
 pub fn parse_installer_contract(text: &str) -> Result<InstallerContract, CompositionError> {
     toml::from_str(text)
         .map_err(|error| CompositionError::new("installer/contract.toml", error.to_string()))
@@ -323,6 +369,7 @@ pub fn validate_live_image_contract(
         || image.boot_bundle_source != "/run/arach-live/boot-bundle"
         || image.repository_generation != "/run/arach-live/repository/system.gen"
         || image.manifest != "/run/arach-live/image.json"
+        || image.system_manifest != "/run/arach-live/system.json"
         || image.init != "/system/push"
     {
         return Err(CompositionError::new(
@@ -371,6 +418,110 @@ pub fn validate_live_image_contract(
         return Err(CompositionError::new(
             "scripts/assemble-live-root.sh",
             "the live root assembler is absent",
+        ));
+    }
+    if !root.join("scripts/materialize-live-system.sh").is_file() {
+        return Err(CompositionError::new(
+            "scripts/materialize-live-system.sh",
+            "the signed package-to-live-system materializer is absent",
+        ));
+    }
+    Ok(())
+}
+
+pub fn validate_live_system_contract(
+    system: &LiveSystemContract,
+    root: &Path,
+) -> Result<(), CompositionError> {
+    if system.format != LIVE_IMAGE_FORMAT
+        || system.distribution != DISTRIBUTION
+        || system.artifact_layout != "corinth-v1"
+    {
+        return Err(CompositionError::new(
+            "live/system.toml",
+            "format, distribution, or artifact layout differs from the live image contract",
+        ));
+    }
+    let expected = [
+        "push",
+        "corinth",
+        "dbus-broker",
+        "cosmic-desktop",
+        "calamares",
+        "arach-install",
+        "arach-branding",
+    ]
+    .into_iter()
+    .collect::<BTreeSet<_>>();
+    let mut names = BTreeSet::new();
+    for provider in &system.provider {
+        if !names.insert(provider.name.as_str())
+            || !provider.required
+            || provider.artifact_prefix.trim().is_empty()
+            || !provider.artifact_prefix.ends_with('-')
+            || !matches!(provider.layout.as_str(), "files" | "tree")
+        {
+            return Err(CompositionError::new(
+                "live/system.toml.provider",
+                "provider identity or layout is invalid",
+            ));
+        }
+        if provider.layout == "tree" && !provider.files.is_empty()
+            || provider.layout == "files"
+                && (!provider.aliases.is_empty() || !provider.required_tree_path.is_empty())
+        {
+            return Err(CompositionError::new(
+                format!("live/system.toml.provider.{}", provider.name),
+                "tree and file mappings cannot be mixed",
+            ));
+        }
+        if provider.layout == "files" && provider.files.is_empty() {
+            return Err(CompositionError::new(
+                format!("live/system.toml.provider.{}", provider.name),
+                "file providers require at least one mapping",
+            ));
+        }
+        for file in &provider.files {
+            if !safe_relative(&file.source)
+                || !safe_absolute(&file.destination)
+                || file.mode & !0o7777 != 0
+            {
+                return Err(CompositionError::new(
+                    format!("live/system.toml.provider.{}", provider.name),
+                    "file mappings must be bounded and use safe paths/modes",
+                ));
+            }
+        }
+        for alias in &provider.aliases {
+            if !safe_absolute(&alias.source)
+                || !safe_absolute(&alias.destination)
+                || alias.mode & !0o7777 != 0
+            {
+                return Err(CompositionError::new(
+                    format!("live/system.toml.provider.{}", provider.name),
+                    "aliases must use bounded absolute paths and safe modes",
+                ));
+            }
+        }
+        for path in &provider.required_tree_path {
+            if !safe_absolute(path) {
+                return Err(CompositionError::new(
+                    format!("live/system.toml.provider.{}", provider.name),
+                    "required tree paths must be absolute and bounded",
+                ));
+            }
+        }
+    }
+    if names != expected {
+        return Err(CompositionError::new(
+            "live/system.toml.provider",
+            "the provider set differs from the measured live system contract",
+        ));
+    }
+    if !root.join("scripts/materialize-live-system.sh").is_file() {
+        return Err(CompositionError::new(
+            "scripts/materialize-live-system.sh",
+            "the package-to-live-system materializer is absent",
         ));
     }
     Ok(())
@@ -559,6 +710,10 @@ pub fn validate_root(root: &Path) -> Result<CompositionReport, CompositionError>
     let image_text = fs::read_to_string(&image_path).map_err(|error| {
         CompositionError::new(image_path.display().to_string(), error.to_string())
     })?;
+    let system_path = root.join("live/system.toml");
+    let system_text = fs::read_to_string(&system_path).map_err(|error| {
+        CompositionError::new(system_path.display().to_string(), error.to_string())
+    })?;
     let installer_path = root.join("installer/contract.toml");
     let installer_text = fs::read_to_string(&installer_path).map_err(|error| {
         CompositionError::new(installer_path.display().to_string(), error.to_string())
@@ -566,10 +721,12 @@ pub fn validate_root(root: &Path) -> Result<CompositionReport, CompositionError>
     let lock = parse_lock(&lock_text)?;
     let profile = parse_live_profile(&profile_text)?;
     let image = parse_live_image_contract(&image_text)?;
+    let system = parse_live_system_contract(&system_text)?;
     let installer = parse_installer_contract(&installer_text)?;
     validate_lock(&lock)?;
     validate_live_profile(&profile, root)?;
     validate_live_image_contract(&image, root)?;
+    validate_live_system_contract(&system, root)?;
     validate_installer_contract(&installer, root)?;
     Ok(CompositionReport {
         components: lock.component.len(),
@@ -617,6 +774,32 @@ fn validate_filesystems(filesystems: &Filesystems) -> Result<(), CompositionErro
         &filesystems.experimental,
         &["bcachefs", "zfs"],
     )
+}
+
+fn safe_relative(value: &str) -> bool {
+    let path = Path::new(value);
+    !value.is_empty()
+        && !path.is_absolute()
+        && !path.components().any(|component| {
+            matches!(
+                component,
+                std::path::Component::ParentDir
+                    | std::path::Component::RootDir
+                    | std::path::Component::Prefix(_)
+            )
+        })
+}
+
+fn safe_absolute(value: &str) -> bool {
+    let path = Path::new(value);
+    path.is_absolute()
+        && value != "/"
+        && !path.components().any(|component| {
+            matches!(
+                component,
+                std::path::Component::ParentDir | std::path::Component::Prefix(_)
+            )
+        })
 }
 
 fn require_exact_set(
@@ -680,6 +863,15 @@ mod tests {
         let mut image = parse_live_image_contract(&text).unwrap();
         image.required_path.pop();
         assert!(validate_live_image_contract(&image, root).is_err());
+    }
+
+    #[test]
+    fn incomplete_live_system_contract_is_rejected() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR"));
+        let text = fs::read_to_string(root.join("live/system.toml")).unwrap();
+        let mut system = parse_live_system_contract(&text).unwrap();
+        system.provider.pop();
+        assert!(validate_live_system_contract(&system, root).is_err());
     }
 
     #[test]

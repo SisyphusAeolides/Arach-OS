@@ -41,7 +41,8 @@ Despite the extension of the originally supplied file, its actual format is a
 ## Current status
 
 The composition contract, component pins, Calamares configuration, private
-state handoff, and journal-bound transaction state machine are established.
+state handoff, journal-bound transaction state machine, and signed
+Corinth-artifact-to-live-root materializer are established.
 The production transaction can now validate and publish a canonical Corinth
 generation with a target-persistent recovery checkpoint, atomically activate a
 manifest-bound Granite/Arach/Push/Crest boot bundle, verify the installed
@@ -75,10 +76,14 @@ Build the installer input bundle with:
 `arach`, `push`, and `crest` artifacts. The assembler writes the bounded,
 digest-bound manifest consumed by `arach-install`.
 
-The live-root boundary is explicit in [`live/image.toml`](live/image.toml).
-`scripts/assemble-live-root.sh` consumes a package-built POSIX root, the
-manifest-bound Granite/Arach/Push/Crest bundle, and a signed Corinth
-generation. It refuses to publish a root unless the complete Push, COSMIC,
-Calamares, and installer executable set is present, then writes a deterministic
-image manifest. An ISO writer still consumes this assembled root as a separate,
-tool-qualified release step.
+The live-root boundary is explicit in [`live/image.toml`](live/image.toml), and
+the package-to-runtime mapping is locked in [`live/system.toml`](live/system.toml).
+`scripts/materialize-live-system.sh` consumes the versioned Corinth artifact
+directories, rejects symlinks and path escapes, installs the measured Push,
+Corinth, D-Bus, COSMIC, Calamares, and installer paths, and writes
+`/run/arach-live/system.json`. `scripts/assemble-live-root.sh` then consumes
+that POSIX root, the manifest-bound Granite/Arach/Push/Crest bundle, and a
+signed Corinth generation. It refuses to publish a root unless both system and
+image manifests are present and the complete runtime path set is present. An
+ISO writer still consumes this assembled root as a separate, tool-qualified
+release step.

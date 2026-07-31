@@ -1,0 +1,76 @@
+format = 1
+distribution = "Arach OS"
+artifact_layout = "corinth-v1"
+
+[[provider]]
+name = "push"
+artifact_prefix = "push-"
+layout = "files"
+required = true
+files = [
+  { source = "target/release/push", destination = "/system/push", mode = 493 },
+]
+
+[[provider]]
+name = "corinth"
+artifact_prefix = "corinth-"
+layout = "files"
+required = true
+files = [
+  { source = "target/release/corinth", destination = "/system/corinth", mode = 493 },
+]
+
+[[provider]]
+name = "dbus-broker"
+artifact_prefix = "dbus-broker-"
+layout = "files"
+required = true
+files = [
+  { source = "usr/bin/dbus-broker-launch", destination = "/system/dbus-broker-launch", mode = 493 },
+]
+
+[[provider]]
+name = "cosmic-desktop"
+artifact_prefix = "cosmic-desktop-"
+layout = "tree"
+required = true
+required_tree_path = [
+  "/usr/bin/cosmic-comp",
+  "/usr/bin/cosmic-greeter",
+  "/usr/bin/cosmic-session",
+  "/usr/bin/xdg-desktop-portal-cosmic",
+]
+aliases = [
+  { source = "/usr/bin/cosmic-comp", destination = "/system/cosmic-comp", mode = 493 },
+  { source = "/usr/bin/cosmic-greeter", destination = "/system/cosmic-greeter", mode = 493 },
+  { source = "/usr/bin/cosmic-session", destination = "/system/cosmic-session", mode = 493 },
+  { source = "/usr/bin/xdg-desktop-portal-cosmic", destination = "/system/xdg-desktop-portal-cosmic", mode = 493 },
+]
+files = []
+
+[[provider]]
+name = "calamares"
+artifact_prefix = "calamares-"
+layout = "files"
+required = true
+files = [
+  { source = "usr/bin/calamares", destination = "/usr/bin/calamares", mode = 493 },
+]
+
+[[provider]]
+name = "arach-install"
+artifact_prefix = "arach-os-"
+layout = "files"
+required = true
+files = [
+  { source = "usr/libexec/arach-install", destination = "/usr/libexec/arach-install", mode = 493 },
+]
+
+[[provider]]
+name = "arach-branding"
+artifact_prefix = "arach-os-"
+layout = "files"
+required = true
+files = [
+  { source = "branding/arach-logo.png", destination = "/usr/share/calamares/branding/arach/arach-logo.png", mode = 420 },
+]

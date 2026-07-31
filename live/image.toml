@@ -4,6 +4,7 @@ root_layout = "posix"
 boot_bundle_source = "/run/arach-live/boot-bundle"
 repository_generation = "/run/arach-live/repository/system.gen"
 manifest = "/run/arach-live/image.json"
+system_manifest = "/run/arach-live/system.json"
 init = "/system/push"
 
 required_path = [

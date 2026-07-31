@@ -39,6 +39,8 @@ if image.get("repository_generation") != "/run/arach-live/repository/system.gen"
     raise SystemExit("repository generation differs from the installer contract")
 if image.get("manifest") != "/run/arach-live/image.json":
     raise SystemExit("live manifest differs from the image contract")
+if image.get("system_manifest") != "/run/arach-live/system.json":
+    raise SystemExit("system manifest differs from the image contract")
 for value in image.get("required_path", []):
     if not value.startswith("/") or "/../" in value or value.endswith("/.."):
         raise SystemExit(f"unsafe required path: {value}")
@@ -67,6 +69,11 @@ for relative in manifest.json granite.efi arach push crest; do
     cp -a -- "$boot_bundle/$relative" "$stage/run/arach-live/boot-bundle/$relative"
 done
 cp -a -- "$generation" "$stage/run/arach-live/repository/system.gen"
+system_manifest="$stage/run/arach-live/system.json"
+[[ -f "$system_manifest" && ! -L "$system_manifest" ]] || {
+    echo "package materialization manifest is missing or symlinked" >&2
+    exit 1
+}
 
 # Keep the image contract visible inside the live system, independent of the
 # build checkout that produced it.
@@ -125,12 +132,17 @@ generation = next(
     entry["sha256"] for entry in entries
     if entry["path"] == "run/arach-live/repository/system.gen"
 )
+system_manifest = next(
+    entry["sha256"] for entry in entries
+    if entry["path"] == "run/arach-live/system.json"
+)
 image = {
     "schema": 1,
     "distribution": "Arach OS",
     "root_layout": "posix",
     "boot_bundle_manifest": boot_manifest,
     "repository_generation": generation,
+    "system_manifest": system_manifest,
     "entry_count": len(entries),
     "root_sha256": hashlib.sha256(canonical).hexdigest(),
     "entries": entries,
