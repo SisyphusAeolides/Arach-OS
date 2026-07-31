@@ -3,6 +3,7 @@ distribution = "Arach OS"
 
 [desktop]
 package_bundle = "cosmic-desktop"
+display_manager = "greetd"
 compositor = "cosmic-comp"
 session = "cosmic-session"
 greeter = "cosmic-greeter"
