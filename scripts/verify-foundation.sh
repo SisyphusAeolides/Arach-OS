@@ -33,6 +33,10 @@ python3 "$root/installer/calamares/modules/arachtransaction/test_protocol.py"
 grep -Fxq 'session = "cosmic-session"' "$root/live/profile.toml"
 grep -Fxq 'framework = "calamares"' "$root/live/profile.toml"
 grep -Fxq 'allow_unmatched_binary_kernel_modules = false' "$root/live/profile.toml"
+grep -Fq '/etc/arach/hwd/driver-sources/modules.alias' \
+    "$root/installer/calamares/modules/arachhardware.conf"
+grep -Fq '/etc/arach/hwd/driver-sources/modules.firmware' \
+    "$root/installer/calamares/modules/arachhardware.conf"
 
 "$root/scripts/test-live-root.sh"
 
