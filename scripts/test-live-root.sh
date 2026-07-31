@@ -70,9 +70,11 @@ mkdir -p "$artifacts/firefox-140.4.0esr-1/usr/bin"
 printf '\177ELF test Firefox\n' > "$artifacts/firefox-140.4.0esr-1/usr/bin/firefox"
 mkdir -p "$artifacts/calamares-3.4.2-1/usr/bin"
 printf '\177ELF test Calamares\n' > "$artifacts/calamares-3.4.2-1/usr/bin/calamares"
-mkdir -p "$artifacts/arach-os-0.1.0-1/target/release" "$artifacts/arach-os-0.1.0-1/branding"
-printf '\177ELF test Installer\n' > "$artifacts/arach-os-0.1.0-1/target/release/arach-install"
-printf 'PNG test branding\n' > "$artifacts/arach-os-0.1.0-1/branding/arach-logo.png"
+installer_artifact="$artifacts/arach-os-0.1.0-1"
+mkdir -p "$installer_artifact/target/release" "$installer_artifact/branding"
+printf '\177ELF test Installer\n' > "$installer_artifact/target/release/arach-install"
+printf 'PNG test branding\n' > "$installer_artifact/branding/arach-logo.png"
+cp -a -- "$root/installer" "$installer_artifact/"
 
 "$root/scripts/materialize-live-system.sh" "$artifacts" "$source"
 printf 'MZ test Granite\n' > "$bundle_inputs/granite.efi"
@@ -97,6 +99,11 @@ test -s "$output/system/greetd"
 test -s "$output/etc/greetd/cosmic-greeter.toml"
 test -s "$output/etc/greetd/config.toml"
 test -s "$output/usr/bin/cosmic-greeter-start"
+test -s "$output/etc/calamares/settings.conf"
+test -s "$output/etc/calamares/modules/arach-hardware.conf"
+test -s "$output/usr/lib/arach/calamares/modules/arachhardware/main.py"
+test -s "$output/usr/lib/arach/calamares/modules/arachtransaction/protocol.py"
+test -s "$output/usr/share/calamares/branding/arach/branding.desc"
 python3 - "$output/run/arach-live/image.json" <<'PY'
 import json
 import sys
@@ -147,7 +154,12 @@ if "$root/scripts/materialize-live-system.sh" "$missing_browser" "$tmp/missing-b
 fi
 printf '%s\n' 'Arach OS browser presence gate verified'
 
-if command -v xorriso >/dev/null 2>&1; then
+image_tools=(xorriso mkfs.fat mmd mcopy mksquashfs)
+have_image_tools=true
+for tool in "${image_tools[@]}"; do
+    command -v "$tool" >/dev/null 2>&1 || have_image_tools=false
+done
+if "$have_image_tools"; then
     "$root/scripts/build-live-iso.sh" "$output" "$tmp/arach-os.iso"
     test -s "$tmp/arach-os.iso"
     test -s "$tmp/arach-os.iso.json"
@@ -158,6 +170,21 @@ if command -v xorriso >/dev/null 2>&1; then
     test "$missing_args_status" -eq 64
     xorriso -indev "$tmp/arach-os.iso" -report_el_torito plain 2>&1 \
         | grep -i -F 'efiboot.img' >/dev/null
+    xorriso -osirrox on -indev "$tmp/arach-os.iso" \
+        -extract /run/arach-live/rootfs.squashfs "$tmp/rootfs.squashfs" >/dev/null 2>&1
+    test -s "$tmp/rootfs.squashfs"
+    python3 - "$tmp/arach-os.iso.json" "$tmp/rootfs.squashfs" <<'PY'
+import hashlib
+import json
+import pathlib
+import sys
+
+sidecar = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
+rootfs = pathlib.Path(sys.argv[2])
+hash_value = hashlib.sha256(rootfs.read_bytes()).hexdigest()
+assert sidecar["rootfs_sha256"] == hash_value
+assert sidecar["rootfs_size"] == rootfs.stat().st_size
+PY
 else
     set +e
     "$root/scripts/build-live-iso.sh" "$output" "$tmp/arach-os.iso"
