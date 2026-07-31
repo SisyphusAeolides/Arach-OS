@@ -31,6 +31,7 @@ def run():
     modules_firmware = configuration.get("modulesFirmware")
     modules_dep = configuration.get("modulesDep")
     modules_builtin = configuration.get("modulesBuiltin")
+    firmware_roots = configuration.get("firmwareRoots")
     report = configuration.get("report")
     profiles = configuration.get("profiles")
     keyring = configuration.get("keyring")
@@ -45,6 +46,7 @@ def run():
         or not isinstance(modules_firmware, list)
         or not isinstance(modules_dep, list)
         or not isinstance(modules_builtin, list)
+        or not isinstance(firmware_roots, list)
         or report != "/run/arach-installer/hardware.toml"
         or profiles != "/etc/arach/hwd/profiles"
         or keyring != "/etc/arach/hwd/keys.toml"
@@ -95,6 +97,17 @@ def run():
         metadata.extend(metadata_arguments(modules_firmware, "--modules-firmware"))
         metadata.extend(metadata_arguments(modules_dep, "--modules-dep"))
         metadata.extend(metadata_arguments(modules_builtin, "--modules-builtin"))
+        for value in firmware_roots:
+            if (
+                not isinstance(value, str)
+                or not value.startswith("/")
+                or "\x00" in value
+            ):
+                raise ValueError("--firmware-root entries must be absolute paths")
+            path = Path(value)
+            if not path.is_dir() or path.is_symlink():
+                raise ValueError(f"firmware root is not a real directory: {path}")
+            metadata.extend(("--firmware-root", value))
     except ValueError as error:
         return (_("Hardware catalog is invalid"), str(error))
 

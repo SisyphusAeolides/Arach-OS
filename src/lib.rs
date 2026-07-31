@@ -749,6 +749,7 @@ pub fn validate_installer_contract(
             "sysfs: /sys",
             "modulesAlias: []",
             "modulesFirmware: []",
+            "firmwareRoots: []",
             "report: /run/arach-installer/hardware.toml",
             "profiles: /etc/arach/hwd/profiles",
             "keyring: /etc/arach/hwd/keys.toml",
