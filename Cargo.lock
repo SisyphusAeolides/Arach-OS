@@ -58,7 +58,7 @@ checksum = "9330f8b2ff13f34540b44e946ef35111825727b38d33286ef986142615121801"
 [[package]]
 name = "corinth"
 version = "0.1.0"
-source = "git+https://github.com/SisyphusAeolides/Corinth.git?rev=4a11021c217c1fa4862fac136f019ab2f8e51b30#4a11021c217c1fa4862fac136f019ab2f8e51b30"
+source = "git+https://github.com/SisyphusAeolides/Corinth.git?rev=017a20599e68c5d374890de33ea611c491e07ec6#017a20599e68c5d374890de33ea611c491e07ec6"
 dependencies = [
  "arach-hwd",
  "libc",
@@ -72,7 +72,7 @@ dependencies = [
 name = "cpufeatures"
 version = "0.2.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "59ed5838eebb26a2bb2e58f6d5b5316989ae9d08bab10e0e6d103e656d1b0280"
+checksum = "59ed5838eebb26a2bb79094d54ac5fbd34ab292ddafb9a0456ac9f87d201"
 dependencies = [
  "libc",
 ]
@@ -109,7 +109,7 @@ dependencies = [
 name = "curve25519-dalek"
 version = "5.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b5eed333089e2e1c1ac8c6c0398e5e2497b4c9926ca6d0365ed1e099afa5bc23"
+checksum = "b5eed333089e2c99c0398e5e2497b4c9926ca6d0365ed1e099afa5bc23"
 dependencies = [
  "cfg-if",
  "cpufeatures 0.3.0",
@@ -473,4 +473,4 @@ checksum = "e13c156562582aa81c60cb29407084cdb54c4164760106ab78e6c5b0858cf64e"
 name = "zmij"
 version = "1.0.23"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "29666d0abbfad1e3dc4dcf6144730dd3a3ab225bbbdac83319345b1b44ccfc1b"
+checksum = "29666d0abbfad1e3dc4f6144730dd3a3ab225bbbdac83319345b1b44ccfc1b"
