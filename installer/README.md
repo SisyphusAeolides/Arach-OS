@@ -19,7 +19,9 @@ generation, then binds both to a private canonical plan and SHA-256 journal.
 It also binds the SHA-256 of the live boot-bundle manifest. Apply persists a
 second recovery bundle under the mounted target before it publishes Corinth
 authority, then atomically installs the manifest-verified Granite, Arach, Push,
-and Crest artifacts into the EFI layout. Verify re-hashes those files, and
+and C0 probe artifacts into the EFI layout. The C0 probe is stored under the
+legacy `crest` boot slot and is not a desktop environment. Verify re-hashes
+those files, and
 Calamares rolls both boot files and Corinth authority back on failure; after a
 restart, `arach-install recover --target <root>` performs the same recovery
 from the target bundle. The complete live ISO and bounded QEMU/C0 session gate
@@ -32,5 +34,5 @@ manifest.json       # schema = 1, four lowercase SHA-256 fields
 granite.efi         # PE/COFF UEFI image
 arach               # ELF kernel image
 push                # ELF PID 1 image
-crest               # ELF measured bootstrap/session image
+crest               # ELF measured C0 bootstrap/probe image; not a desktop
 ```

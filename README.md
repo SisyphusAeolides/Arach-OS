@@ -27,8 +27,9 @@ into this monorepo.
 
 ## Desktop and installer
 
-The live-image contract installs the locked `cosmic-desktop` bundle, boots
-directly into COSMIC, and launches a branded Calamares installer. Calamares 3.4.2 is pinned to an exact upstream Codeberg
+The live-image contract installs the locked `cosmic-desktop` bundle, including
+the `cosmic-term` terminal, plus the signed Firefox runtime artifact. It boots
+directly into COSMIC and launches a branded Calamares installer. Calamares 3.4.2 is pinned to an exact upstream Codeberg
 object. Its native modules own storage, encryption, users, passwords, locale,
 timezone, and keyboard configuration. The Arach transaction boundary owns the
 immutable Corinth package plan, Granite activation, COSMIC verification, and
@@ -38,6 +39,17 @@ The canonical logo is [`branding/arach-logo.png`](branding/arach-logo.png).
 Despite the extension of the originally supplied file, its actual format is a
 706×706 RGBA PNG; the original bytes are retained under `branding/source/`.
 
+### Desktop boundary
+
+COSMIC is the only desktop shipped by Arach OS: `cosmic-comp`,
+`cosmic-session`, `cosmic-greeter`, `cosmic-term`, and the COSMIC portal are
+the complete live desktop contract. Crest is **not** a desktop environment,
+desktop package, compositor, session, or greeter in this distribution. The
+lowercase `crest` file retained inside the measured Granite boot bundle is a
+compatibility-named C0 bootstrap/probe payload required by the current Granite
+handoff; it never enters the live system provider set. The composition validator
+and materializer reject any Crest-named desktop provider.
+
 ## Current status
 
 The composition contract, component pins, Calamares configuration, private
@@ -45,7 +57,7 @@ state handoff, journal-bound transaction state machine, and signed
 Corinth-artifact-to-live-root materializer are established.
 The production transaction can now validate and publish a canonical Corinth
 generation with a target-persistent recovery checkpoint, atomically activate a
-manifest-bound Granite/Arach/Push/Crest boot bundle, verify the installed
+manifest-bound Granite/Arach/Push/C0 boot bundle, verify the installed
 artifacts, and restore both boot files and package authority after process or
 machine interruption. A bootable live ISO, complete package repository,
 hardware-profile database, and full COSMIC behavior gate remain active work;
@@ -72,17 +84,22 @@ Build the installer input bundle with:
 
     scripts/assemble-boot-bundle.sh ARTIFACT_DIR /run/arach-live/boot-bundle
 
-`ARTIFACT_DIR` must contain the measured Granite PE/COFF image and ELF
-`arach`, `push`, and `crest` artifacts. The assembler writes the bounded,
-digest-bound manifest consumed by `arach-install`.
+`ARTIFACT_DIR` must contain the measured Granite PE/COFF image, ELF `arach` and
+`push` images, and the measured C0 probe artifact supplied in the compatibility
+slot named `crest`. The latter is a boot probe, not a desktop image. The
+assembler writes the bounded, digest-bound manifest consumed by
+`arach-install`.
 
 The live-root boundary is explicit in [`live/image.toml`](live/image.toml), and
 the package-to-runtime mapping is locked in [`live/system.toml`](live/system.toml).
 `scripts/materialize-live-system.sh` consumes the versioned Corinth artifact
 directories, rejects symlinks and path escapes, installs the measured Push,
-Corinth, D-Bus, COSMIC, Calamares, and installer paths, and writes
-`/run/arach-live/system.json`. `scripts/assemble-live-root.sh` then consumes
-that POSIX root, the manifest-bound Granite/Arach/Push/Crest bundle, and a
+Corinth, D-Bus, COSMIC (including `cosmic-term`), Firefox, Calamares, and
+installer paths, and writes `/run/arach-live/system.json`. The materializer
+requires the terminal and browser before it publishes the live root, so the
+Calamares session never starts without them. `scripts/assemble-live-root.sh`
+then consumes
+that POSIX root, the manifest-bound Granite/Arach/Push/C0 bundle, and a
 signed Corinth generation. It refuses to publish a root unless both system and
 image manifests are present and the complete runtime path set is present.
 Finally, `scripts/build-live-iso.sh` creates the UEFI-bootable ISO with

@@ -51,11 +51,18 @@ if contract.get("artifact_layout") != "corinth-v1":
     raise SystemExit("unsupported Corinth artifact layout")
 
 providers = contract.get("provider", [])
+for provider in providers:
+    name = str(provider.get("name", ""))
+    if "crest" in name.casefold():
+        raise SystemExit(
+            "Crest is reserved for the measured C0 boot payload and cannot be a live desktop provider"
+        )
 expected = {
     "push",
     "corinth",
     "dbus-broker",
     "cosmic-desktop",
+    "firefox",
     "calamares",
     "arach-install",
     "arach-branding",

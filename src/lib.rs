@@ -384,9 +384,11 @@ pub fn validate_live_image_contract(
         "/system/cosmic-comp",
         "/system/cosmic-greeter",
         "/system/cosmic-session",
+        "/system/cosmic-term",
         "/system/xdg-desktop-portal-cosmic",
         "/usr/libexec/arach-install",
         "/usr/bin/calamares",
+        "/usr/bin/firefox",
         "/usr/share/calamares/branding/arach/arach-logo.png",
     ];
     let actual = image
@@ -453,6 +455,7 @@ pub fn validate_live_system_contract(
         "corinth",
         "dbus-broker",
         "cosmic-desktop",
+        "firefox",
         "calamares",
         "arach-install",
         "arach-branding",
@@ -461,6 +464,12 @@ pub fn validate_live_system_contract(
     .collect::<BTreeSet<_>>();
     let mut names = BTreeSet::new();
     for provider in &system.provider {
+        if provider.name.to_ascii_lowercase().contains("crest") {
+            return Err(CompositionError::new(
+                format!("live/system.toml.provider.{}", provider.name),
+                "Crest is reserved for the measured C0 boot payload and cannot be a live desktop provider",
+            ));
+        }
         if !names.insert(provider.name.as_str())
             || !provider.required
             || provider.artifact_prefix.trim().is_empty()
@@ -877,6 +886,22 @@ mod tests {
         let text = fs::read_to_string(root.join("live/system.toml")).unwrap();
         let mut system = parse_live_system_contract(&text).unwrap();
         system.provider.pop();
+        assert!(validate_live_system_contract(&system, root).is_err());
+    }
+
+    #[test]
+    fn crest_is_reserved_for_boot_and_rejected_as_a_desktop_provider() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR"));
+        let text = fs::read_to_string(root.join("live/system.toml")).unwrap();
+        let mut system = parse_live_system_contract(&text).unwrap();
+        let mut forbidden = system
+            .provider
+            .iter()
+            .find(|provider| provider.name == "cosmic-desktop")
+            .cloned()
+            .unwrap();
+        forbidden.name = "crest-desktop".into();
+        system.provider.push(forbidden);
         assert!(validate_live_system_contract(&system, root).is_err());
     }
 

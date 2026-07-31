@@ -14,8 +14,10 @@ required_path = [
   "/system/cosmic-comp",
   "/system/cosmic-greeter",
   "/system/cosmic-session",
+  "/system/cosmic-term",
   "/system/xdg-desktop-portal-cosmic",
   "/usr/libexec/arach-install",
   "/usr/bin/calamares",
+  "/usr/bin/firefox",
   "/usr/share/calamares/branding/arach/arach-logo.png",
 ]

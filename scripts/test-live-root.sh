@@ -20,10 +20,12 @@ mkdir -p "$artifacts/corinth-0.1.0-9/target/release"
 printf '\177ELF test Corinth\n' > "$artifacts/corinth-0.1.0-9/target/release/corinth"
 mkdir -p "$artifacts/dbus-broker-1/usr/bin"
 printf '\177ELF test D-Bus\n' > "$artifacts/dbus-broker-1/usr/bin/dbus-broker-launch"
-for binary in cosmic-comp cosmic-greeter cosmic-session xdg-desktop-portal-cosmic; do
+for binary in cosmic-comp cosmic-greeter cosmic-session cosmic-term xdg-desktop-portal-cosmic; do
     mkdir -p "$artifacts/cosmic-desktop-0.1.0-1/usr/bin"
     printf '\177ELF test %s\n' "$binary" > "$artifacts/cosmic-desktop-0.1.0-1/usr/bin/$binary"
 done
+mkdir -p "$artifacts/firefox-140.4.0esr-1/usr/bin"
+printf '\177ELF test Firefox\n' > "$artifacts/firefox-140.4.0esr-1/usr/bin/firefox"
 mkdir -p "$artifacts/calamares-3.4.2-1/usr/bin"
 printf '\177ELF test Calamares\n' > "$artifacts/calamares-3.4.2-1/usr/bin/calamares"
 mkdir -p "$artifacts/arach-os-0.1.0-1/target/release" "$artifacts/arach-os-0.1.0-1/branding"
@@ -65,6 +67,15 @@ if "$root/scripts/materialize-live-system.sh" "$bad_artifacts" "$tmp/bad-root"; 
     exit 1
 fi
 printf '%s\n' 'Arach OS materializer rejection gate verified'
+
+missing_browser="$tmp/missing-browser-artifacts"
+cp -a -- "$artifacts" "$missing_browser"
+unlink "$missing_browser/firefox-140.4.0esr-1/usr/bin/firefox"
+if "$root/scripts/materialize-live-system.sh" "$missing_browser" "$tmp/missing-browser-root"; then
+    echo 'materializer accepted a live image without Firefox' >&2
+    exit 1
+fi
+printf '%s\n' 'Arach OS browser presence gate verified'
 
 if command -v xorriso >/dev/null 2>&1; then
     "$root/scripts/build-live-iso.sh" "$output" "$tmp/arach-os.iso"

@@ -1,10 +1,16 @@
 # COSMIC live image and installer
 
-The Arach OS installation medium installs the `cosmic-desktop` bundle and the
+The Arach OS installation medium installs the `cosmic-desktop` bundle,
+including `cosmic-term`, the signed Firefox runtime artifact, and the
 `arach-os-installer` recipe outputs from the locked Arach-Packages workspace,
 then starts `cosmic-comp` and
 `cosmic-session` as its live desktop. It launches a branded Calamares process;
-there is no alternate desktop in the release image.
+
+Crest is deliberately absent from this desktop and package graph. The
+compatibility-named `crest` file in the boot bundle is only the measured C0
+bootstrap/probe payload consumed by Granite; it is not a compositor, greeter,
+session, or desktop environment.
+There is no alternate desktop in the release image.
 
 Calamares owns interaction and delegates Arach-specific mutations to a
 transaction engine. The reviewed installer baseline is Calamares 3.4.2 from
@@ -28,7 +34,8 @@ same rollback immediately.
 
 The live medium supplies `/run/arach-live/boot-bundle`, containing a bounded
 `manifest.json` and four measured files: `granite.efi`, `arach`, `push`, and
-`crest`. `prepare` binds the exact manifest bytes to the immutable plan.
+the C0 probe in the compatibility slot named `crest`. That probe is not a
+desktop image. `prepare` binds the exact manifest bytes to the immutable plan.
 `apply` verifies every artifact, atomically installs Granite at
 `/boot/EFI/BOOT/BOOTX64.EFI` and the three measured payloads under `/boot/BOOT`,
 and retains backups in the target recovery checkpoint. `verify` re-hashes the
@@ -74,7 +81,7 @@ The live medium is assembled in four bounded stages. First,
 directories described by `live/system.toml`, creates the `/system` and `/usr`
 runtime paths, and records `/run/arach-live/system.json`. Next,
 `scripts/assemble-boot-bundle.sh` creates the manifest-bound Granite/Arach/
-Push/Crest directory. Finally, `scripts/assemble-live-root.sh` consumes the
+Push/C0 directory. Finally, `scripts/assemble-live-root.sh` consumes the
 materialized root, that boot bundle, and the signed Corinth generation. It
 publishes the exact `/run/arach-live/system.json`,
 `/run/arach-live/boot-bundle`, and `/run/arach-live/repository/system.gen`
