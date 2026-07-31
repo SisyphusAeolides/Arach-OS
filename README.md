@@ -47,7 +47,9 @@ carries hashed `modules.alias`, `modules.dep`, `modules.builtin`,
 `modules.firmware`, and `modules.builtin.modinfo` target metadata under
 `/etc/arach/hwd/driver-sources`; HWD
 uses those files first, then compares any live/target/offline module and
-firmware trees it can see. A physical device with no
+firmware trees it can see. Built-in modinfo contributes both firmware
+requirements and `module.alias=` matches when a target kernel omits a
+generated `modules.alias`. A physical device with no
 bound driver or compatible signed profile stops the install; no package is
 guessed from an interface name. The catalog is therefore a required release
 artifact, not an optional fallback.

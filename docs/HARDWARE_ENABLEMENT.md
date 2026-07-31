@@ -24,7 +24,9 @@ regular table in the live kernel, `/usr/lib/modules`,
 `/run/arach/target-modules`, and staged `/mnt` module roots, so driver and
 firmware candidates do not depend on which kernel booted the medium. `modules.dep`
 binds candidates to exact payload paths and `modules.builtin` records
-drivers compiled into the target kernel. Every configured table is required to
+drivers compiled into the target kernel. `modules.builtin.modinfo` additionally
+provides firmware and `module.alias=` records for built-in drivers when a
+generated `modules.alias` is absent. Every configured table is required to
 be a regular file and every configured firmware root a non-symlink directory
 before Calamares invokes HWD. Empty `firmwareRoots` uses the live and staged
 firmware roots discovered by HWD.
