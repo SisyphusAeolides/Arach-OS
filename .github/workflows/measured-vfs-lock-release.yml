@@ -1,34 +1,37 @@
-name: Measured VFS lock release
+name: Transfer validated measured VFS lock
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
+    types: [synchronize, reopened, ready_for_review]
 
 permissions:
   contents: write
 
 jobs:
-  publish:
-    if: github.event.pull_request.head.repo.full_name == github.repository
+  transfer:
+    if: github.event.pull_request.head.ref == 'measured-vfs-kernel'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
         with:
-          ref: ${{ github.event.pull_request.head.ref }}
+          ref: measured-vfs-kernel
           fetch-depth: 0
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt,clippy
-      - run: cargo update -p corinth
-      - run: cargo fmt --all -- --check
-      - run: cargo clippy --locked --all-targets -- -D warnings
-      - run: cargo test --locked
-      - run: git diff --check
-      - name: Publish regenerated lock
+      - name: Transfer validated lock to clean branch
         run: |
+          cp Cargo.lock /tmp/validated-Cargo.lock
+          git fetch origin measured-vfs-kernel-clean
+          git checkout -B measured-vfs-kernel-clean origin/measured-vfs-kernel-clean
+          cp /tmp/validated-Cargo.lock Cargo.lock
+          cargo fmt --all -- --check
+          cargo clippy --locked --all-targets -- -D warnings
+          cargo test --locked
+          git diff --check
           test "$(git diff --name-only | tr '\n' ' ')" = "Cargo.lock "
           git config user.name "SisyphusAeolides"
           git config user.email "37166405+SisyphusAeolides@users.noreply.github.com"
           git add Cargo.lock
-          git commit -m "Regenerate measured VFS dependency lock"
-          git push origin HEAD:${{ github.event.pull_request.head.ref }}
+          git commit -m "Transfer validated measured VFS dependency lock"
+          git push origin HEAD:measured-vfs-kernel-clean
