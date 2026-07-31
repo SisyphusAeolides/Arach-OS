@@ -120,6 +120,7 @@ def run():
             *metadata,
             "--output",
             report,
+            "--allow-unresolved",
         ],
         [
             executable,
