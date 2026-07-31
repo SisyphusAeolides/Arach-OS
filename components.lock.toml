@@ -40,7 +40,7 @@ role = "package-recipes"
 [[component]]
 name = "arach-hwd"
 repository = "https://github.com/SisyphusAeolides/Arach-HWD.git"
-revision = "3b7a0e3bad72e6d81f5b9477427de4fe4a8b8612"
+revision = "3c543592ec9fe603461ce3db792204e3520d8183"
 role = "hardware-provisioning"
 
 [[component]]

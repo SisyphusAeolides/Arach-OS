@@ -184,6 +184,25 @@ for provider in providers:
             target = stage / pathlib.PurePosixPath(required.lstrip("/"))
             if not target.is_file() or target.is_symlink():
                 raise SystemExit(f"required tree artifact missing: {required}")
+        if name == "arach-hardware-catalog":
+            lock_path = artifact / "etc/arach/hwd/catalog.lock"
+            profile_root = artifact / "etc/arach/hwd/profiles"
+            try:
+                with lock_path.open("rb") as stream:
+                    catalog_lock = tomllib.load(stream)
+            except (OSError, tomllib.TOMLDecodeError) as error:
+                raise SystemExit(f"hardware catalog lock is unreadable: {error}")
+            listed = catalog_lock.get("profile", [])
+            if not isinstance(listed, list) or not listed:
+                raise SystemExit("hardware catalog has no signed profiles")
+            listed_paths = {entry.get("path") for entry in listed if isinstance(entry, dict)}
+            actual_paths = {
+                path.relative_to(profile_root).as_posix()
+                for path in profile_root.rglob("*.toml")
+                if path.is_file() and not path.is_symlink()
+            }
+            if listed_paths != actual_paths:
+                raise SystemExit("hardware catalog lock does not enumerate its profiles")
         for alias in aliases:
             mode = alias.get("mode")
             if not isinstance(mode, int) or mode & ~0o7777:

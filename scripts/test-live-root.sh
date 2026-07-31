@@ -23,8 +23,14 @@ printf '\177ELF test Arach HWD\n' > "$artifacts/arach-hwd-0.1.0-1/target/release
 mkdir -p "$artifacts/arach-hardware-catalog-2026.1/etc/arach/hwd/profiles"
 printf '[key]\n' > "$artifacts/arach-hardware-catalog-2026.1/etc/arach/hwd/keys.toml"
 printf '1.0\n' > "$artifacts/arach-hardware-catalog-2026.1/etc/arach/hwd/driver-abi"
+printf 'fixture profile\n' > "$artifacts/arach-hardware-catalog-2026.1/etc/arach/hwd/profiles/fixture.toml"
+printf 'fixture signature\n' > "$artifacts/arach-hardware-catalog-2026.1/etc/arach/hwd/profiles/fixture.toml.sig"
 catalog_keyring_sha=$(sha256sum "$artifacts/arach-hardware-catalog-2026.1/etc/arach/hwd/keys.toml" | cut -d' ' -f1)
-printf 'format = 1\nsnapshot = "test"\nkeyring_sha256 = "%s"\n' "$catalog_keyring_sha" > "$artifacts/arach-hardware-catalog-2026.1/etc/arach/hwd/catalog.lock"
+catalog_profile_sha=$(sha256sum "$artifacts/arach-hardware-catalog-2026.1/etc/arach/hwd/profiles/fixture.toml" | cut -d' ' -f1)
+catalog_signature_sha=$(sha256sum "$artifacts/arach-hardware-catalog-2026.1/etc/arach/hwd/profiles/fixture.toml.sig" | cut -d' ' -f1)
+printf 'format = 1\nsnapshot = "test"\nkeyring_sha256 = "%s"\n\n[[profile]]\npath = "fixture.toml"\nprofile_sha256 = "%s"\nsignature_sha256 = "%s"\n' \
+    "$catalog_keyring_sha" "$catalog_profile_sha" "$catalog_signature_sha" \
+    > "$artifacts/arach-hardware-catalog-2026.1/etc/arach/hwd/catalog.lock"
 mkdir -p "$artifacts/dbus-broker-1/usr/bin"
 printf '\177ELF test D-Bus\n' > "$artifacts/dbus-broker-1/usr/bin/dbus-broker-launch"
 mkdir -p "$artifacts/greetd-0.10.3-1/target/release"
