@@ -9,8 +9,6 @@ init = "/system/push"
 required_path = [
   "/system/push",
   "/system/corinth",
-  "/system/slope-net",
-  "/system/crest",
   "/system/dbus-broker-launch",
   "/system/cosmic-comp",
   "/system/cosmic-greeter",

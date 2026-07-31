@@ -333,8 +333,6 @@ pub fn validate_live_image_contract(
     let expected = [
         "/system/push",
         "/system/corinth",
-        "/system/slope-net",
-        "/system/crest",
         "/system/dbus-broker-launch",
         "/system/cosmic-comp",
         "/system/cosmic-greeter",

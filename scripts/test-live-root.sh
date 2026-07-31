@@ -14,7 +14,7 @@ output="$tmp/live-root"
 mkdir -p "$source" "$bundle_inputs"
 
 for path in \
-    system/push system/corinth system/slope-net system/crest \
+    system/push system/corinth \
     system/dbus-broker-launch system/cosmic-comp system/cosmic-greeter \
     system/cosmic-session system/xdg-desktop-portal-cosmic \
     usr/libexec/arach-install usr/bin/calamares \
