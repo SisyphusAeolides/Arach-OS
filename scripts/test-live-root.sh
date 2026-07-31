@@ -23,6 +23,8 @@ printf '\177ELF test Arach HWD\n' > "$artifacts/arach-hwd-0.1.0-1/target/release
 mkdir -p "$artifacts/arach-hardware-catalog-2026.1/etc/arach/hwd/profiles"
 printf '[key]\n' > "$artifacts/arach-hardware-catalog-2026.1/etc/arach/hwd/keys.toml"
 printf '1.0\n' > "$artifacts/arach-hardware-catalog-2026.1/etc/arach/hwd/driver-abi"
+printf 'format = 1\nrepository = "arach-hardware"\nkey_id = "fixture"\n\n[[package]]\nname = "fixture-driver"\nversion = "1.0.0"\nrelease = 1\nscope = "driver"\nrepository = "arach-hardware"\nmetadata_sha256 = "%064d"\nartifact_sha256 = "%064d"\nsource_lock_sha256 = "%064d"\nurl = "https://packages.example.invalid/fixture.pkg"\nsize = 1\n' 0 1 2 > "$artifacts/arach-hardware-catalog-2026.1/etc/arach/hwd/packages.toml"
+printf 'key_id = "fixture"\nsignature = "fixture"\n' > "$artifacts/arach-hardware-catalog-2026.1/etc/arach/hwd/packages.toml.sig"
 printf 'fixture profile\n' > "$artifacts/arach-hardware-catalog-2026.1/etc/arach/hwd/profiles/fixture.toml"
 printf 'fixture signature\n' > "$artifacts/arach-hardware-catalog-2026.1/etc/arach/hwd/profiles/fixture.toml.sig"
 catalog_keyring_sha=$(sha256sum "$artifacts/arach-hardware-catalog-2026.1/etc/arach/hwd/keys.toml" | cut -d' ' -f1)

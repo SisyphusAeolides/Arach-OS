@@ -21,6 +21,16 @@ device, missing profile, invalid signature, or incompatible Driver ABI stops
 the installation before partitioning. Virtual network interfaces and child
 ALSA/DRM/block/input class nodes are not mistaken for missing drivers.
 
+The catalog also carries `packages.toml` and its detached signature. This is
+the scoped `package-index` for prebuilt Arach hardware payloads (kernel driver
+trees and firmware). At commit, Corinth verifies the index with the catalog
+keyring and installs an exact binary plan when every intent is covered; if a
+signed intent has no binary record, Corinth fetches the pinned Arach-Packages
+revision and builds the locked `@install-tree` recipe instead. Both paths write
+the same owned-file receipt set under the transaction and rollback removes only
+those measured files. A missing index, profile, signature, recipe, or digest is
+a hard failure, never an unverified fallback.
+
 The catalog is a release input, not a guessed package list: each profile must
 bind the exact bus/modalias identity to signed Arach hardware artifacts,
 firmware, health checks, and rollback data. A live image without this catalog

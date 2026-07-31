@@ -184,6 +184,8 @@ pub struct Hardware {
     pub catalog_profiles: String,
     pub catalog_keyring: String,
     pub catalog_lock: String,
+    pub binary_index: String,
+    pub binary_signature: String,
     pub driver_abi: String,
     pub plan: String,
     pub capabilities: Vec<String>,
@@ -406,6 +408,8 @@ pub fn validate_live_profile(profile: &LiveProfile, root: &Path) -> Result<(), C
         || profile.hardware.catalog_profiles != "/etc/arach/hwd/profiles"
         || profile.hardware.catalog_keyring != "/etc/arach/hwd/keys.toml"
         || profile.hardware.catalog_lock != "/etc/arach/hwd/catalog.lock"
+        || profile.hardware.binary_index != "/etc/arach/hwd/packages.toml"
+        || profile.hardware.binary_signature != "/etc/arach/hwd/packages.toml.sig"
         || profile.hardware.driver_abi != "/etc/arach/hwd/driver-abi"
         || profile.hardware.plan != "/run/arach-installer/hardware.plan.toml"
         || !profile.hardware.allow_adapted_c_drivers
@@ -462,6 +466,8 @@ pub fn validate_live_image_contract(
         "/etc/arach/hwd/keys.toml",
         "/etc/arach/hwd/driver-abi",
         "/etc/arach/hwd/catalog.lock",
+        "/etc/arach/hwd/packages.toml",
+        "/etc/arach/hwd/packages.toml.sig",
         "/system/dbus-broker-launch",
         "/system/greetd",
         "/system/cosmic-comp",

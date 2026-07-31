@@ -37,13 +37,58 @@ fn run(arguments: Vec<String>) -> Result<(), installer::InstallerError> {
             )
         }
         "apply" => {
-            require_flags(&flags, &["boot-bundle", "journal", "plan", "target"])?;
-            installer::apply(
-                required(&flags, "plan")?,
-                required(&flags, "journal")?,
-                required(&flags, "target")?,
-                required(&flags, "boot-bundle")?,
-            )
+            let hardware = [
+                "hardware-profiles",
+                "hardware-keyring",
+                "hardware-catalog-lock",
+                "hardware-binary-index",
+                "hardware-binary-signature",
+                "hardware-work",
+                "hardware-artifacts",
+            ];
+            let has_hardware_flag = hardware.iter().any(|name| flags.contains_key(*name));
+            if has_hardware_flag {
+                require_flags(
+                    &flags,
+                    &[
+                        "boot-bundle",
+                        "journal",
+                        "plan",
+                        "target",
+                        "hardware-profiles",
+                        "hardware-keyring",
+                        "hardware-catalog-lock",
+                        "hardware-binary-index",
+                        "hardware-binary-signature",
+                        "hardware-work",
+                        "hardware-artifacts",
+                    ],
+                )?;
+                installer::apply_with_hardware(
+                    required(&flags, "plan")?,
+                    required(&flags, "journal")?,
+                    required(&flags, "target")?,
+                    required(&flags, "boot-bundle")?,
+                    installer::HardwareApplyInputs {
+                        profiles: required(&flags, "hardware-profiles")?.to_path_buf(),
+                        keyring: required(&flags, "hardware-keyring")?.to_path_buf(),
+                        catalog_lock: required(&flags, "hardware-catalog-lock")?.to_path_buf(),
+                        binary_index: required(&flags, "hardware-binary-index")?.to_path_buf(),
+                        binary_signature: required(&flags, "hardware-binary-signature")?
+                            .to_path_buf(),
+                        work: required(&flags, "hardware-work")?.to_path_buf(),
+                        artifacts: required(&flags, "hardware-artifacts")?.to_path_buf(),
+                    },
+                )
+            } else {
+                require_flags(&flags, &["boot-bundle", "journal", "plan", "target"])?;
+                installer::apply(
+                    required(&flags, "plan")?,
+                    required(&flags, "journal")?,
+                    required(&flags, "target")?,
+                    required(&flags, "boot-bundle")?,
+                )
+            }
         }
         "verify" => {
             require_flags(&flags, &["journal", "plan", "target"])?;

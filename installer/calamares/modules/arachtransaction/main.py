@@ -38,12 +38,24 @@ def run():
     runtime_directory = configuration.get("runtimeDirectory")
     generation_source = configuration.get("generationSource")
     boot_bundle_source = configuration.get("bootBundleSource")
+    hardware_profiles = configuration.get("hardwareProfiles")
+    hardware_keyring = configuration.get("hardwareKeyring")
+    hardware_catalog_lock = configuration.get("hardwareCatalogLock")
+    hardware_binary_index = configuration.get("hardwareBinaryIndex")
+    hardware_binary_signature = configuration.get("hardwareBinarySignature")
     if (
         phase not in ("prepare", "commit")
         or not executable
         or not runtime_directory
         or not generation_source
         or not boot_bundle_source
+        or (phase == "commit" and (
+            not hardware_profiles
+            or not hardware_keyring
+            or not hardware_catalog_lock
+            or not hardware_binary_index
+            or not hardware_binary_signature
+        ))
     ):
         return ("Invalid Arach installer configuration", "Required transaction fields are absent")
 
@@ -103,6 +115,20 @@ def run():
                         str(target),
                         "--boot-bundle",
                         str(boot_bundle_source),
+                        "--hardware-profiles",
+                        str(hardware_profiles),
+                        "--hardware-keyring",
+                        str(hardware_keyring),
+                        "--hardware-catalog-lock",
+                        str(hardware_catalog_lock),
+                        "--hardware-binary-index",
+                        str(hardware_binary_index),
+                        "--hardware-binary-signature",
+                        str(hardware_binary_signature),
+                        "--hardware-work",
+                        str(transaction_paths["base"] / "hardware-work"),
+                        "--hardware-artifacts",
+                        str(transaction_paths["base"] / "hardware-artifacts"),
                     ]
                 )
                 execute(

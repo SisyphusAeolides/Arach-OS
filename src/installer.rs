@@ -1,9 +1,14 @@
+use arach_hwd::catalog::verify_catalog;
+use arach_hwd::plan::PlanSet;
+use arach_hwd::signature::Keyring;
+use corinth::binary::{BinaryInstallStore, BinaryProvisioner, verify_binary_index};
 use corinth::generation::{GenerationDigest, GenerationImage, MAX_GENERATION_BYTES, NO_GENERATION};
+use corinth::hardware::{HardwareProvisioner, verify_plan_set};
 use corinth::store::FilesystemGenerationStore;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use sha2::{Digest, Sha256};
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 use std::fs::{self, File, OpenOptions};
 use std::io::{Read, Write};
@@ -16,6 +21,8 @@ const TRANSACTION_SCHEMA: u32 = 1;
 pub const BOOT_BUNDLE_SCHEMA: u32 = 1;
 const MAX_BOOT_ARTIFACT_BYTES: u64 = 32 * 1024 * 1024;
 const MAX_RECOVERY_TRANSACTIONS: usize = 128;
+const HARDWARE_RECIPES_URL: &str = "https://github.com/SisyphusAeolides/Arach-Packages.git";
+const HARDWARE_RECIPES_REVISION: &str = "7918fd243ce9b2cc4ea1de90efc38bcbff7a57b9";
 static TEMPORARY_SERIAL: AtomicU64 = AtomicU64::new(1);
 
 const BOOT_MANIFEST_NAME: &str = "manifest.json";
@@ -125,7 +132,25 @@ pub struct InstallJournal {
     pub previous_corinth_generation: Option<String>,
     pub intended_corinth_generation: String,
     pub corinth_published: bool,
+    #[serde(default)]
+    pub hardware_packages: Vec<String>,
     pub mutations: Vec<String>,
+}
+
+/// Live-installer inputs for the signed HWD plan.  The profile directory and
+/// catalog lock are read-only image inputs; build work and artifacts remain in
+/// the private transaction runtime directory.  Network access is enabled only
+/// for the pinned recipe revision and every recipe is still digest-bound by
+/// the signed hardware profile.
+#[derive(Clone, Debug)]
+pub struct HardwareApplyInputs {
+    pub profiles: PathBuf,
+    pub keyring: PathBuf,
+    pub catalog_lock: PathBuf,
+    pub binary_index: PathBuf,
+    pub binary_signature: PathBuf,
+    pub work: PathBuf,
+    pub artifacts: PathBuf,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -253,6 +278,7 @@ fn prepare_internal(
         previous_corinth_generation: None,
         intended_corinth_generation: generation_sha256,
         corinth_published: false,
+        hardware_packages: Vec::new(),
         mutations: Vec::new(),
     };
     create_private(&staged_generation, &generation_bytes)?;
@@ -281,6 +307,32 @@ pub fn apply(
     journal_path: &Path,
     target: &Path,
     boot_bundle_path: &Path,
+) -> Result<(), InstallerError> {
+    apply_internal(plan_path, journal_path, target, boot_bundle_path, None)
+}
+
+pub fn apply_with_hardware(
+    plan_path: &Path,
+    journal_path: &Path,
+    target: &Path,
+    boot_bundle_path: &Path,
+    hardware: HardwareApplyInputs,
+) -> Result<(), InstallerError> {
+    apply_internal(
+        plan_path,
+        journal_path,
+        target,
+        boot_bundle_path,
+        Some(hardware),
+    )
+}
+
+fn apply_internal(
+    plan_path: &Path,
+    journal_path: &Path,
+    target: &Path,
+    boot_bundle_path: &Path,
+    hardware: Option<HardwareApplyInputs>,
 ) -> Result<(), InstallerError> {
     let target = validate_target(target)?;
     let (plan, mut journal) = load_bound_documents(plan_path, journal_path)?;
@@ -333,6 +385,27 @@ pub fn apply(
     )?;
     rewrite_journal_copies(journal_path, Some(&checkpoint_journal), &journal)?;
 
+    if plan.hardware_plan_sha256.is_some() {
+        let hardware = hardware.ok_or_else(|| {
+            InstallerError::invalid(
+                "a signed hardware plan requires catalog and recipe inputs during apply",
+            )
+        })?;
+        provision_hardware(
+            plan_path,
+            &target,
+            &plan,
+            &mut journal,
+            &hardware,
+            &checkpoint_journal,
+            journal_path,
+        )?;
+    } else if hardware.is_some() {
+        return Err(InstallerError::invalid(
+            "hardware catalog inputs were supplied without a hardware plan",
+        ));
+    }
+
     let store = FilesystemGenerationStore::open(&store_root)
         .map_err(|error| InstallerError::invalid(format!("Corinth store: {error}")))?;
     let published = store
@@ -357,6 +430,202 @@ pub fn apply(
     journal.mutations.push("boot-bundle".into());
     rewrite_journal_copies(journal_path, Some(&checkpoint_journal), &journal)?;
     Ok(())
+}
+
+fn provision_hardware(
+    plan_path: &Path,
+    target: &Path,
+    plan: &InstallPlan,
+    journal: &mut InstallJournal,
+    inputs: &HardwareApplyInputs,
+    checkpoint_journal: &Path,
+    runtime_journal: &Path,
+) -> Result<(), InstallerError> {
+    let hardware_plan_path = staged_hardware_plan_path(plan_path)?;
+    let bytes = read_regular(&hardware_plan_path, DOCUMENT_LIMIT, true)?;
+    if plan.hardware_plan_sha256.as_deref() != Some(digest(&bytes).as_str()) {
+        return Err(InstallerError::invalid(
+            "staged hardware plan differs from the immutable install plan",
+        ));
+    }
+    let plans = parse_hardware_plans(&bytes)?;
+    verify_catalog(&inputs.catalog_lock, &inputs.profiles, &inputs.keyring)
+        .map_err(|error| InstallerError::invalid(format!("hardware catalog: {error}")))?;
+    let keyring = Keyring::load(&inputs.keyring)
+        .map_err(|error| InstallerError::invalid(format!("hardware keyring: {error}")))?;
+    let documents = load_hardware_profile_documents(&inputs.profiles, &keyring)?;
+    let verified = if plans.plan.is_empty() {
+        Vec::new()
+    } else {
+        verify_plan_set(plans, &documents)
+            .map_err(|error| InstallerError::invalid(format!("hardware plan: {error}")))?
+    };
+
+    let index_bytes = read_regular(&inputs.binary_index, DOCUMENT_LIMIT, false)?;
+    let index_signature = String::from_utf8(read_regular(
+        &inputs.binary_signature,
+        DOCUMENT_LIMIT,
+        false,
+    )?)
+    .map_err(|_| InstallerError::invalid("hardware binary-index signature is not UTF-8"))?;
+    let binary_index = verify_binary_index(&index_bytes, &index_signature, &keyring)
+        .map_err(|error| InstallerError::invalid(format!("hardware binary index: {error}")))?;
+
+    let hardware_state =
+        target_transaction_directory(target, &journal.transaction_id).join("hardware-state");
+    let expected_packages = verified
+        .iter()
+        .flat_map(|plan| plan.plan.package.iter().map(|intent| intent.name.clone()))
+        .collect::<BTreeSet<_>>();
+    if !expected_packages.is_empty() {
+        journal.hardware_packages = expected_packages.into_iter().collect();
+        journal.mutations.push("hardware-provisioning".into());
+        rewrite_journal_copies(runtime_journal, Some(checkpoint_journal), journal)?;
+    }
+    let packages = if verified.is_empty() {
+        Vec::new()
+    } else if binary_index_covers(&binary_index, &verified) {
+        let mut provisioner = BinaryProvisioner::new(inputs.artifacts.clone())
+            .map_err(|error| InstallerError::invalid(format!("hardware binaries: {error}")))?;
+        provisioner.allow_network = true;
+        provisioner
+            .install_hardware_plan_set_to_root(
+                hardware_state.clone(),
+                target.to_path_buf(),
+                &binary_index,
+                &verified,
+            )
+            .map_err(|error| InstallerError::invalid(format!("hardware binary install: {error}")))?
+            .into_iter()
+            .map(|receipt| receipt.package)
+            .collect()
+    } else {
+        let mut provisioner =
+            HardwareProvisioner::new(inputs.work.clone(), inputs.artifacts.clone())
+                .map_err(|error| InstallerError::invalid(format!("hardware builder: {error}")))?;
+        // The signed profile and catalog are the authority boundary.  The
+        // only network operation below is fetching the exact pinned recipe
+        // revision and its locked sources; recipe policy still decides
+        // whether a build may use network access.
+        provisioner.allow_network = true;
+        let recipes = provisioner
+            .acquire_recipe_repository(HARDWARE_RECIPES_URL, HARDWARE_RECIPES_REVISION, false)
+            .map_err(|error| InstallerError::invalid(format!("hardware recipes: {error}")))?;
+        let receipts = provisioner
+            .build_verified_set(&verified, &recipes)
+            .map_err(|error| InstallerError::invalid(format!("hardware build: {error}")))?;
+        provisioner
+            .install_plan_set_to_root(
+                hardware_state.clone(),
+                target.to_path_buf(),
+                &verified,
+                &receipts,
+            )
+            .map_err(|error| InstallerError::invalid(format!("hardware install: {error}")))?;
+        receipts
+            .into_iter()
+            .map(|receipt| receipt.package)
+            .collect()
+    };
+    journal.hardware_packages = packages;
+    journal.hardware_packages.sort();
+    journal.hardware_packages.dedup();
+    rewrite_journal_copies(runtime_journal, Some(checkpoint_journal), journal)?;
+
+    Ok(())
+}
+
+fn parse_hardware_plans(bytes: &[u8]) -> Result<PlanSet, InstallerError> {
+    if let Ok(set) = toml::from_slice::<PlanSet>(bytes) {
+        if set.schema != arach_hwd::plan::PLAN_SCHEMA {
+            return Err(InstallerError::invalid(
+                "hardware plan set has an unsupported schema",
+            ));
+        }
+        return Ok(set);
+    }
+    let plan = toml::from_slice::<arach_hwd::plan::ProvisionPlan>(bytes)
+        .map_err(|error| InstallerError::invalid(format!("invalid hardware plan: {error}")))?;
+    Ok(PlanSet {
+        schema: arach_hwd::plan::PLAN_SCHEMA,
+        plan: vec![plan],
+    })
+}
+
+fn binary_index_covers(
+    index: &corinth::binary::VerifiedBinaryIndex,
+    plans: &[corinth::hardware::VerifiedHardwarePlan],
+) -> bool {
+    plans.iter().all(|plan| {
+        plan.plan.package.iter().all(|intent| {
+            index.index.packages.iter().any(|package| {
+                package.name == intent.name
+                    && package.version == intent.version
+                    && package.scope == intent.scope
+                    && package.repository == intent.repository
+                    && package.metadata_sha256 == intent.metadata_sha256
+                    && package.artifact_sha256 == intent.artifact_sha256
+                    && package.source_lock_sha256 == intent.source_lock_sha256
+            })
+        })
+    })
+}
+
+fn load_hardware_profile_documents(
+    directory: &Path,
+    keyring: &Keyring,
+) -> Result<Vec<(Vec<u8>, String, Keyring)>, InstallerError> {
+    fn walk(directory: &Path, paths: &mut Vec<PathBuf>) -> Result<(), InstallerError> {
+        let mut entries = fs::read_dir(directory)
+            .map_err(|error| InstallerError::invalid(format!("{}: {error}", directory.display())))?
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(|error| InstallerError::invalid(error.to_string()))?;
+        entries.sort_by_key(|entry| entry.path());
+        for entry in entries {
+            let path = entry.path();
+            let metadata = fs::symlink_metadata(&path)
+                .map_err(|error| InstallerError::invalid(format!("{}: {error}", path.display())))?;
+            if metadata.file_type().is_symlink() {
+                return Err(InstallerError::invalid(format!(
+                    "symlink in hardware profile catalog: {}",
+                    path.display()
+                )));
+            }
+            if metadata.is_dir() {
+                walk(&path, paths)?;
+            } else if metadata.is_file()
+                && path
+                    .extension()
+                    .is_some_and(|extension| extension == "toml")
+            {
+                paths.push(path);
+            }
+        }
+        Ok(())
+    }
+
+    let mut paths = Vec::new();
+    walk(directory, &mut paths)?;
+    if paths.is_empty() {
+        return Err(InstallerError::invalid(
+            "hardware profile catalog contains no profiles",
+        ));
+    }
+    paths
+        .into_iter()
+        .map(|path| {
+            let bytes = read_regular(&path, DOCUMENT_LIMIT, false)?;
+            let signature_path = PathBuf::from(format!("{}.sig", path.display()));
+            let signature =
+                String::from_utf8(read_regular(&signature_path, DOCUMENT_LIMIT, false)?).map_err(
+                    |_| InstallerError::invalid("hardware profile signature is not UTF-8"),
+                )?;
+            keyring
+                .verify(&bytes, &signature)
+                .map_err(|error| InstallerError::invalid(format!("hardware profile: {error}")))?;
+            Ok((bytes, signature, keyring.clone()))
+        })
+        .collect()
 }
 
 pub fn verify(plan_path: &Path, journal_path: &Path, target: &Path) -> Result<(), InstallerError> {
@@ -410,6 +679,21 @@ pub fn rollback(
         .mutations
         .iter()
         .any(|mutation| mutation == "boot-bundle");
+    let had_hardware = journal
+        .mutations
+        .iter()
+        .any(|mutation| mutation == "hardware-provisioning");
+    rollback_hardware(&target, &journal, had_hardware)?;
+    if had_hardware
+        && !journal
+            .mutations
+            .iter()
+            .any(|mutation| mutation == "hardware-provisioning:rolled-back")
+    {
+        journal
+            .mutations
+            .push("hardware-provisioning:rolled-back".into());
+    }
     rollback_boot_bundle(&target, &plan)?;
     if had_boot_bundle
         && !journal
@@ -934,6 +1218,13 @@ pub fn parse_flag_arguments(
                 | "generation"
                 | "boot-bundle"
                 | "hardware-plan"
+                | "hardware-profiles"
+                | "hardware-keyring"
+                | "hardware-catalog-lock"
+                | "hardware-binary-index"
+                | "hardware-binary-signature"
+                | "hardware-work"
+                | "hardware-artifacts"
         ) {
             return Err(InstallerError::invalid(format!("unknown flag --{flag}")));
         }
@@ -1008,15 +1299,33 @@ fn validate_journal(journal: &InstallJournal) -> Result<(), InstallerError> {
         .iter()
         .filter(|mutation| mutation.as_str() == "boot-bundle:rolled-back")
         .count();
+    let hardware_mutations = journal
+        .mutations
+        .iter()
+        .filter(|mutation| mutation.as_str() == "hardware-provisioning")
+        .count();
+    let hardware_rollback_mutations = journal
+        .mutations
+        .iter()
+        .filter(|mutation| mutation.as_str() == "hardware-provisioning:rolled-back")
+        .count();
     let coherent_transition = match journal.status {
         JournalStatus::Prepared => {
             journal.target.is_none()
                 && journal.previous_corinth_generation.is_none()
                 && !journal.corinth_published
+                && journal.hardware_packages.is_empty()
                 && journal.mutations.is_empty()
         }
         JournalStatus::Applying => {
-            journal.target.is_some() && !journal.corinth_published && journal.mutations.is_empty()
+            journal.target.is_some()
+                && !journal.corinth_published
+                && hardware_mutations <= 1
+                && hardware_rollback_mutations == 0
+                && journal
+                    .hardware_packages
+                    .iter()
+                    .all(|package| valid_package_name(package))
         }
         JournalStatus::CorinthPublished
         | JournalStatus::ApplyFailed
@@ -1028,6 +1337,12 @@ fn validate_journal(journal: &InstallJournal) -> Result<(), InstallerError> {
                 && rollback_mutations == 0
                 && boot_mutations <= 1
                 && boot_rollback_mutations == 0
+                && hardware_mutations <= 1
+                && hardware_rollback_mutations == 0
+                && journal
+                    .hardware_packages
+                    .iter()
+                    .all(|package| valid_package_name(package))
         }
         JournalStatus::RolledBack => {
             journal.target.is_some()
@@ -1035,6 +1350,11 @@ fn validate_journal(journal: &InstallJournal) -> Result<(), InstallerError> {
                 && rollback_mutations == 1
                 && boot_rollback_mutations == boot_mutations
                 && published_mutations <= 1
+                && hardware_rollback_mutations == hardware_mutations
+                && journal
+                    .hardware_packages
+                    .iter()
+                    .all(|package| valid_package_name(package))
         }
     };
     if !valid_digest(&journal.intended_corinth_generation)
@@ -1049,6 +1369,8 @@ fn validate_journal(journal: &InstallJournal) -> Result<(), InstallerError> {
                     | "corinth-generation:rolled-back"
                     | "boot-bundle"
                     | "boot-bundle:rolled-back"
+                    | "hardware-provisioning"
+                    | "hardware-provisioning:rolled-back"
             )
         })
         || !coherent_transition
@@ -1390,11 +1712,46 @@ fn rollback_corinth(
     Ok(())
 }
 
+fn rollback_hardware(
+    target: &Path,
+    journal: &InstallJournal,
+    provisioned: bool,
+) -> Result<(), InstallerError> {
+    if !provisioned || journal.hardware_packages.is_empty() {
+        return Ok(());
+    }
+    let state =
+        target_transaction_directory(target, &journal.transaction_id).join("hardware-state");
+    let receipt_root = state.join("binary-installed");
+    if !receipt_root.is_dir() {
+        return Ok(());
+    }
+    let store = BinaryInstallStore::open(state, target.to_path_buf())
+        .map_err(|error| InstallerError::invalid(format!("hardware rollback store: {error}")))?;
+    for package in &journal.hardware_packages {
+        let receipt = receipt_root.join(format!("{package}.toml"));
+        if !receipt.is_file() {
+            continue;
+        }
+        store
+            .remove(package)
+            .map_err(|error| InstallerError::invalid(format!("hardware rollback: {error}")))?;
+    }
+    Ok(())
+}
+
 fn valid_digest(value: &str) -> bool {
     value.len() == 64
         && value
             .bytes()
             .all(|byte| byte.is_ascii_digit() || matches!(byte, b'a'..=b'f'))
+}
+
+fn valid_package_name(value: &str) -> bool {
+    !value.is_empty()
+        && value.bytes().all(|byte| {
+            byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'-' || byte == b'_'
+        })
 }
 
 fn decode_generation_digest(value: &str) -> Result<GenerationDigest, InstallerError> {

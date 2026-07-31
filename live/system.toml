@@ -40,6 +40,8 @@ required_tree_path = [
   "/etc/arach/hwd/keys.toml",
   "/etc/arach/hwd/driver-abi",
   "/etc/arach/hwd/catalog.lock",
+  "/etc/arach/hwd/packages.toml",
+  "/etc/arach/hwd/packages.toml.sig",
 ]
 files = []
 

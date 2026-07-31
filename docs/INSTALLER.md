@@ -29,6 +29,13 @@ installer baseline is Calamares 3.4.2 from
 plan before changing disk state and writes a recovery journal before the first
 destructive operation.
 
+The catalog includes a signed hardware binary index as well as profiles.
+Corinth uses the binary index for exact driver/firmware payloads when available
+and otherwise builds the signed profile's pinned recipe. This makes Wi-Fi,
+audio, graphics, storage, Bluetooth, and input provisioning use one
+reproducible, rollback-safe path instead of assuming a package name from a
+capability class.
+
 The `arachtransaction@prepare` job runs before Calamares' partition job. It
 passes only an allowlisted state document to `arach-install`; user, root, and
 LUKS secrets remain inside Calamares. The `arachtransaction@commit` job runs
