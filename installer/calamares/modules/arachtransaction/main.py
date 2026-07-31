@@ -33,6 +33,7 @@ def pretty_status_message():
 
 def run():
     configuration = libcalamares.job.configuration
+    storage = libcalamares.globalstorage
     phase = configuration.get("phase")
     executable = configuration.get("executable")
     runtime_directory = configuration.get("runtimeDirectory")
@@ -43,31 +44,75 @@ def run():
     hardware_catalog_lock = configuration.get("hardwareCatalogLock")
     hardware_binary_index = configuration.get("hardwareBinaryIndex")
     hardware_binary_signature = configuration.get("hardwareBinarySignature")
+
+    if phase == "commit":
+        hardware_profiles = storage.value("arachHardwareProfiles") or hardware_profiles
+        hardware_keyring = storage.value("arachHardwareKeyring") or hardware_keyring
+        hardware_catalog_lock = (
+            storage.value("arachHardwareCatalogLock") or hardware_catalog_lock
+        )
+        hardware_binary_index = (
+            storage.value("arachHardwareBinaryIndex") or hardware_binary_index
+        )
+        hardware_binary_signature = (
+            storage.value("arachHardwareBinarySignature")
+            or hardware_binary_signature
+        )
+        catalog_root = storage.value("arachHardwareCatalogRoot")
+        if catalog_root:
+            expected = pathlib.Path(catalog_root)
+            if catalog_root not in (
+                "/etc/arach/hwd",
+                "/run/arach-installer/catalog",
+            ) or (
+                pathlib.Path(hardware_profiles) != expected / "profiles"
+                or pathlib.Path(hardware_keyring) != expected / "keys.toml"
+                or pathlib.Path(hardware_catalog_lock) != expected / "catalog.lock"
+                or pathlib.Path(hardware_binary_index) != expected / "packages.toml"
+                or pathlib.Path(hardware_binary_signature)
+                != expected / "packages.toml.sig"
+            ):
+                return (
+                    "Invalid Arach installer configuration",
+                    "Hardware transaction paths differ from the verified catalog",
+                )
+
     if (
         phase not in ("prepare", "commit")
         or not executable
         or not runtime_directory
         or not generation_source
         or not boot_bundle_source
-        or (phase == "commit" and (
-            not hardware_profiles
-            or not hardware_keyring
-            or not hardware_catalog_lock
-            or not hardware_binary_index
-            or not hardware_binary_signature
-        ))
+        or (
+            phase == "commit"
+            and (
+                not hardware_profiles
+                or not hardware_keyring
+                or not hardware_catalog_lock
+                or not hardware_binary_index
+                or not hardware_binary_signature
+            )
+        )
     ):
-        return ("Invalid Arach installer configuration", "Required transaction fields are absent")
+        return (
+            "Invalid Arach installer configuration",
+            "Required transaction fields are absent",
+        )
 
-    storage = libcalamares.globalstorage
     transaction_id = storage.value("arachTransactionId")
     if phase == "prepare":
         if transaction_id:
-            return ("Arach transaction already exists", "Refusing to overwrite its journal")
+            return (
+                "Arach transaction already exists",
+                "Refusing to overwrite its journal",
+            )
         transaction_id = new_transaction_id()
         storage.insert("arachTransactionId", transaction_id)
     if not transaction_id:
-        return ("Arach transaction is missing", "The prepare phase did not complete")
+        return (
+            "Arach transaction is missing",
+            "The prepare phase did not complete",
+        )
 
     transaction_paths = paths(runtime_directory, transaction_id)
     try:
@@ -77,7 +122,9 @@ def run():
                 raise TransactionFailure("hardware preflight plan is missing")
             hardware_plan_path = pathlib.Path(hardware_plan)
             if not hardware_plan_path.is_file() or hardware_plan_path.is_symlink():
-                raise TransactionFailure("hardware preflight plan is not a regular file")
+                raise TransactionFailure(
+                    "hardware preflight plan is not a regular file"
+                )
             state = collect_state(storage.value, transaction_id)
             atomic_json(transaction_paths["state"], state)
             execute(
