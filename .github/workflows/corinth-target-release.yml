@@ -1,0 +1,61 @@
+name: Corinth target release
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Align Corinth package graph
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          OLD_CORINTH = "036a9caecf30926d116a361ce7d4f7a6fc455989"
+          NEW_CORINTH = "4a11021c217c1fa4862fac136f019ab2f8e51b30"
+          OLD_PACKAGES = "559ff5017866ffe0f436049de8f7c7eeafca5c08"
+          NEW_PACKAGES = "6fa827e3172970dc0d9be661e3f394273198822f"
+
+          def replace(path, old, new, expected=1):
+              target = Path(path)
+              text = target.read_text(encoding="utf-8")
+              count = text.count(old)
+              if count != expected:
+                  raise SystemExit(f"{path}: expected {expected} matches, found {count}")
+              target.write_text(text.replace(old, new), encoding="utf-8")
+
+          replace("Cargo.toml", OLD_CORINTH, NEW_CORINTH)
+          replace("Cargo.lock", OLD_CORINTH, NEW_CORINTH, expected=2)
+          replace("components.lock.toml", OLD_CORINTH, NEW_CORINTH)
+          replace("components.lock.toml", OLD_PACKAGES, NEW_PACKAGES)
+          replace(
+              "live/system.toml",
+              'source = "target/release/corinth"',
+              'source = "target/x86_64-arach/release/corinth"',
+          )
+          replace(
+              "scripts/test-live-root.sh",
+              'mkdir -p "$artifacts/corinth-0.1.0-9/target/release"\nprintf \'\\177ELF test Corinth\\n\' > "$artifacts/corinth-0.1.0-9/target/release/corinth"',
+              'mkdir -p "$artifacts/corinth-0.1.0-9/target/x86_64-arach/release"\nprintf \'\\177ELF test Corinth\\n\' > "$artifacts/corinth-0.1.0-9/target/x86_64-arach/release/corinth"',
+          )
+          PY
+      - run: cargo check --locked --all-targets
+      - run: git diff --check
+      - name: Publish aligned source
+        run: |
+          git config user.name "SisyphusAeolides"
+          git config user.email "37166405+SisyphusAeolides@users.noreply.github.com"
+          git add Cargo.toml Cargo.lock components.lock.toml live/system.toml scripts/test-live-root.sh
+          git commit -m "Align Corinth Arach target artifacts"
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
