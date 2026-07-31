@@ -18,14 +18,22 @@ fn run(arguments: Vec<String>) -> Result<(), installer::InstallerError> {
         "prepare" => {
             require_flags(
                 &flags,
-                &["boot-bundle", "generation", "journal", "plan", "state"],
+                &[
+                    "boot-bundle",
+                    "generation",
+                    "hardware-plan",
+                    "journal",
+                    "plan",
+                    "state",
+                ],
             )?;
-            installer::prepare(
+            installer::prepare_with_hardware_plan(
                 required(&flags, "state")?,
                 required(&flags, "plan")?,
                 required(&flags, "journal")?,
                 required(&flags, "generation")?,
                 required(&flags, "boot-bundle")?,
+                required(&flags, "hardware-plan")?,
             )
         }
         "apply" => {

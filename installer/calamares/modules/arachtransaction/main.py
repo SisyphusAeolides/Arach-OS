@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import gettext
+import pathlib
 
 import libcalamares
 
@@ -59,6 +60,12 @@ def run():
     transaction_paths = paths(runtime_directory, transaction_id)
     try:
         if phase == "prepare":
+            hardware_plan = storage.value("arachHardwarePlan")
+            if hardware_plan != "/run/arach-installer/hardware.plan.toml":
+                raise TransactionFailure("hardware preflight plan is missing")
+            hardware_plan_path = pathlib.Path(hardware_plan)
+            if not hardware_plan_path.is_file() or hardware_plan_path.is_symlink():
+                raise TransactionFailure("hardware preflight plan is not a regular file")
             state = collect_state(storage.value, transaction_id)
             atomic_json(transaction_paths["state"], state)
             execute(
@@ -75,6 +82,8 @@ def run():
                     str(generation_source),
                     "--boot-bundle",
                     str(boot_bundle_source),
+                    "--hardware-plan",
+                    hardware_plan,
                 ]
             )
         else:

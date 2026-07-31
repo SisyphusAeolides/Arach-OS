@@ -61,6 +61,7 @@ expected = {
     "push",
     "corinth",
     "arach-hwd",
+    "arach-hardware-catalog",
     "dbus-broker",
     "greetd",
     "cosmic-desktop",

@@ -32,6 +32,18 @@ files = [
 ]
 
 [[provider]]
+name = "arach-hardware-catalog"
+artifact_prefix = "arach-hardware-catalog-"
+layout = "tree"
+required = true
+required_tree_path = [
+  "/etc/arach/hwd/keys.toml",
+  "/etc/arach/hwd/driver-abi",
+  "/etc/arach/hwd/catalog.lock",
+]
+files = []
+
+[[provider]]
 name = "dbus-broker"
 artifact_prefix = "dbus-broker-"
 layout = "files"

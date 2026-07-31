@@ -88,6 +88,8 @@ pub struct InstallPlan {
     pub generation_sha256: String,
     pub boot_bundle_sha256: String,
     pub distribution: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub hardware_plan_sha256: Option<String>,
     pub operations: Vec<InstallOperation>,
 }
 
@@ -95,6 +97,7 @@ pub struct InstallPlan {
 #[serde(rename_all = "kebab-case")]
 pub enum InstallOperation {
     CorinthInstall,
+    HardwareProvision,
     GraniteActivate,
     CosmicVerify,
 }
@@ -155,6 +158,42 @@ pub fn prepare(
     generation_path: &Path,
     boot_bundle_path: &Path,
 ) -> Result<(), InstallerError> {
+    prepare_internal(
+        state_path,
+        plan_path,
+        journal_path,
+        generation_path,
+        boot_bundle_path,
+        None,
+    )
+}
+
+pub fn prepare_with_hardware_plan(
+    state_path: &Path,
+    plan_path: &Path,
+    journal_path: &Path,
+    generation_path: &Path,
+    boot_bundle_path: &Path,
+    hardware_plan_path: &Path,
+) -> Result<(), InstallerError> {
+    prepare_internal(
+        state_path,
+        plan_path,
+        journal_path,
+        generation_path,
+        boot_bundle_path,
+        Some(hardware_plan_path),
+    )
+}
+
+fn prepare_internal(
+    state_path: &Path,
+    plan_path: &Path,
+    journal_path: &Path,
+    generation_path: &Path,
+    boot_bundle_path: &Path,
+    hardware_plan_path: Option<&Path>,
+) -> Result<(), InstallerError> {
     require_distinct_paths(&[
         state_path,
         plan_path,
@@ -162,6 +201,21 @@ pub fn prepare(
         generation_path,
         boot_bundle_path,
     ])?;
+    if hardware_plan_path.is_some_and(|path| {
+        [
+            state_path,
+            plan_path,
+            journal_path,
+            generation_path,
+            boot_bundle_path,
+        ]
+        .into_iter()
+        .any(|other| other == path)
+    }) {
+        return Err(InstallerError::invalid(
+            "hardware plan path must be distinct from transaction inputs",
+        ));
+    }
     let state: InstallerState = read_private_json(state_path)?;
     validate_transaction_id(&state.transaction_id)?;
     if state.schema != TRANSACTION_SCHEMA {
@@ -175,7 +229,11 @@ pub fn prepare(
     })?;
     let generation_sha256 = digest(&generation_bytes);
     let boot_bundle = read_boot_bundle(boot_bundle_path)?;
+    let hardware_plan = hardware_plan_path
+        .map(|path| read_hardware_plan(path))
+        .transpose()?;
     let staged_generation = staged_generation_path(plan_path)?;
+    let staged_hardware_plan = staged_hardware_plan_path(plan_path)?;
     let state_bytes = canonical_json(&state)?;
     let plan = InstallPlan {
         schema: TRANSACTION_SCHEMA,
@@ -184,11 +242,8 @@ pub fn prepare(
         generation_sha256: generation_sha256.clone(),
         distribution: crate::DISTRIBUTION.into(),
         boot_bundle_sha256: digest(&boot_bundle.manifest_bytes),
-        operations: vec![
-            InstallOperation::CorinthInstall,
-            InstallOperation::GraniteActivate,
-            InstallOperation::CosmicVerify,
-        ],
+        hardware_plan_sha256: hardware_plan.as_deref().map(digest),
+        operations: operations_for(hardware_plan.is_some()),
     };
     let plan_bytes = canonical_json(&plan)?;
     let journal = InstallJournal {
@@ -203,13 +258,21 @@ pub fn prepare(
         mutations: Vec::new(),
     };
     create_private(&staged_generation, &generation_bytes)?;
+    if let Some(bytes) = hardware_plan.as_deref() {
+        if let Err(error) = create_private(&staged_hardware_plan, bytes) {
+            let _ = fs::remove_file(&staged_generation);
+            return Err(error);
+        }
+    }
     if let Err(error) = create_private(plan_path, &plan_bytes) {
         let _ = fs::remove_file(&staged_generation);
+        let _ = fs::remove_file(&staged_hardware_plan);
         return Err(error);
     }
     if let Err(error) = create_private(journal_path, &canonical_json(&journal)?) {
         let _ = fs::remove_file(plan_path);
         let _ = fs::remove_file(&staged_generation);
+        let _ = fs::remove_file(&staged_hardware_plan);
         return Err(error);
     }
     Ok(())
@@ -233,6 +296,10 @@ pub fn apply(
             "staged Corinth generation differs from the immutable plan",
         ));
     }
+    validate_hardware_plan_file(
+        &staged_hardware_plan_path(plan_path)?,
+        plan.hardware_plan_sha256.as_deref(),
+    )?;
     GenerationImage::decode(&generation_bytes).map_err(|error| {
         InstallerError::invalid(format!("invalid staged Corinth generation: {error:?}"))
     })?;
@@ -250,7 +317,22 @@ pub fn apply(
     journal.target = Some(target.display().to_string());
     journal.previous_corinth_generation = previous.map(encode_generation_digest);
     journal.intended_corinth_generation = plan.generation_sha256.clone();
-    let checkpoint_journal = checkpoint_transaction(&target, &plan, &journal, &generation_bytes)?;
+    let hardware_plan_bytes = if plan.hardware_plan_sha256.is_some() {
+        Some(read_regular(
+            &staged_hardware_plan_path(plan_path)?,
+            DOCUMENT_LIMIT,
+            true,
+        )?)
+    } else {
+        None
+    };
+    let checkpoint_journal = checkpoint_transaction(
+        &target,
+        &plan,
+        &journal,
+        &generation_bytes,
+        hardware_plan_bytes.as_deref(),
+    )?;
     rewrite_journal_copies(journal_path, Some(&checkpoint_journal), &journal)?;
 
     let store = FilesystemGenerationStore::open(&store_root)
@@ -847,7 +929,13 @@ pub fn parse_flag_arguments(
             .ok_or_else(|| InstallerError::invalid(format!("invalid flag {}", pair[0])))?;
         if !matches!(
             flag,
-            "state" | "plan" | "journal" | "target" | "generation" | "boot-bundle"
+            "state"
+                | "plan"
+                | "journal"
+                | "target"
+                | "generation"
+                | "boot-bundle"
+                | "hardware-plan"
         ) {
             return Err(InstallerError::invalid(format!("unknown flag --{flag}")));
         }
@@ -875,13 +963,20 @@ fn load_bound_documents(
         || journal.plan_sha256 != digest(&canonical_json(&plan)?)
         || !valid_digest(&plan.generation_sha256)
         || !valid_digest(&plan.boot_bundle_sha256)
+        || plan
+            .hardware_plan_sha256
+            .as_deref()
+            .is_some_and(|digest| !valid_digest(digest))
         || journal.intended_corinth_generation != plan.generation_sha256
-        || plan.operations
-            != [
-                InstallOperation::CorinthInstall,
-                InstallOperation::GraniteActivate,
-                InstallOperation::CosmicVerify,
-            ]
+        || (plan.operations != operations_for(false) && plan.operations != operations_for(true))
+        || (plan.hardware_plan_sha256.is_some()
+            && !plan
+                .operations
+                .contains(&InstallOperation::HardwareProvision))
+        || (plan.hardware_plan_sha256.is_none()
+            && plan
+                .operations
+                .contains(&InstallOperation::HardwareProvision))
     {
         return Err(InstallerError::invalid(
             "plan and journal do not satisfy the Arach transaction contract",
@@ -1002,6 +1097,60 @@ fn staged_generation_path(plan_path: &Path) -> Result<PathBuf, InstallerError> {
         .ok_or_else(|| InstallerError::invalid("plan path has no parent"))
 }
 
+fn staged_hardware_plan_path(plan_path: &Path) -> Result<PathBuf, InstallerError> {
+    plan_path
+        .parent()
+        .map(|parent| parent.join("hardware-plan.toml"))
+        .ok_or_else(|| InstallerError::invalid("plan path has no parent"))
+}
+
+fn operations_for(has_hardware_plan: bool) -> Vec<InstallOperation> {
+    let mut operations = vec![InstallOperation::CorinthInstall];
+    if has_hardware_plan {
+        operations.push(InstallOperation::HardwareProvision);
+    }
+    operations.extend([
+        InstallOperation::GraniteActivate,
+        InstallOperation::CosmicVerify,
+    ]);
+    operations
+}
+
+fn read_hardware_plan(path: &Path) -> Result<Vec<u8>, InstallerError> {
+    let bytes = read_regular(path, DOCUMENT_LIMIT, false)?;
+    let value: toml::Value = toml::from_slice(&bytes)
+        .map_err(|error| InstallerError::invalid(format!("invalid hardware plan: {error}")))?;
+    let schema = value
+        .get("schema")
+        .and_then(toml::Value::as_integer)
+        .and_then(|value| u32::try_from(value).ok());
+    let plan = value.get("plan").and_then(toml::Value::as_array);
+    if schema != Some(1) || plan.is_none() {
+        return Err(InstallerError::invalid(
+            "hardware plan does not satisfy schema 1",
+        ));
+    }
+    Ok(bytes)
+}
+
+fn validate_hardware_plan_file(path: &Path, expected: Option<&str>) -> Result<(), InstallerError> {
+    let Some(expected) = expected else {
+        return Ok(());
+    };
+    if !valid_digest(expected) {
+        return Err(InstallerError::invalid(
+            "hardware plan digest is not a SHA-256 value",
+        ));
+    }
+    let bytes = read_hardware_plan(path)?;
+    if digest(&bytes) != expected {
+        return Err(InstallerError::invalid(
+            "hardware plan differs from the immutable install plan",
+        ));
+    }
+    Ok(())
+}
+
 fn target_transactions_root(target: &Path) -> PathBuf {
     target.join("var/lib/arach-installer/transactions")
 }
@@ -1015,6 +1164,7 @@ fn checkpoint_transaction(
     plan: &InstallPlan,
     journal: &InstallJournal,
     generation_bytes: &[u8],
+    hardware_plan_bytes: Option<&[u8]>,
 ) -> Result<PathBuf, InstallerError> {
     let var_lib = target_store_root(target)?
         .parent()
@@ -1046,6 +1196,9 @@ fn checkpoint_transaction(
     let result = (|| {
         create_private(&temporary.join("plan.json"), &canonical_json(plan)?)?;
         create_private(&temporary.join("generation.gen"), generation_bytes)?;
+        if let Some(bytes) = hardware_plan_bytes {
+            create_private(&temporary.join("hardware-plan.toml"), bytes)?;
+        }
         create_private(&temporary.join("journal.json"), &canonical_json(journal)?)?;
         sync_parent(&temporary)?;
         fs::rename(&temporary, &final_directory).map_err(|error| {
@@ -1078,6 +1231,10 @@ fn authoritative_journal(
             let checkpoint_journal = directory.join("journal.json");
             let (durable_plan, durable_journal) =
                 load_bound_documents(&checkpoint_plan, &checkpoint_journal)?;
+            validate_hardware_plan_file(
+                &directory.join("hardware-plan.toml"),
+                durable_plan.hardware_plan_sha256.as_deref(),
+            )?;
             if &durable_plan != plan {
                 return Err(InstallerError::invalid(
                     "target checkpoint plan differs from the runtime plan",
@@ -1153,7 +1310,12 @@ fn remove_incomplete_checkpoint(path: &Path) {
     if !metadata.is_dir() || metadata.file_type().is_symlink() {
         return;
     }
-    for name in ["plan.json", "generation.gen", "journal.json"] {
+    for name in [
+        "plan.json",
+        "generation.gen",
+        "hardware-plan.toml",
+        "journal.json",
+    ] {
         let file = path.join(name);
         if fs::symlink_metadata(&file)
             .is_ok_and(|metadata| metadata.is_file() && !metadata.file_type().is_symlink())
@@ -1416,6 +1578,12 @@ mod tests {
         write_generation_with_parent(root, NO_GENERATION, &[10], "source.gen")
     }
 
+    fn write_hardware_plan(root: &Path) -> PathBuf {
+        let path = root.join("hardware.plan.toml");
+        fs::write(&path, "schema = 1\n\nplan = []\n").unwrap();
+        path
+    }
+
     fn write_generation_with_parent(
         root: &Path,
         parent: GenerationDigest,
@@ -1483,6 +1651,40 @@ mod tests {
         assert_eq!(
             fs::metadata(journal).unwrap().permissions().mode() & 0o777,
             0o600
+        );
+    }
+
+    #[test]
+    fn prepare_binds_the_signed_hardware_plan() {
+        let root = TestRoot::new();
+        let state = write_state(&root.0, "");
+        let generation = write_generation(&root.0);
+        let boot_bundle = write_boot_bundle(&root.0);
+        let hardware = write_hardware_plan(&root.0);
+        let plan = root.0.join("plan.json");
+        let journal = root.0.join("journal.json");
+        prepare_with_hardware_plan(
+            &state,
+            &plan,
+            &journal,
+            &generation,
+            &boot_bundle,
+            &hardware,
+        )
+        .unwrap();
+        let (loaded, _) = load_bound_documents(&plan, &journal).unwrap();
+        assert!(loaded.hardware_plan_sha256.is_some());
+        assert!(
+            validate_hardware_plan_file(
+                &staged_hardware_plan_path(&plan).unwrap(),
+                loaded.hardware_plan_sha256.as_deref()
+            )
+            .is_ok()
+        );
+        assert!(
+            loaded
+                .operations
+                .contains(&InstallOperation::HardwareProvision)
         );
     }
 
@@ -1609,7 +1811,7 @@ mod tests {
         )
         .unwrap();
         let checkpoint_journal =
-            checkpoint_transaction(&target, &plan, &journal, &generation_bytes).unwrap();
+            checkpoint_transaction(&target, &plan, &journal, &generation_bytes, None).unwrap();
         fs::remove_file(&plan_path).unwrap();
         fs::remove_file(&journal_path).unwrap();
         fs::remove_file(staged_generation_path(&plan_path).unwrap()).unwrap();

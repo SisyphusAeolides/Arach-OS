@@ -11,13 +11,21 @@ clause passes. The resolver selects the highest-priority non-conflicting
 signed profile and asks Corinth to stage the exact driver and firmware
 transaction.
 
-The Calamares medium carries `/system/arach-hwd`. Its first execution job
-runs `arach-hwd preflight --sysfs /sys` and writes
-`/run/arach-installer/hardware.toml`. An unbound physical device stops the
-installation before partitioning, leaving its modalias and bus identity in
-the report for a signed Arach Hardware profile to resolve. Virtual network
-interfaces and child ALSA/DRM/block/input class nodes are not mistaken for
-missing drivers.
+The Calamares medium carries `/system/arach-hwd` plus the signed
+`arach-hardware-catalog` tree at `/etc/arach/hwd`. Its first execution job
+runs `arach-hwd preflight --sysfs /sys` and then resolves the same inventory
+through the detached-signature profiles and keyring with `arach-hwd plan`.
+The report is written to `/run/arach-installer/hardware.toml` and the exact
+Corinth plan to `/run/arach-installer/hardware.plan.toml`. An unbound physical
+device, missing profile, invalid signature, or incompatible Driver ABI stops
+the installation before partitioning. Virtual network interfaces and child
+ALSA/DRM/block/input class nodes are not mistaken for missing drivers.
+
+The catalog is a release input, not a guessed package list: each profile must
+bind the exact bus/modalias identity to signed Arach hardware artifacts,
+firmware, health checks, and rollback data. A live image without this catalog
+is rejected by the image contract instead of silently installing a system with
+unknown hardware coverage.
 
 C drivers use the stable Arach Driver ABI through a small C shim and execute in
 isolated driver cells. Prebuilt Linux kernel modules are not treated as native

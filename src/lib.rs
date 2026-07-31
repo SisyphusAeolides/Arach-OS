@@ -181,6 +181,11 @@ pub struct Hardware {
     pub package_manager: String,
     pub preflight: String,
     pub preflight_report: String,
+    pub catalog_profiles: String,
+    pub catalog_keyring: String,
+    pub catalog_lock: String,
+    pub driver_abi: String,
+    pub plan: String,
     pub capabilities: Vec<String>,
     pub allow_adapted_c_drivers: bool,
     pub allow_unmatched_binary_kernel_modules: bool,
@@ -398,6 +403,11 @@ pub fn validate_live_profile(profile: &LiveProfile, root: &Path) -> Result<(), C
         || profile.hardware.package_manager != "corinth"
         || profile.hardware.preflight != "/system/arach-hwd"
         || profile.hardware.preflight_report != "/run/arach-installer/hardware.toml"
+        || profile.hardware.catalog_profiles != "/etc/arach/hwd/profiles"
+        || profile.hardware.catalog_keyring != "/etc/arach/hwd/keys.toml"
+        || profile.hardware.catalog_lock != "/etc/arach/hwd/catalog.lock"
+        || profile.hardware.driver_abi != "/etc/arach/hwd/driver-abi"
+        || profile.hardware.plan != "/run/arach-installer/hardware.plan.toml"
         || !profile.hardware.allow_adapted_c_drivers
         || profile.hardware.allow_unmatched_binary_kernel_modules
     {
@@ -449,6 +459,9 @@ pub fn validate_live_image_contract(
         "/system/push",
         "/system/corinth",
         "/system/arach-hwd",
+        "/etc/arach/hwd/keys.toml",
+        "/etc/arach/hwd/driver-abi",
+        "/etc/arach/hwd/catalog.lock",
         "/system/dbus-broker-launch",
         "/system/greetd",
         "/system/cosmic-comp",
@@ -527,6 +540,7 @@ pub fn validate_live_system_contract(
         "push",
         "corinth",
         "arach-hwd",
+        "arach-hardware-catalog",
         "dbus-broker",
         "greetd",
         "cosmic-desktop",
@@ -726,6 +740,11 @@ pub fn validate_installer_contract(
             "executable: /system/arach-hwd",
             "sysfs: /sys",
             "report: /run/arach-installer/hardware.toml",
+            "profiles: /etc/arach/hwd/profiles",
+            "keyring: /etc/arach/hwd/keys.toml",
+            "catalogLock: /etc/arach/hwd/catalog.lock",
+            "driverAbi: /etc/arach/hwd/driver-abi",
+            "plan: /run/arach-installer/hardware.plan.toml",
         ],
     )?;
     require_file_tokens(

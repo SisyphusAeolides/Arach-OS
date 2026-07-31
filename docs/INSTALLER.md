@@ -17,9 +17,12 @@ There is no alternate desktop in the release image.
 Calamares owns interaction and delegates Arach-specific mutations to a
 transaction engine. Before any transaction or partition mutation, the
 `arachhardware@preflight` job runs the live `/system/arach-hwd` scanner and
-requires every present physical capability to have driver coverage. The
-report is retained at `/run/arach-installer/hardware.toml`; unresolved
-modaliases are a hard stop rather than a guessed package choice. The reviewed
+the signed `/etc/arach/hwd` catalog. It writes the discovery report to
+`/run/arach-installer/hardware.toml` and the exact Corinth hardware plan to
+`/run/arach-installer/hardware.plan.toml`. Every present physical capability
+must resolve to a compatible signed profile; unresolved modaliases, missing
+signatures, or an incompatible Driver ABI are hard stops rather than guessed
+package choices. The reviewed
 installer baseline is Calamares 3.4.2 from
 `https://codeberg.org/Calamares/calamares.git`, peeled to Git object
 `36d30c492e5c7b5d6d32fed5c5d9790522e1eea3`. The engine produces a complete
