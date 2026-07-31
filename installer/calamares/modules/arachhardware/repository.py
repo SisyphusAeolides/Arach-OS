@@ -9,7 +9,7 @@ from urllib.parse import urlsplit
 MAX_REPOSITORY_CONFIGURATION_BYTES = 64 * 1024
 REPOSITORY_CONFIGURATION_FORMAT = 1
 OFFLINE_CATALOG_ROOT = Path("/etc/arach/hwd")
-REPOSITORY_KEYRING = Path("/etc/arach/hwd/repository-keys.toml")
+REPOSITORY_KEYRING = OFFLINE_CATALOG_ROOT / "keys.toml"
 
 
 class CatalogRepositoryError(ValueError):
