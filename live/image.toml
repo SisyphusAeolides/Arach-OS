@@ -20,6 +20,7 @@ required_path = [
   "/etc/arach/hwd/driver-sources/modules.dep",
   "/etc/arach/hwd/driver-sources/modules.builtin",
   "/etc/arach/hwd/driver-sources/modules.firmware",
+  "/etc/arach/hwd/driver-sources/modules.builtin.modinfo",
   "/system/dbus-broker-launch",
   "/system/seatd",
   "/system/pipewire",

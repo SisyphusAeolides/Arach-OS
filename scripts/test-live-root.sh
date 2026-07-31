@@ -28,7 +28,7 @@ printf 'format = 1\nrepository = "arach-hardware"\nkey_id = "fixture"\n\n[[packa
 printf 'key_id = "fixture"\nsignature = "fixture"\n' > "$artifacts/arach-hardware-catalog-2026.1/etc/arach/hwd/packages.toml.sig"
 printf 'fixture profile\n' > "$artifacts/arach-hardware-catalog-2026.1/etc/arach/hwd/profiles/fixture.toml"
 printf 'fixture signature\n' > "$artifacts/arach-hardware-catalog-2026.1/etc/arach/hwd/profiles/fixture.toml.sig"
-for source_name in modules.alias modules.dep modules.builtin modules.firmware; do
+for source_name in modules.alias modules.dep modules.builtin modules.firmware modules.builtin.modinfo; do
     printf 'fixture %s\n' "$source_name" \
         > "$artifacts/arach-hardware-catalog-2026.1/etc/arach/hwd/driver-sources/$source_name"
 done
@@ -36,7 +36,7 @@ catalog_keyring_sha=$(sha256sum "$artifacts/arach-hardware-catalog-2026.1/etc/ar
 catalog_profile_sha=$(sha256sum "$artifacts/arach-hardware-catalog-2026.1/etc/arach/hwd/profiles/fixture.toml" | cut -d' ' -f1)
 catalog_signature_sha=$(sha256sum "$artifacts/arach-hardware-catalog-2026.1/etc/arach/hwd/profiles/fixture.toml.sig" | cut -d' ' -f1)
 catalog_driver_source_records=""
-for source_name in modules.alias modules.dep modules.builtin modules.firmware; do
+for source_name in modules.alias modules.dep modules.builtin modules.firmware modules.builtin.modinfo; do
     source_sha=$(sha256sum \
         "$artifacts/arach-hardware-catalog-2026.1/etc/arach/hwd/driver-sources/$source_name" \
         | cut -d' ' -f1)

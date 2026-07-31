@@ -211,6 +211,7 @@ for provider in providers:
                 "driver-sources/modules.dep",
                 "driver-sources/modules.builtin",
                 "driver-sources/modules.firmware",
+                "driver-sources/modules.builtin.modinfo",
             }
             source_records = catalog_lock.get("driver_source", [])
             if not isinstance(source_records, list):

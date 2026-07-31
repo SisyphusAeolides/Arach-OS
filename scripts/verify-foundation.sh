@@ -37,6 +37,8 @@ grep -Fq '/etc/arach/hwd/driver-sources/modules.alias' \
     "$root/installer/calamares/modules/arachhardware.conf"
 grep -Fq '/etc/arach/hwd/driver-sources/modules.firmware' \
     "$root/installer/calamares/modules/arachhardware.conf"
+grep -Fq '/etc/arach/hwd/driver-sources/modules.builtin.modinfo' \
+    "$root/installer/calamares/modules/arachhardware.conf"
 
 "$root/scripts/test-live-root.sh"
 
