@@ -34,13 +34,13 @@ role = "package-manager"
 [[component]]
 name = "arach-packages"
 repository = "https://github.com/SisyphusAeolides/Arach-Packages.git"
-revision = "9ce1e812a58729cc9f28ef180b3a474c3b582286"
+revision = "5488b01682b96eaf93890fee892b715e096c3733"
 role = "package-recipes"
 
 [[component]]
 name = "arach-hwd"
 repository = "https://github.com/SisyphusAeolides/Arach-HWD.git"
-revision = "7572483740c479bbad8a815c77011a1c763b7c19"
+revision = "c4dac5590825a9d9cebdaaf75316bf16f3fe0e33"
 role = "hardware-provisioning"
 
 [[component]]
