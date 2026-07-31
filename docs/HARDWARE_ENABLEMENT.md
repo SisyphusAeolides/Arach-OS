@@ -4,7 +4,7 @@ Arach-HWD follows a scan, resolve, plan, apply, verify, and rollback pipeline.
 It runs in the live image, during installation, at first boot, and for hotplug.
 
 The scanner records PCI, USB, I2C, ACPI, DMI, Linux class devices, firmware,
-and native capability facts. Inventory schema 4 groups network, wireless,
+and native capability facts. Inventory schema 5 groups network, wireless,
 audio, graphics, storage, input, Bluetooth, and firmware while preserving
 stable modalias queries. A profile is eligible only when every required match
 clause passes. The resolver selects the highest-priority non-conflicting
@@ -37,8 +37,10 @@ target Arach kernel has that driver. Virtual network interfaces and child
 ALSA/DRM/block/input class nodes are not mistaken for missing drivers.
 
 Every inventory and preflight report also carries a `driver_sources` manifest.
-It records SHA-256 digests for the exact kernel metadata tables consulted and
-the firmware discovery roots visible to the live installer. The signed
+It records SHA-256 digests for the exact kernel metadata tables consulted,
+including the kernel release scope for conventional
+`/.../modules/<release>/modules.*` paths, and the firmware discovery roots
+visible to the live installer. The signed
 Arach-HWD profile/index and Arach-Packages recipe authorities are the only
 sources allowed to authorize installation; upstream Linux kernel and
 linux-firmware trees remain broad, advisory lookup evidence. This preserves
