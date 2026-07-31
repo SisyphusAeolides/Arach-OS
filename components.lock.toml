@@ -34,7 +34,7 @@ role = "package-manager"
 [[component]]
 name = "arach-packages"
 repository = "https://github.com/SisyphusAeolides/Arach-Packages.git"
-revision = "75059f72bc24506f83fb37dbb6a659ef2374f6b3"
+revision = "53e3e9d39b16ac99e398f61d4194f52a76163d66"
 role = "package-recipes"
 
 [[component]]
