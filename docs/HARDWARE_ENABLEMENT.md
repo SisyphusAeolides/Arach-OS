@@ -4,7 +4,7 @@ Arach-HWD follows a scan, resolve, plan, apply, verify, and rollback pipeline.
 It runs in the live image, during installation, at first boot, and for hotplug.
 
 The scanner records PCI, USB, I2C, ACPI, DMI, Linux class devices, firmware,
-and native capability facts. Inventory schema 2 groups network, wireless,
+and native capability facts. Inventory schema 3 groups network, wireless,
 audio, graphics, storage, input, Bluetooth, and firmware while preserving
 stable modalias queries. A profile is eligible only when every required match
 clause passes. The resolver selects the highest-priority non-conflicting
