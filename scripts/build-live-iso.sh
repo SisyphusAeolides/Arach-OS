@@ -25,9 +25,9 @@ command -v "$xorriso_bin" >/dev/null 2>&1 || {
     echo "xorriso is required to produce a bootable Arach ISO" >&2
     exit 69
 }
-for tool in mkfs.fat mmd mcopy; do
+for tool in mkfs.fat mmd mcopy mksquashfs; do
     command -v "$tool" >/dev/null 2>&1 || {
-        echo "$tool is required to produce the EFI System Partition" >&2
+        echo "$tool is required to produce the installable Arach ISO" >&2
         exit 69
     }
 done
@@ -40,6 +40,27 @@ for path in \
     "$bundle/push" "$bundle/crest" "$system_manifest" "$image_manifest"; do
     [[ -f "$path" && ! -L "$path" ]] || {
         echo "live ISO input is missing or symlinked: $path" >&2
+        exit 1
+    }
+done
+for relative in \
+    etc/calamares/settings.conf \
+    etc/calamares/modules/arach-hardware.conf \
+    etc/calamares/modules/arach-prepare.conf \
+    etc/calamares/modules/arach-commit.conf \
+    etc/calamares/modules/partition.conf \
+    etc/calamares/modules/users.conf \
+    etc/calamares/modules/unpackfs.conf \
+    usr/lib/arach/calamares/modules/arachhardware/module.desc \
+    usr/lib/arach/calamares/modules/arachhardware/main.py \
+    usr/lib/arach/calamares/modules/arachtransaction/module.desc \
+    usr/lib/arach/calamares/modules/arachtransaction/main.py \
+    usr/lib/arach/calamares/modules/arachtransaction/protocol.py \
+    usr/share/calamares/branding/arach/branding.desc \
+    usr/share/calamares/branding/arach/arach-logo.png; do
+    path="$live_root/$relative"
+    [[ -f "$path" && ! -L "$path" ]] || {
+        echo "Calamares integration is missing or symlinked: /$relative" >&2
         exit 1
     }
 done
@@ -82,6 +103,22 @@ for path in root.rglob("*"):
     if path.is_dir():
         raise SystemExit(f"directory symlink is not allowed in ISO root: {path}")
 PY
+
+# Calamares installs this measured filesystem image. Keep live-only transaction
+# inputs outside the installed root so the target cannot inherit stale plans,
+# journals, or boot-bundle sources from the medium.
+rootfs_source="$work/installed-root"
+mkdir -p -- "$rootfs_source"
+cp -a -- "$live_root/." "$rootfs_source/"
+rm -rf -- "$rootfs_source/run/arach-live" "$rootfs_source/run/arach-installer"
+mkdir -p -- "$stage/run/arach-live"
+rootfs="$stage/run/arach-live/rootfs.squashfs"
+mksquashfs "$rootfs_source" "$rootfs" \
+    -noappend -all-root -comp zstd -no-progress >/dev/null
+[[ -s "$rootfs" ]] || {
+    echo "mksquashfs produced an empty installer filesystem" >&2
+    exit 1
+}
 
 mkdir -p -- "$stage/EFI/BOOT" "$stage/BOOT"
 install -m 0644 -- "$bundle/granite.efi" "$stage/EFI/BOOT/BOOTX64.EFI"
@@ -143,14 +180,14 @@ temporary="$work/image.iso"
 mv -- "$temporary" "$output_iso"
 sync -f "$parent"
 
-python3 - "$output_iso" "$image_manifest" "$system_manifest" "$bundle/manifest.json" <<'PY'
+python3 - "$output_iso" "$image_manifest" "$system_manifest" "$bundle/manifest.json" "$rootfs" <<'PY'
 import hashlib
 import json
 import os
 import pathlib
 import sys
 
-iso, image, system, boot = map(pathlib.Path, sys.argv[1:])
+iso, image, system, boot, rootfs = map(pathlib.Path, sys.argv[1:])
 
 def digest(path):
     h = hashlib.sha256()
@@ -167,6 +204,8 @@ record = {
     "image_manifest_sha256": digest(image),
     "system_manifest_sha256": digest(system),
     "boot_bundle_manifest_sha256": digest(boot),
+    "rootfs_sha256": digest(rootfs),
+    "rootfs_size": rootfs.stat().st_size,
 }
 sidecar = iso.with_name(iso.name + ".json")
 temporary = sidecar.with_name("." + sidecar.name + ".tmp")
