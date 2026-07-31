@@ -5,7 +5,7 @@ version = 4
 [[package]]
 name = "aether"
 version = "0.1.0"
-source = "git+https://github.com/SisyphusAeolides/Arach-Kernel.git?rev=f65bd5ad883e0cfff01a670baa4768e13f0f9159#f65bd5ad883e0cfff01a670baa4768e13f0f9159"
+source = "git+https://github.com/SisyphusAeolides/Arach-Kernel.git?rev=8b1ca78d28dbb54799cf6bac9e8135272b077323#8b1ca78d28dbb54799cf6bac9e8135272b077323"
 
 [[package]]
 name = "arach-compose"
@@ -57,7 +57,7 @@ checksum = "9330f8b2ff13f34540b44e946ef35111825727b38d33286ef986142615121801"
 [[package]]
 name = "corinth"
 version = "0.1.0"
-source = "git+https://github.com/SisyphusAeolides/Corinth.git?rev=7d99f585ed081ea8252b63ef109dd46b1304a305#7d99f585ed081ea8252b63ef109dd46b1304a305"
+source = "git+https://github.com/SisyphusAeolides/Corinth.git?rev=56cfb4578c10fc42129d346881caa3367b740755#56cfb4578c10fc42129d346881caa3367b740755"
 dependencies = [
  "arach-hwd",
  "libc",
@@ -229,7 +229,7 @@ checksum = "8f42a60cbdf9a97f5d2305f08a87dc4e09308d1276d28c869c684d7777685682"
 [[package]]
 name = "kairos"
 version = "0.1.0"
-source = "git+https://github.com/SisyphusAeolides/Arach-Kernel.git?rev=f65bd5ad883e0cfff01a670baa4768e13f0f9159#f65bd5ad883e0cfff01a670baa4768e13f0f9159"
+source = "git+https://github.com/SisyphusAeolides/Arach-Kernel.git?rev=8b1ca78d28dbb54799cf6bac9e8135272b077323#8b1ca78d28dbb54799cf6bac9e8135272b077323"
 
 [[package]]
 name = "libc"
@@ -359,7 +359,7 @@ checksum = "28d567dcbaf0049cb8ac2608a76cd95ff9e4412e1899d389ee400918ca7537f5"
 [[package]]
 name = "slope"
 version = "0.1.0"
-source = "git+https://github.com/SisyphusAeolides/Slope.git?rev=c6acafacd8ce5c4f65dbe50ccfda58712cc3c47d#c6acafacd8ce5c4f65dbe50ccfda58712cc3c47d"
+source = "git+https://github.com/SisyphusAeolides/Slope.git?rev=0982b44f3d7271903f827b4169cbf69b332a69ef#0982b44f3d7271903f827b4169cbf69b332a69ef"
 dependencies = [
  "aether",
  "kairos",
