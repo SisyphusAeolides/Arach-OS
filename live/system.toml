@@ -29,6 +29,7 @@ layout = "files"
 required = true
 files = [
   { source = "target/release/arach-hwd", destination = "/system/arach-hwd", mode = 493 },
+  { source = "target/release/arach-hwd-catalog-sync", destination = "/system/arach-hwd-catalog-sync", mode = 493 },
 ]
 
 [[provider]]
@@ -169,6 +170,7 @@ files = [
   { source = "installer/calamares/modules/unpackfs.conf", destination = "/etc/calamares/modules/unpackfs.conf", mode = 420 },
   { source = "installer/calamares/modules/arachhardware/module.desc", destination = "/usr/lib/arach/calamares/modules/arachhardware/module.desc", mode = 420 },
   { source = "installer/calamares/modules/arachhardware/main.py", destination = "/usr/lib/arach/calamares/modules/arachhardware/main.py", mode = 420 },
+  { source = "installer/calamares/modules/arachhardware/repository.py", destination = "/usr/lib/arach/calamares/modules/arachhardware/repository.py", mode = 420 },
   { source = "installer/calamares/modules/arachtransaction/module.desc", destination = "/usr/lib/arach/calamares/modules/arachtransaction/module.desc", mode = 420 },
   { source = "installer/calamares/modules/arachtransaction/main.py", destination = "/usr/lib/arach/calamares/modules/arachtransaction/main.py", mode = 420 },
   { source = "installer/calamares/modules/arachtransaction/protocol.py", destination = "/usr/lib/arach/calamares/modules/arachtransaction/protocol.py", mode = 420 },

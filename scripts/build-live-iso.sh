@@ -53,6 +53,7 @@ for relative in \
     etc/calamares/modules/unpackfs.conf \
     usr/lib/arach/calamares/modules/arachhardware/module.desc \
     usr/lib/arach/calamares/modules/arachhardware/main.py \
+    usr/lib/arach/calamares/modules/arachhardware/repository.py \
     usr/lib/arach/calamares/modules/arachtransaction/module.desc \
     usr/lib/arach/calamares/modules/arachtransaction/main.py \
     usr/lib/arach/calamares/modules/arachtransaction/protocol.py \
