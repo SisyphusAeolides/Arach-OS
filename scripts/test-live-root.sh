@@ -79,7 +79,7 @@ printf 'MZ test Granite\n' > "$bundle_inputs/granite.efi"
 printf '\177ELF test Arach\n' > "$bundle_inputs/arach"
 printf '\177ELF test Push\n' > "$bundle_inputs/push"
 printf '\177ELF test Crest\n' > "$bundle_inputs/crest"
-for artifact in dbus-broker cosmic-comp cosmic-greeter cosmic-session xdg-desktop-portal-cosmic; do
+for artifact in seatd dbus-broker pipewire wireplumber cosmic-comp cosmic-greeter cosmic-session xdg-desktop-portal-cosmic; do
     printf '\177ELF test %s\n' "$artifact" > "$bundle_inputs/$artifact"
 done
 "$root/scripts/assemble-boot-bundle.sh" "$bundle_inputs" "$bundle"
@@ -89,7 +89,7 @@ printf 'generation test\n' > "$generation"
 test -s "$output/run/arach-live/image.json"
 test -s "$output/run/arach-live/system.json"
 test -s "$output/run/arach-live/boot-bundle/manifest.json"
-for artifact in dbus-broker cosmic-comp cosmic-greeter cosmic-session xdg-desktop-portal-cosmic; do
+for artifact in seatd dbus-broker pipewire wireplumber cosmic-comp cosmic-greeter cosmic-session xdg-desktop-portal-cosmic; do
     test -s "$output/run/arach-live/boot-bundle/$artifact"
 done
 test -s "$output/run/arach-live/repository/system.gen"
@@ -115,7 +115,10 @@ import sys
 with open(sys.argv[1], encoding="utf-8") as stream:
     boot = json.load(stream)
 for name in (
+    "cosmic_seatd_sha256",
     "cosmic_dbus_sha256",
+    "cosmic_pipewire_sha256",
+    "cosmic_wireplumber_sha256",
     "cosmic_compositor_sha256",
     "cosmic_greeter_sha256",
     "cosmic_session_sha256",

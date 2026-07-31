@@ -53,7 +53,7 @@ for relative in manifest.json granite.efi arach push crest; do
     path="$boot_bundle/$relative"
     [[ -f "$path" && ! -L "$path" ]] || { echo "boot bundle member missing: $relative" >&2; exit 1; }
 done
-cosmic_artifacts=(dbus-broker cosmic-comp cosmic-greeter cosmic-session xdg-desktop-portal-cosmic)
+cosmic_artifacts=(seatd dbus-broker pipewire wireplumber cosmic-comp cosmic-greeter cosmic-session xdg-desktop-portal-cosmic)
 cosmic_count=0
 for relative in "${cosmic_artifacts[@]}"; do
     if [[ -e "$boot_bundle/$relative" ]]; then

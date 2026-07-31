@@ -54,12 +54,12 @@ same rollback immediately.
 The live medium supplies `/run/arach-live/boot-bundle`, containing a bounded
 `manifest.json` and four base measured files: `granite.efi`, `arach`, `push`,
 and the C0 probe in the compatibility slot named `crest`. A production native
-COSMIC bundle may add the five measured early-boot services (`dbus-broker`,
-`cosmic-comp`, `cosmic-greeter`, `cosmic-session`, and
-`xdg-desktop-portal-cosmic`); the manifest and installer enforce an all-or-
-nothing service set. The complete eight-service runtime also publishes
-`seatd`, `pipewire`, and `wireplumber` into the target `/system` tree, where
-Push starts them in dependency order. The C0 probe is not a desktop image.
+COSMIC bundle includes the complete eight-service set (`seatd`, `dbus-broker`,
+`pipewire`, `wireplumber`, `cosmic-comp`, `cosmic-greeter`, `cosmic-session`,
+and `xdg-desktop-portal-cosmic`); the manifest and installer enforce an
+all-or-nothing service set. Those measured services are also published into
+the target `/system` tree, where Push starts them in dependency order. The C0
+probe is not a desktop image.
 `prepare` binds the exact manifest bytes to the immutable plan. `apply` verifies every artifact, atomically installs Granite at
 `/boot/EFI/BOOT/BOOTX64.EFI` and the three measured payloads under `/boot/BOOT`,
 and retains backups in the target recovery checkpoint. `verify` re-hashes the

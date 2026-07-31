@@ -42,7 +42,10 @@ for artifact in granite.efi arach push crest; do
 done
 
 cosmic_artifacts=(
+    seatd
     dbus-broker
+    pipewire
+    wireplumber
     cosmic-comp
     cosmic-greeter
     cosmic-session
@@ -57,7 +60,7 @@ for artifact in "${cosmic_artifacts[@]}"; do
     fi
 done
 if [[ "$cosmic_present" -eq 1 && "$cosmic_count" -ne "${#cosmic_artifacts[@]}" ]]; then
-    echo 'production COSMIC boot bundles must contain all five native services' >&2
+    echo 'production COSMIC boot bundles must contain all eight native services' >&2
     exit 1
 fi
 if [[ "$cosmic_present" -eq 1 ]]; then
@@ -111,12 +114,15 @@ for digest in "$granite_sha" "$arach_sha" "$push_sha" "$crest_sha"; do
 done
 
 if [[ "$cosmic_present" -eq 1 ]]; then
+    cosmic_seatd_sha=$(sha256sum "$source_dir/seatd" | awk '{print $1}')
     cosmic_dbus_sha=$(sha256sum "$source_dir/dbus-broker" | awk '{print $1}')
+    cosmic_pipewire_sha=$(sha256sum "$source_dir/pipewire" | awk '{print $1}')
+    cosmic_wireplumber_sha=$(sha256sum "$source_dir/wireplumber" | awk '{print $1}')
     cosmic_compositor_sha=$(sha256sum "$source_dir/cosmic-comp" | awk '{print $1}')
     cosmic_greeter_sha=$(sha256sum "$source_dir/cosmic-greeter" | awk '{print $1}')
     cosmic_session_sha=$(sha256sum "$source_dir/cosmic-session" | awk '{print $1}')
     cosmic_portal_sha=$(sha256sum "$source_dir/xdg-desktop-portal-cosmic" | awk '{print $1}')
-    for digest in "$cosmic_dbus_sha" "$cosmic_compositor_sha" "$cosmic_greeter_sha" "$cosmic_session_sha" "$cosmic_portal_sha"; do
+    for digest in "$cosmic_seatd_sha" "$cosmic_dbus_sha" "$cosmic_pipewire_sha" "$cosmic_wireplumber_sha" "$cosmic_compositor_sha" "$cosmic_greeter_sha" "$cosmic_session_sha" "$cosmic_portal_sha"; do
         [[ "$digest" =~ ^[0-9a-f]{64}$ ]] || {
             echo "sha256sum returned an invalid COSMIC digest" >&2
             exit 1
@@ -140,8 +146,8 @@ if [[ "$cosmic_present" -eq 1 ]]; then
     for artifact in "${cosmic_artifacts[@]}"; do
         install -m 0644 -- "$source_dir/$artifact" "$stage/$artifact"
     done
-    printf '{"arach_sha256":"%s","cosmic_compositor_sha256":"%s","cosmic_dbus_sha256":"%s","cosmic_greeter_sha256":"%s","cosmic_portal_sha256":"%s","cosmic_session_sha256":"%s","crest_sha256":"%s","granite_sha256":"%s","push_sha256":"%s","schema":1}\n' \
-        "$arach_sha" "$cosmic_compositor_sha" "$cosmic_dbus_sha" "$cosmic_greeter_sha" "$cosmic_portal_sha" "$cosmic_session_sha" "$crest_sha" "$granite_sha" "$push_sha" > "$stage/$manifest_name"
+    printf '{"arach_sha256":"%s","cosmic_compositor_sha256":"%s","cosmic_dbus_sha256":"%s","cosmic_greeter_sha256":"%s","cosmic_pipewire_sha256":"%s","cosmic_portal_sha256":"%s","cosmic_seatd_sha256":"%s","cosmic_session_sha256":"%s","cosmic_wireplumber_sha256":"%s","crest_sha256":"%s","granite_sha256":"%s","push_sha256":"%s","schema":1}\n' \
+        "$arach_sha" "$cosmic_compositor_sha" "$cosmic_dbus_sha" "$cosmic_greeter_sha" "$cosmic_pipewire_sha" "$cosmic_portal_sha" "$cosmic_seatd_sha" "$cosmic_session_sha" "$cosmic_wireplumber_sha" "$crest_sha" "$granite_sha" "$push_sha" > "$stage/$manifest_name"
 else
     printf '{"arach_sha256":"%s","crest_sha256":"%s","granite_sha256":"%s","push_sha256":"%s","schema":1}\n' \
         "$arach_sha" "$crest_sha" "$granite_sha" "$push_sha" > "$stage/$manifest_name"

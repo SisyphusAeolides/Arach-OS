@@ -32,7 +32,10 @@ const TARGET_GRANITE_PATH: &str = "boot/EFI/BOOT/BOOTX64.EFI";
 const TARGET_ARACH_PATH: &str = "boot/BOOT/ARACH";
 const TARGET_PUSH_PATH: &str = "boot/BOOT/PUSH";
 const TARGET_CREST_PATH: &str = "boot/BOOT/CREST";
+const TARGET_COSMIC_SEATD_PATH: &str = "boot/BOOT/SEATD.BIN";
 const TARGET_COSMIC_DBUS_PATH: &str = "boot/BOOT/DBUS.BIN";
+const TARGET_COSMIC_PIPEWIRE_PATH: &str = "boot/BOOT/PIPEWIRE.BIN";
+const TARGET_COSMIC_WIREPLUMBER_PATH: &str = "boot/BOOT/WIREPLUMBER.BIN";
 const TARGET_COSMIC_COMPOSITOR_PATH: &str = "boot/BOOT/COSCOMP.BIN";
 const TARGET_COSMIC_GREETER_PATH: &str = "boot/BOOT/COSGREETER.BIN";
 const TARGET_COSMIC_SESSION_PATH: &str = "boot/BOOT/COSSESSION.BIN";
@@ -48,7 +51,13 @@ pub struct BootBundleManifest {
     pub push_sha256: String,
     pub crest_sha256: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cosmic_seatd_sha256: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub cosmic_dbus_sha256: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cosmic_pipewire_sha256: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cosmic_wireplumber_sha256: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub cosmic_compositor_sha256: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -69,7 +78,10 @@ struct BootBundle {
 }
 
 struct CosmicBootBundle {
+    seatd: Vec<u8>,
     dbus: Vec<u8>,
+    pipewire: Vec<u8>,
+    wireplumber: Vec<u8>,
     compositor: Vec<u8>,
     greeter: Vec<u8>,
     session: Vec<u8>,
@@ -915,7 +927,10 @@ fn read_boot_bundle(root: &Path) -> Result<BootBundle, InstallerError> {
         b"\x7fELF",
     )?;
     let cosmic_digests = [
+        manifest.cosmic_seatd_sha256.as_deref(),
         manifest.cosmic_dbus_sha256.as_deref(),
+        manifest.cosmic_pipewire_sha256.as_deref(),
+        manifest.cosmic_wireplumber_sha256.as_deref(),
         manifest.cosmic_compositor_sha256.as_deref(),
         manifest.cosmic_greeter_sha256.as_deref(),
         manifest.cosmic_session_sha256.as_deref(),
@@ -932,6 +947,16 @@ fn read_boot_bundle(root: &Path) -> Result<BootBundle, InstallerError> {
     }
     let cosmic = if cosmic_count == cosmic_digests.len() {
         Some(CosmicBootBundle {
+            seatd: read_boot_artifact(
+                &root,
+                "seatd",
+                manifest
+                    .cosmic_seatd_sha256
+                    .as_deref()
+                    .expect("checked above"),
+                "COSMIC seatd",
+                b"\x7fELF",
+            )?,
             dbus: read_boot_artifact(
                 &root,
                 "dbus-broker",
@@ -940,6 +965,26 @@ fn read_boot_bundle(root: &Path) -> Result<BootBundle, InstallerError> {
                     .as_deref()
                     .expect("checked above"),
                 "COSMIC D-Bus broker",
+                b"\x7fELF",
+            )?,
+            pipewire: read_boot_artifact(
+                &root,
+                "pipewire",
+                manifest
+                    .cosmic_pipewire_sha256
+                    .as_deref()
+                    .expect("checked above"),
+                "COSMIC PipeWire",
+                b"\x7fELF",
+            )?,
+            wireplumber: read_boot_artifact(
+                &root,
+                "wireplumber",
+                manifest
+                    .cosmic_wireplumber_sha256
+                    .as_deref()
+                    .expect("checked above"),
+                "COSMIC WirePlumber",
                 b"\x7fELF",
             )?,
             compositor: read_boot_artifact(
@@ -1058,7 +1103,13 @@ fn activate_boot_bundle(
     ];
     if let Some(cosmic) = bundle.cosmic.as_ref() {
         files.extend([
+            (TARGET_COSMIC_SEATD_PATH, cosmic.seatd.as_slice()),
             (TARGET_COSMIC_DBUS_PATH, cosmic.dbus.as_slice()),
+            (TARGET_COSMIC_PIPEWIRE_PATH, cosmic.pipewire.as_slice()),
+            (
+                TARGET_COSMIC_WIREPLUMBER_PATH,
+                cosmic.wireplumber.as_slice(),
+            ),
             (TARGET_COSMIC_COMPOSITOR_PATH, cosmic.compositor.as_slice()),
             (TARGET_COSMIC_GREETER_PATH, cosmic.greeter.as_slice()),
             (TARGET_COSMIC_SESSION_PATH, cosmic.session.as_slice()),
@@ -1159,7 +1210,10 @@ fn verify_installed_boot_bundle(target: &Path, plan: &InstallPlan) -> Result<(),
         b"\x7fELF",
     )?;
     let cosmic_digests = [
+        manifest.cosmic_seatd_sha256.as_deref(),
         manifest.cosmic_dbus_sha256.as_deref(),
+        manifest.cosmic_pipewire_sha256.as_deref(),
+        manifest.cosmic_wireplumber_sha256.as_deref(),
         manifest.cosmic_compositor_sha256.as_deref(),
         manifest.cosmic_greeter_sha256.as_deref(),
         manifest.cosmic_session_sha256.as_deref(),
@@ -1177,12 +1231,42 @@ fn verify_installed_boot_bundle(target: &Path, plan: &InstallPlan) -> Result<(),
     if cosmic_count == cosmic_digests.len() {
         verify_installed_artifact(
             target,
+            TARGET_COSMIC_SEATD_PATH,
+            manifest
+                .cosmic_seatd_sha256
+                .as_deref()
+                .expect("checked above"),
+            "COSMIC seatd",
+            b"\x7fELF",
+        )?;
+        verify_installed_artifact(
+            target,
             TARGET_COSMIC_DBUS_PATH,
             manifest
                 .cosmic_dbus_sha256
                 .as_deref()
                 .expect("checked above"),
             "COSMIC D-Bus broker",
+            b"\x7fELF",
+        )?;
+        verify_installed_artifact(
+            target,
+            TARGET_COSMIC_PIPEWIRE_PATH,
+            manifest
+                .cosmic_pipewire_sha256
+                .as_deref()
+                .expect("checked above"),
+            "COSMIC PipeWire",
+            b"\x7fELF",
+        )?;
+        verify_installed_artifact(
+            target,
+            TARGET_COSMIC_WIREPLUMBER_PATH,
+            manifest
+                .cosmic_wireplumber_sha256
+                .as_deref()
+                .expect("checked above"),
+            "COSMIC WirePlumber",
             b"\x7fELF",
         )?;
         verify_installed_artifact(
@@ -2211,7 +2295,10 @@ mod tests {
             arach_sha256: digest(arach),
             push_sha256: digest(push),
             crest_sha256: digest(crest),
+            cosmic_seatd_sha256: None,
             cosmic_dbus_sha256: None,
+            cosmic_pipewire_sha256: None,
+            cosmic_wireplumber_sha256: None,
             cosmic_compositor_sha256: None,
             cosmic_greeter_sha256: None,
             cosmic_session_sha256: None,
@@ -2227,7 +2314,10 @@ mod tests {
 
     fn add_cosmic_boot_bundle(bundle: &Path) {
         let services = [
+            ("seatd", b"\x7fELF-seatd".as_slice()),
             ("dbus-broker", b"\x7fELF-dbus".as_slice()),
+            ("pipewire", b"\x7fELF-pipewire".as_slice()),
+            ("wireplumber", b"\x7fELF-wireplumber".as_slice()),
             ("cosmic-comp", b"\x7fELF-comp".as_slice()),
             ("cosmic-greeter", b"\x7fELF-greeter".as_slice()),
             ("cosmic-session", b"\x7fELF-session".as_slice()),
@@ -2239,7 +2329,10 @@ mod tests {
         let manifest_path = bundle.join(BOOT_MANIFEST_NAME);
         let mut manifest: BootBundleManifest =
             serde_json::from_slice(&fs::read(&manifest_path).unwrap()).unwrap();
+        manifest.cosmic_seatd_sha256 = Some(digest(b"\x7fELF-seatd"));
         manifest.cosmic_dbus_sha256 = Some(digest(b"\x7fELF-dbus"));
+        manifest.cosmic_pipewire_sha256 = Some(digest(b"\x7fELF-pipewire"));
+        manifest.cosmic_wireplumber_sha256 = Some(digest(b"\x7fELF-wireplumber"));
         manifest.cosmic_compositor_sha256 = Some(digest(b"\x7fELF-comp"));
         manifest.cosmic_greeter_sha256 = Some(digest(b"\x7fELF-greeter"));
         manifest.cosmic_session_sha256 = Some(digest(b"\x7fELF-session"));

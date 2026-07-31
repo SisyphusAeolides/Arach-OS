@@ -43,7 +43,7 @@ for path in \
         exit 1
     }
 done
-cosmic_artifacts=(dbus-broker cosmic-comp cosmic-greeter cosmic-session xdg-desktop-portal-cosmic)
+cosmic_artifacts=(seatd dbus-broker pipewire wireplumber cosmic-comp cosmic-greeter cosmic-session xdg-desktop-portal-cosmic)
 cosmic_count=0
 for relative in "${cosmic_artifacts[@]}"; do
     if [[ -e "$bundle/$relative" ]]; then
@@ -89,7 +89,10 @@ install -m 0644 -- "$bundle/arach" "$stage/BOOT/ARACH"
 install -m 0644 -- "$bundle/push" "$stage/BOOT/PUSH"
 install -m 0644 -- "$bundle/crest" "$stage/BOOT/CREST"
 if [[ "$cosmic_count" -eq "${#cosmic_artifacts[@]}" ]]; then
+    install -m 0644 -- "$bundle/seatd" "$stage/BOOT/SEATD.BIN"
     install -m 0644 -- "$bundle/dbus-broker" "$stage/BOOT/DBUS.BIN"
+    install -m 0644 -- "$bundle/pipewire" "$stage/BOOT/PIPEWIRE.BIN"
+    install -m 0644 -- "$bundle/wireplumber" "$stage/BOOT/WIREPLUMBER.BIN"
     install -m 0644 -- "$bundle/cosmic-comp" "$stage/BOOT/COSCOMP.BIN"
     install -m 0644 -- "$bundle/cosmic-greeter" "$stage/BOOT/COSGREETER.BIN"
     install -m 0644 -- "$bundle/cosmic-session" "$stage/BOOT/COSSESSION.BIN"
@@ -112,7 +115,10 @@ mcopy -i "$esp" "$bundle/arach" ::/BOOT/ARACH
 mcopy -i "$esp" "$bundle/push" ::/BOOT/PUSH
 mcopy -i "$esp" "$bundle/crest" ::/BOOT/CREST
 if [[ "$cosmic_count" -eq "${#cosmic_artifacts[@]}" ]]; then
+    mcopy -i "$esp" "$bundle/seatd" ::/BOOT/SEATD.BIN
     mcopy -i "$esp" "$bundle/dbus-broker" ::/BOOT/DBUS.BIN
+    mcopy -i "$esp" "$bundle/pipewire" ::/BOOT/PIPEWIRE.BIN
+    mcopy -i "$esp" "$bundle/wireplumber" ::/BOOT/WIREPLUMBER.BIN
     mcopy -i "$esp" "$bundle/cosmic-comp" ::/BOOT/COSCOMP.BIN
     mcopy -i "$esp" "$bundle/cosmic-greeter" ::/BOOT/COSGREETER.BIN
     mcopy -i "$esp" "$bundle/cosmic-session" ::/BOOT/COSSESSION.BIN
