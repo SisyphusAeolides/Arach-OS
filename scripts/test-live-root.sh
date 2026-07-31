@@ -20,6 +20,8 @@ mkdir -p "$artifacts/corinth-0.1.0-9/target/release"
 printf '\177ELF test Corinth\n' > "$artifacts/corinth-0.1.0-9/target/release/corinth"
 mkdir -p "$artifacts/arach-hwd-0.1.0-1/target/release"
 printf '\177ELF test Arach HWD\n' > "$artifacts/arach-hwd-0.1.0-1/target/release/arach-hwd"
+printf '\177ELF test Arach HWD catalog sync\n' \
+    > "$artifacts/arach-hwd-0.1.0-1/target/release/arach-hwd-catalog-sync"
 mkdir -p "$artifacts/arach-hardware-catalog-2026.1/etc/arach/hwd/profiles"
 mkdir -p "$artifacts/arach-hardware-catalog-2026.1/etc/arach/hwd/driver-sources"
 printf '[key]\n' > "$artifacts/arach-hardware-catalog-2026.1/etc/arach/hwd/keys.toml"
@@ -96,12 +98,15 @@ for artifact in seatd dbus-broker pipewire wireplumber cosmic-comp cosmic-greete
 done
 test -s "$output/run/arach-live/repository/system.gen"
 test -s "$output/system/greetd"
+test -s "$output/system/arach-hwd"
+test -s "$output/system/arach-hwd-catalog-sync"
 test -s "$output/etc/greetd/cosmic-greeter.toml"
 test -s "$output/etc/greetd/config.toml"
 test -s "$output/usr/bin/cosmic-greeter-start"
 test -s "$output/etc/calamares/settings.conf"
 test -s "$output/etc/calamares/modules/arach-hardware.conf"
 test -s "$output/usr/lib/arach/calamares/modules/arachhardware/main.py"
+test -s "$output/usr/lib/arach/calamares/modules/arachhardware/repository.py"
 test -s "$output/usr/lib/arach/calamares/modules/arachtransaction/protocol.py"
 test -s "$output/usr/share/calamares/branding/arach/branding.desc"
 python3 - "$output/run/arach-live/image.json" <<'PY'
@@ -144,6 +149,15 @@ if "$root/scripts/materialize-live-system.sh" "$bad_artifacts" "$tmp/bad-root"; 
     exit 1
 fi
 printf '%s\n' 'Arach OS materializer rejection gate verified'
+
+missing_sync="$tmp/missing-sync-artifacts"
+cp -a -- "$artifacts" "$missing_sync"
+unlink "$missing_sync/arach-hwd-0.1.0-1/target/release/arach-hwd-catalog-sync"
+if "$root/scripts/materialize-live-system.sh" "$missing_sync" "$tmp/missing-sync-root"; then
+    echo 'materializer accepted an image without hardware catalog sync' >&2
+    exit 1
+fi
+printf '%s\n' 'Arach OS hardware catalog sync presence gate verified'
 
 missing_browser="$tmp/missing-browser-artifacts"
 cp -a -- "$artifacts" "$missing_browser"
