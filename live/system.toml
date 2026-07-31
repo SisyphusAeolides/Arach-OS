@@ -63,7 +63,7 @@ artifact_prefix = "arach-os-"
 layout = "files"
 required = true
 files = [
-  { source = "usr/libexec/arach-install", destination = "/usr/libexec/arach-install", mode = 493 },
+  { source = "target/release/arach-install", destination = "/usr/libexec/arach-install", mode = 493 },
 ]
 
 [[provider]]

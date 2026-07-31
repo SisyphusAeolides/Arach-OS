@@ -26,8 +26,8 @@ for binary in cosmic-comp cosmic-greeter cosmic-session xdg-desktop-portal-cosmi
 done
 mkdir -p "$artifacts/calamares-3.4.2-1/usr/bin"
 printf '\177ELF test Calamares\n' > "$artifacts/calamares-3.4.2-1/usr/bin/calamares"
-mkdir -p "$artifacts/arach-os-0.1.0-1/usr/libexec" "$artifacts/arach-os-0.1.0-1/branding"
-printf '\177ELF test Installer\n' > "$artifacts/arach-os-0.1.0-1/usr/libexec/arach-install"
+mkdir -p "$artifacts/arach-os-0.1.0-1/target/release" "$artifacts/arach-os-0.1.0-1/branding"
+printf '\177ELF test Installer\n' > "$artifacts/arach-os-0.1.0-1/target/release/arach-install"
 printf 'PNG test branding\n' > "$artifacts/arach-os-0.1.0-1/branding/arach-logo.png"
 
 "$root/scripts/materialize-live-system.sh" "$artifacts" "$source"
