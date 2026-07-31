@@ -940,56 +940,80 @@ fn read_boot_bundle(root: &Path) -> Result<BootBundle, InstallerError> {
             seatd: read_boot_artifact(
                 &root,
                 "seatd",
-                manifest.cosmic_seatd_sha256.as_deref().expect("checked above"),
+                manifest
+                    .cosmic_seatd_sha256
+                    .as_deref()
+                    .expect("checked above"),
                 "COSMIC seatd",
                 b"\x7fELF",
             )?,
             dbus: read_boot_artifact(
                 &root,
                 "dbus-broker",
-                manifest.cosmic_dbus_sha256.as_deref().expect("checked above"),
+                manifest
+                    .cosmic_dbus_sha256
+                    .as_deref()
+                    .expect("checked above"),
                 "COSMIC D-Bus broker",
                 b"\x7fELF",
             )?,
             pipewire: read_boot_artifact(
                 &root,
                 "pipewire",
-                manifest.cosmic_pipewire_sha256.as_deref().expect("checked above"),
+                manifest
+                    .cosmic_pipewire_sha256
+                    .as_deref()
+                    .expect("checked above"),
                 "COSMIC PipeWire",
                 b"\x7fELF",
             )?,
             wireplumber: read_boot_artifact(
                 &root,
                 "wireplumber",
-                manifest.cosmic_wireplumber_sha256.as_deref().expect("checked above"),
+                manifest
+                    .cosmic_wireplumber_sha256
+                    .as_deref()
+                    .expect("checked above"),
                 "COSMIC WirePlumber",
                 b"\x7fELF",
             )?,
             compositor: read_boot_artifact(
                 &root,
                 "cosmic-comp",
-                manifest.cosmic_compositor_sha256.as_deref().expect("checked above"),
+                manifest
+                    .cosmic_compositor_sha256
+                    .as_deref()
+                    .expect("checked above"),
                 "COSMIC compositor",
                 b"\x7fELF",
             )?,
             greeter: read_boot_artifact(
                 &root,
                 "cosmic-greeter",
-                manifest.cosmic_greeter_sha256.as_deref().expect("checked above"),
+                manifest
+                    .cosmic_greeter_sha256
+                    .as_deref()
+                    .expect("checked above"),
                 "COSMIC greeter",
                 b"\x7fELF",
             )?,
             session: read_boot_artifact(
                 &root,
                 "cosmic-session",
-                manifest.cosmic_session_sha256.as_deref().expect("checked above"),
+                manifest
+                    .cosmic_session_sha256
+                    .as_deref()
+                    .expect("checked above"),
                 "COSMIC session",
                 b"\x7fELF",
             )?,
             portal: read_boot_artifact(
                 &root,
                 "xdg-desktop-portal-cosmic",
-                manifest.cosmic_portal_sha256.as_deref().expect("checked above"),
+                manifest
+                    .cosmic_portal_sha256
+                    .as_deref()
+                    .expect("checked above"),
                 "COSMIC portal",
                 b"\x7fELF",
             )?,
@@ -1072,7 +1096,10 @@ fn activate_boot_bundle(
             (TARGET_COSMIC_SEATD_PATH, cosmic.seatd.as_slice()),
             (TARGET_COSMIC_DBUS_PATH, cosmic.dbus.as_slice()),
             (TARGET_COSMIC_PIPEWIRE_PATH, cosmic.pipewire.as_slice()),
-            (TARGET_COSMIC_WIREPLUMBER_PATH, cosmic.wireplumber.as_slice()),
+            (
+                TARGET_COSMIC_WIREPLUMBER_PATH,
+                cosmic.wireplumber.as_slice(),
+            ),
             (TARGET_COSMIC_COMPOSITOR_PATH, cosmic.compositor.as_slice()),
             (TARGET_COSMIC_GREETER_PATH, cosmic.greeter.as_slice()),
             (TARGET_COSMIC_SESSION_PATH, cosmic.session.as_slice()),
@@ -1144,10 +1171,34 @@ fn verify_installed_boot_bundle(target: &Path, plan: &InstallPlan) -> Result<(),
             "installed boot manifest has an unsupported schema",
         ));
     }
-    verify_installed_artifact(target, TARGET_GRANITE_PATH, &manifest.granite_sha256, "Granite", b"MZ")?;
-    verify_installed_artifact(target, TARGET_ARACH_PATH, &manifest.arach_sha256, "Arach", b"\x7fELF")?;
-    verify_installed_artifact(target, TARGET_PUSH_PATH, &manifest.push_sha256, "Push", b"\x7fELF")?;
-    verify_installed_artifact(target, TARGET_CREST_PATH, &manifest.crest_sha256, "Crest", b"\x7fELF")?;
+    verify_installed_artifact(
+        target,
+        TARGET_GRANITE_PATH,
+        &manifest.granite_sha256,
+        "Granite",
+        b"MZ",
+    )?;
+    verify_installed_artifact(
+        target,
+        TARGET_ARACH_PATH,
+        &manifest.arach_sha256,
+        "Arach",
+        b"\x7fELF",
+    )?;
+    verify_installed_artifact(
+        target,
+        TARGET_PUSH_PATH,
+        &manifest.push_sha256,
+        "Push",
+        b"\x7fELF",
+    )?;
+    verify_installed_artifact(
+        target,
+        TARGET_CREST_PATH,
+        &manifest.crest_sha256,
+        "Crest",
+        b"\x7fELF",
+    )?;
     let cosmic_digests = [
         manifest.cosmic_seatd_sha256.as_deref(),
         manifest.cosmic_dbus_sha256.as_deref(),
@@ -1158,21 +1209,96 @@ fn verify_installed_boot_bundle(target: &Path, plan: &InstallPlan) -> Result<(),
         manifest.cosmic_session_sha256.as_deref(),
         manifest.cosmic_portal_sha256.as_deref(),
     ];
-    let cosmic_count = cosmic_digests.iter().filter(|digest| digest.is_some()).count();
+    let cosmic_count = cosmic_digests
+        .iter()
+        .filter(|digest| digest.is_some())
+        .count();
     if cosmic_count != 0 && cosmic_count != cosmic_digests.len() {
         return Err(InstallerError::invalid(
             "installed boot manifest contains an incomplete COSMIC service set",
         ));
     }
     if cosmic_count == cosmic_digests.len() {
-        verify_installed_artifact(target, TARGET_COSMIC_SEATD_PATH, manifest.cosmic_seatd_sha256.as_deref().expect("checked above"), "COSMIC seatd", b"\x7fELF")?;
-        verify_installed_artifact(target, TARGET_COSMIC_DBUS_PATH, manifest.cosmic_dbus_sha256.as_deref().expect("checked above"), "COSMIC D-Bus broker", b"\x7fELF")?;
-        verify_installed_artifact(target, TARGET_COSMIC_PIPEWIRE_PATH, manifest.cosmic_pipewire_sha256.as_deref().expect("checked above"), "COSMIC PipeWire", b"\x7fELF")?;
-        verify_installed_artifact(target, TARGET_COSMIC_WIREPLUMBER_PATH, manifest.cosmic_wireplumber_sha256.as_deref().expect("checked above"), "COSMIC WirePlumber", b"\x7fELF")?;
-        verify_installed_artifact(target, TARGET_COSMIC_COMPOSITOR_PATH, manifest.cosmic_compositor_sha256.as_deref().expect("checked above"), "COSMIC compositor", b"\x7fELF")?;
-        verify_installed_artifact(target, TARGET_COSMIC_GREETER_PATH, manifest.cosmic_greeter_sha256.as_deref().expect("checked above"), "COSMIC greeter", b"\x7fELF")?;
-        verify_installed_artifact(target, TARGET_COSMIC_SESSION_PATH, manifest.cosmic_session_sha256.as_deref().expect("checked above"), "COSMIC session", b"\x7fELF")?;
-        verify_installed_artifact(target, TARGET_COSMIC_PORTAL_PATH, manifest.cosmic_portal_sha256.as_deref().expect("checked above"), "COSMIC portal", b"\x7fELF")?;
+        verify_installed_artifact(
+            target,
+            TARGET_COSMIC_SEATD_PATH,
+            manifest
+                .cosmic_seatd_sha256
+                .as_deref()
+                .expect("checked above"),
+            "COSMIC seatd",
+            b"\x7fELF",
+        )?;
+        verify_installed_artifact(
+            target,
+            TARGET_COSMIC_DBUS_PATH,
+            manifest
+                .cosmic_dbus_sha256
+                .as_deref()
+                .expect("checked above"),
+            "COSMIC D-Bus broker",
+            b"\x7fELF",
+        )?;
+        verify_installed_artifact(
+            target,
+            TARGET_COSMIC_PIPEWIRE_PATH,
+            manifest
+                .cosmic_pipewire_sha256
+                .as_deref()
+                .expect("checked above"),
+            "COSMIC PipeWire",
+            b"\x7fELF",
+        )?;
+        verify_installed_artifact(
+            target,
+            TARGET_COSMIC_WIREPLUMBER_PATH,
+            manifest
+                .cosmic_wireplumber_sha256
+                .as_deref()
+                .expect("checked above"),
+            "COSMIC WirePlumber",
+            b"\x7fELF",
+        )?;
+        verify_installed_artifact(
+            target,
+            TARGET_COSMIC_COMPOSITOR_PATH,
+            manifest
+                .cosmic_compositor_sha256
+                .as_deref()
+                .expect("checked above"),
+            "COSMIC compositor",
+            b"\x7fELF",
+        )?;
+        verify_installed_artifact(
+            target,
+            TARGET_COSMIC_GREETER_PATH,
+            manifest
+                .cosmic_greeter_sha256
+                .as_deref()
+                .expect("checked above"),
+            "COSMIC greeter",
+            b"\x7fELF",
+        )?;
+        verify_installed_artifact(
+            target,
+            TARGET_COSMIC_SESSION_PATH,
+            manifest
+                .cosmic_session_sha256
+                .as_deref()
+                .expect("checked above"),
+            "COSMIC session",
+            b"\x7fELF",
+        )?;
+        verify_installed_artifact(
+            target,
+            TARGET_COSMIC_PORTAL_PATH,
+            manifest
+                .cosmic_portal_sha256
+                .as_deref()
+                .expect("checked above"),
+            "COSMIC portal",
+            b"\x7fELF",
+        )?;
     }
     Ok(())
 }
@@ -1184,7 +1310,11 @@ fn verify_installed_artifact(
     label: &str,
     magic: &[u8],
 ) -> Result<(), InstallerError> {
-    let bytes = read_regular(&target_boot_path(target, relative)?, MAX_BOOT_ARTIFACT_BYTES, false)?;
+    let bytes = read_regular(
+        &target_boot_path(target, relative)?,
+        MAX_BOOT_ARTIFACT_BYTES,
+        false,
+    )?;
     if !bytes.starts_with(magic) || digest(&bytes) != expected {
         return Err(InstallerError::invalid(format!(
             "installed {label} artifact failed digest or header verification",
@@ -1216,7 +1346,10 @@ fn rollback_boot_bundle(target: &Path, plan: &InstallPlan) -> Result<(), Install
         || record.manifest_sha256 != plan.boot_bundle_sha256
         || record.entries.iter().any(|entry| {
             !is_boot_destination(&entry.destination)
-                || entry.backup.as_deref().is_some_and(|path| !path.starts_with("boot-backup/"))
+                || entry
+                    .backup
+                    .as_deref()
+                    .is_some_and(|path| !path.starts_with("boot-backup/"))
         })
     {
         return Err(InstallerError::invalid(
@@ -1355,7 +1488,10 @@ fn atomic_target_file(path: &Path, bytes: &[u8]) -> Result<(), InstallerError> {
 fn remove_target_file(path: &Path) -> Result<(), InstallerError> {
     match fs::symlink_metadata(path) {
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(()),
-        Err(error) => Err(InstallerError::invalid(format!("{}: {error}", path.display()))),
+        Err(error) => Err(InstallerError::invalid(format!(
+            "{}: {error}",
+            path.display()
+        ))),
         Ok(metadata) if metadata.file_type().is_symlink() || !metadata.is_file() => {
             Err(InstallerError::invalid(format!(
                 "{} is not a removable regular file",
@@ -1403,7 +1539,10 @@ pub fn parse_flag_arguments(
         ) {
             return Err(InstallerError::invalid(format!("unknown flag --{flag}")));
         }
-        if parsed.insert(flag.into(), PathBuf::from(&pair[1])).is_some() {
+        if parsed
+            .insert(flag.into(), PathBuf::from(&pair[1]))
+            .is_some()
+        {
             return Err(InstallerError::invalid(format!("duplicate flag --{flag}")));
         }
     }
@@ -1424,13 +1563,20 @@ fn load_bound_documents(
         || journal.plan_sha256 != digest(&canonical_json(&plan)?)
         || !valid_digest(&plan.generation_sha256)
         || !valid_digest(&plan.boot_bundle_sha256)
-        || plan.hardware_plan_sha256.as_deref().is_some_and(|digest| !valid_digest(digest))
+        || plan
+            .hardware_plan_sha256
+            .as_deref()
+            .is_some_and(|digest| !valid_digest(digest))
         || journal.intended_corinth_generation != plan.generation_sha256
         || (plan.operations != operations_for(false) && plan.operations != operations_for(true))
         || (plan.hardware_plan_sha256.is_some()
-            && !plan.operations.contains(&InstallOperation::HardwareProvision))
+            && !plan
+                .operations
+                .contains(&InstallOperation::HardwareProvision))
         || (plan.hardware_plan_sha256.is_none()
-            && plan.operations.contains(&InstallOperation::HardwareProvision))
+            && plan
+                .operations
+                .contains(&InstallOperation::HardwareProvision))
     {
         return Err(InstallerError::invalid(
             "plan and journal do not satisfy the Arach transaction contract",
@@ -1444,12 +1590,36 @@ fn validate_journal(journal: &InstallJournal) -> Result<(), InstallerError> {
         return Err(InstallerError::invalid("unsupported journal schema"));
     }
     validate_transaction_id(&journal.transaction_id)?;
-    let published_mutations = journal.mutations.iter().filter(|m| m.as_str() == "corinth-generation").count();
-    let boot_mutations = journal.mutations.iter().filter(|m| m.as_str() == "boot-bundle").count();
-    let rollback_mutations = journal.mutations.iter().filter(|m| m.as_str() == "corinth-generation:rolled-back").count();
-    let boot_rollback_mutations = journal.mutations.iter().filter(|m| m.as_str() == "boot-bundle:rolled-back").count();
-    let hardware_mutations = journal.mutations.iter().filter(|m| m.as_str() == "hardware-provisioning").count();
-    let hardware_rollback_mutations = journal.mutations.iter().filter(|m| m.as_str() == "hardware-provisioning:rolled-back").count();
+    let published_mutations = journal
+        .mutations
+        .iter()
+        .filter(|m| m.as_str() == "corinth-generation")
+        .count();
+    let boot_mutations = journal
+        .mutations
+        .iter()
+        .filter(|m| m.as_str() == "boot-bundle")
+        .count();
+    let rollback_mutations = journal
+        .mutations
+        .iter()
+        .filter(|m| m.as_str() == "corinth-generation:rolled-back")
+        .count();
+    let boot_rollback_mutations = journal
+        .mutations
+        .iter()
+        .filter(|m| m.as_str() == "boot-bundle:rolled-back")
+        .count();
+    let hardware_mutations = journal
+        .mutations
+        .iter()
+        .filter(|m| m.as_str() == "hardware-provisioning")
+        .count();
+    let hardware_rollback_mutations = journal
+        .mutations
+        .iter()
+        .filter(|m| m.as_str() == "hardware-provisioning:rolled-back")
+        .count();
     let coherent_transition = match journal.status {
         JournalStatus::Prepared => {
             journal.target.is_none()
@@ -1463,7 +1633,10 @@ fn validate_journal(journal: &InstallJournal) -> Result<(), InstallerError> {
                 && !journal.corinth_published
                 && hardware_mutations <= 1
                 && hardware_rollback_mutations == 0
-                && journal.hardware_packages.iter().all(|package| valid_package_name(package))
+                && journal
+                    .hardware_packages
+                    .iter()
+                    .all(|package| valid_package_name(package))
         }
         JournalStatus::CorinthPublished
         | JournalStatus::ApplyFailed
@@ -1477,7 +1650,10 @@ fn validate_journal(journal: &InstallJournal) -> Result<(), InstallerError> {
                 && boot_rollback_mutations == 0
                 && hardware_mutations <= 1
                 && hardware_rollback_mutations == 0
-                && journal.hardware_packages.iter().all(|package| valid_package_name(package))
+                && journal
+                    .hardware_packages
+                    .iter()
+                    .all(|package| valid_package_name(package))
         }
         JournalStatus::RolledBack => {
             journal.target.is_some()
@@ -1486,11 +1662,17 @@ fn validate_journal(journal: &InstallJournal) -> Result<(), InstallerError> {
                 && boot_rollback_mutations == boot_mutations
                 && published_mutations <= 1
                 && hardware_rollback_mutations == hardware_mutations
-                && journal.hardware_packages.iter().all(|package| valid_package_name(package))
+                && journal
+                    .hardware_packages
+                    .iter()
+                    .all(|package| valid_package_name(package))
         }
     };
     if !valid_digest(&journal.intended_corinth_generation)
-        || journal.previous_corinth_generation.as_deref().is_some_and(|value| !valid_digest(value))
+        || journal
+            .previous_corinth_generation
+            .as_deref()
+            .is_some_and(|value| !valid_digest(value))
         || journal.mutations.iter().any(|mutation| {
             !matches!(
                 mutation.as_str(),
@@ -1511,7 +1693,9 @@ fn validate_journal(journal: &InstallJournal) -> Result<(), InstallerError> {
 
 fn validate_transaction_id(value: &str) -> Result<(), InstallerError> {
     if value.len() == 32
-        && value.bytes().all(|byte| byte.is_ascii_digit() || matches!(byte, b'a'..=b'f'))
+        && value
+            .bytes()
+            .all(|byte| byte.is_ascii_digit() || matches!(byte, b'a'..=b'f'))
     {
         Ok(())
     } else {
@@ -1538,11 +1722,17 @@ fn validate_target(path: &Path) -> Result<PathBuf, InstallerError> {
 }
 
 fn staged_generation_path(plan_path: &Path) -> Result<PathBuf, InstallerError> {
-    plan_path.parent().map(|parent| parent.join("generation.gen")).ok_or_else(|| InstallerError::invalid("plan path has no parent"))
+    plan_path
+        .parent()
+        .map(|parent| parent.join("generation.gen"))
+        .ok_or_else(|| InstallerError::invalid("plan path has no parent"))
 }
 
 fn staged_hardware_plan_path(plan_path: &Path) -> Result<PathBuf, InstallerError> {
-    plan_path.parent().map(|parent| parent.join("hardware-plan.toml")).ok_or_else(|| InstallerError::invalid("plan path has no parent"))
+    plan_path
+        .parent()
+        .map(|parent| parent.join("hardware-plan.toml"))
+        .ok_or_else(|| InstallerError::invalid("plan path has no parent"))
 }
 
 fn operations_for(has_hardware_plan: bool) -> Vec<InstallOperation> {
@@ -1550,7 +1740,10 @@ fn operations_for(has_hardware_plan: bool) -> Vec<InstallOperation> {
     if has_hardware_plan {
         operations.push(InstallOperation::HardwareProvision);
     }
-    operations.extend([InstallOperation::GraniteActivate, InstallOperation::CosmicVerify]);
+    operations.extend([
+        InstallOperation::GraniteActivate,
+        InstallOperation::CosmicVerify,
+    ]);
     operations
 }
 
@@ -1558,7 +1751,10 @@ fn read_hardware_plan(path: &Path) -> Result<Vec<u8>, InstallerError> {
     let bytes = read_regular(path, DOCUMENT_LIMIT, false)?;
     let value: toml::Value = toml::from_slice(&bytes)
         .map_err(|error| InstallerError::invalid(format!("invalid hardware plan: {error}")))?;
-    let schema = value.get("schema").and_then(toml::Value::as_integer).and_then(|value| u32::try_from(value).ok());
+    let schema = value
+        .get("schema")
+        .and_then(toml::Value::as_integer)
+        .and_then(|value| u32::try_from(value).ok());
     let plan = value.get("plan").and_then(toml::Value::as_array);
     if schema != Some(1) || plan.is_none() {
         return Err(InstallerError::invalid(
@@ -1623,9 +1819,10 @@ fn checkpoint_transaction(
         std::process::id()
     ));
     let mut builder = fs::DirBuilder::new();
-    builder.mode(0o700).create(&temporary).map_err(|error| {
-        InstallerError::invalid(format!("{}: {error}", temporary.display()))
-    })?;
+    builder
+        .mode(0o700)
+        .create(&temporary)
+        .map_err(|error| InstallerError::invalid(format!("{}: {error}", temporary.display())))?;
 
     let result = (|| {
         create_private(&temporary.join("plan.json"), &canonical_json(plan)?)?;
@@ -1655,12 +1852,16 @@ fn authoritative_journal(
     let directory = target_transaction_directory(target, &plan.transaction_id);
     match fs::symlink_metadata(&directory) {
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok((runtime_journal, None)),
-        Err(error) => Err(InstallerError::invalid(format!("{}: {error}", directory.display()))),
+        Err(error) => Err(InstallerError::invalid(format!(
+            "{}: {error}",
+            directory.display()
+        ))),
         Ok(_) => {
             validate_private_directory(&directory)?;
             let checkpoint_plan = directory.join("plan.json");
             let checkpoint_journal = directory.join("journal.json");
-            let (durable_plan, durable_journal) = load_bound_documents(&checkpoint_plan, &checkpoint_journal)?;
+            let (durable_plan, durable_journal) =
+                load_bound_documents(&checkpoint_plan, &checkpoint_journal)?;
             validate_hardware_plan_file(
                 &directory.join("hardware-plan.toml"),
                 durable_plan.hardware_plan_sha256.as_deref(),
@@ -1694,15 +1895,27 @@ fn ensure_private_directory(path: &Path) -> Result<(), InstallerError> {
     match fs::symlink_metadata(path) {
         Ok(_) => validate_private_directory(path),
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
-            let parent = path.parent().ok_or_else(|| InstallerError::invalid("private directory has no parent"))?;
-            let metadata = fs::symlink_metadata(parent).map_err(|error| InstallerError::invalid(format!("{}: {error}", parent.display())))?;
+            let parent = path
+                .parent()
+                .ok_or_else(|| InstallerError::invalid("private directory has no parent"))?;
+            let metadata = fs::symlink_metadata(parent).map_err(|error| {
+                InstallerError::invalid(format!("{}: {error}", parent.display()))
+            })?;
             if !metadata.is_dir() || metadata.file_type().is_symlink() {
-                return Err(InstallerError::invalid("private directory parent is unsafe"));
+                return Err(InstallerError::invalid(
+                    "private directory parent is unsafe",
+                ));
             }
             let mut builder = fs::DirBuilder::new();
-            builder.mode(0o700).create(path).map_err(|error| InstallerError::invalid(format!("{}: {error}", path.display())))
+            builder
+                .mode(0o700)
+                .create(path)
+                .map_err(|error| InstallerError::invalid(format!("{}: {error}", path.display())))
         }
-        Err(error) => Err(InstallerError::invalid(format!("{}: {error}", path.display()))),
+        Err(error) => Err(InstallerError::invalid(format!(
+            "{}: {error}",
+            path.display()
+        ))),
     }
 }
 
@@ -1728,9 +1941,16 @@ fn remove_incomplete_checkpoint(path: &Path) {
     if !metadata.is_dir() || metadata.file_type().is_symlink() {
         return;
     }
-    for name in ["plan.json", "generation.gen", "hardware-plan.toml", "journal.json"] {
+    for name in [
+        "plan.json",
+        "generation.gen",
+        "hardware-plan.toml",
+        "journal.json",
+    ] {
         let file = path.join(name);
-        if fs::symlink_metadata(&file).is_ok_and(|metadata| metadata.is_file() && !metadata.file_type().is_symlink()) {
+        if fs::symlink_metadata(&file)
+            .is_ok_and(|metadata| metadata.is_file() && !metadata.file_type().is_symlink())
+        {
             let _ = fs::remove_file(file);
         }
     }
@@ -1761,7 +1981,11 @@ fn rollback_corinth(
         return Ok(());
     }
     let intended = decode_generation_digest(&plan.generation_sha256)?;
-    let previous = journal.previous_corinth_generation.as_deref().map(decode_generation_digest).transpose()?;
+    let previous = journal
+        .previous_corinth_generation
+        .as_deref()
+        .map(decode_generation_digest)
+        .transpose()?;
     let store_root = target_store_root(target)?;
     match fs::symlink_metadata(&store_root) {
         Ok(_) => {}
@@ -1769,7 +1993,10 @@ fn rollback_corinth(
             return Ok(());
         }
         Err(error) => {
-            return Err(InstallerError::invalid(format!("{}: {error}", store_root.display())));
+            return Err(InstallerError::invalid(format!(
+                "{}: {error}",
+                store_root.display()
+            )));
         }
     }
     let store = FilesystemGenerationStore::open(&store_root)
@@ -1785,7 +2012,8 @@ fn rollback_corinth(
             "active Corinth generation differs from both rollback authorities",
         ));
     }
-    let restored = store.rollback(intended)
+    let restored = store
+        .rollback(intended)
         .map_err(|error| InstallerError::invalid(format!("Corinth rollback failed: {error}")))?;
     if restored != previous {
         return Err(InstallerError::invalid(
@@ -1803,7 +2031,8 @@ fn rollback_hardware(
     if !provisioned || journal.hardware_packages.is_empty() {
         return Ok(());
     }
-    let state = target_transaction_directory(target, &journal.transaction_id).join("hardware-state");
+    let state =
+        target_transaction_directory(target, &journal.transaction_id).join("hardware-state");
     let receipt_root = state.join("binary-installed");
     if !receipt_root.is_dir() {
         return Ok(());
@@ -1815,7 +2044,8 @@ fn rollback_hardware(
         if !receipt.is_file() {
             continue;
         }
-        store.remove(package)
+        store
+            .remove(package)
             .map_err(|error| InstallerError::invalid(format!("hardware rollback: {error}")))?;
     }
     Ok(())
@@ -1823,12 +2053,16 @@ fn rollback_hardware(
 
 fn valid_digest(value: &str) -> bool {
     value.len() == 64
-        && value.bytes().all(|byte| byte.is_ascii_digit() || matches!(byte, b'a'..=b'f'))
+        && value
+            .bytes()
+            .all(|byte| byte.is_ascii_digit() || matches!(byte, b'a'..=b'f'))
 }
 
 fn valid_package_name(value: &str) -> bool {
     !value.is_empty()
-        && value.bytes().all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'-' || byte == b'_')
+        && value.bytes().all(|byte| {
+            byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'-' || byte == b'_'
+        })
 }
 
 fn decode_generation_digest(value: &str) -> Result<GenerationDigest, InstallerError> {
@@ -1842,7 +2076,9 @@ fn decode_generation_digest(value: &str) -> Result<GenerationDigest, InstallerEr
         digest[index] = (high << 4) | low;
     }
     if digest == NO_GENERATION {
-        return Err(InstallerError::invalid("zero generation digest is reserved"));
+        return Err(InstallerError::invalid(
+            "zero generation digest is reserved",
+        ));
     }
     Ok(digest)
 }
@@ -1890,7 +2126,8 @@ fn read_regular(path: &Path, limit: u64, private: bool) -> Result<Vec<u8>, Insta
         .custom_flags(libc::O_NOFOLLOW)
         .open(path)
         .map_err(|error| InstallerError::invalid(format!("{}: {error}", path.display())))?;
-    let metadata = file.metadata()
+    let metadata = file
+        .metadata()
         .map_err(|error| InstallerError::invalid(format!("{}: {error}", path.display())))?;
     if !metadata.is_file() || metadata.len() > limit {
         return Err(InstallerError::invalid(format!(
@@ -1922,7 +2159,9 @@ fn digest(bytes: &[u8]) -> String {
 }
 
 fn create_private(path: &Path, bytes: &[u8]) -> Result<(), InstallerError> {
-    let parent = path.parent().ok_or_else(|| InstallerError::invalid("document path has no parent"))?;
+    let parent = path
+        .parent()
+        .ok_or_else(|| InstallerError::invalid("document path has no parent"))?;
     fs::create_dir_all(parent)
         .map_err(|error| InstallerError::invalid(format!("{}: {error}", parent.display())))?;
     fs::set_permissions(parent, fs::Permissions::from_mode(0o700))
@@ -1934,15 +2173,21 @@ fn create_private(path: &Path, bytes: &[u8]) -> Result<(), InstallerError> {
         .mode(0o600)
         .open(path)
         .map_err(|error| InstallerError::invalid(format!("{}: {error}", path.display())))?;
-    file.write_all(bytes).and_then(|()| file.sync_all())
+    file.write_all(bytes)
+        .and_then(|()| file.sync_all())
         .map_err(|error| InstallerError::invalid(format!("{}: {error}", path.display())))?;
     sync_parent(parent)
 }
 
 fn rewrite_private(path: &Path, bytes: &[u8]) -> Result<(), InstallerError> {
-    let parent = path.parent().ok_or_else(|| InstallerError::invalid("document path has no parent"))?;
+    let parent = path
+        .parent()
+        .ok_or_else(|| InstallerError::invalid("document path has no parent"))?;
     let serial = TEMPORARY_SERIAL.fetch_add(1, Ordering::Relaxed);
-    let temporary = parent.join(format!(".arach-install-{}-{serial}.tmp", std::process::id()));
+    let temporary = parent.join(format!(
+        ".arach-install-{}-{serial}.tmp",
+        std::process::id()
+    ));
     create_private(&temporary, bytes)?;
     fs::rename(&temporary, path).map_err(|error| {
         let _ = fs::remove_file(&temporary);
@@ -1952,7 +2197,8 @@ fn rewrite_private(path: &Path, bytes: &[u8]) -> Result<(), InstallerError> {
 }
 
 fn sync_parent(parent: &Path) -> Result<(), InstallerError> {
-    File::open(parent).and_then(|directory| directory.sync_all())
+    File::open(parent)
+        .and_then(|directory| directory.sync_all())
         .map_err(|error| InstallerError::invalid(format!("{}: {error}", parent.display())))
 }
 
@@ -2013,10 +2259,12 @@ mod tests {
         let mut ledger = PackageLedger::new();
         for (index, name_hash) in packages.iter().enumerate() {
             let mut transaction = ledger.begin(ledger.authority()).unwrap();
-            transaction.install(ResolvedPackage {
-                name_hash: *name_hash,
-                version_idx: index as u16 + 1,
-            }).unwrap();
+            transaction
+                .install(ResolvedPackage {
+                    name_hash: *name_hash,
+                    version_idx: index as u16 + 1,
+                })
+                .unwrap();
             ledger.commit(transaction).unwrap();
         }
         let image = GenerationImage::from_ledger(&ledger, parent);
@@ -2054,7 +2302,11 @@ mod tests {
             cosmic_session_sha256: None,
             cosmic_portal_sha256: None,
         };
-        create_private(&bundle.join(BOOT_MANIFEST_NAME), &canonical_json(&manifest).unwrap()).unwrap();
+        create_private(
+            &bundle.join(BOOT_MANIFEST_NAME),
+            &canonical_json(&manifest).unwrap(),
+        )
+        .unwrap();
         bundle
     }
 
@@ -2073,7 +2325,8 @@ mod tests {
             create_private(&bundle.join(name), bytes).unwrap();
         }
         let manifest_path = bundle.join(BOOT_MANIFEST_NAME);
-        let mut manifest: BootBundleManifest = serde_json::from_slice(&fs::read(&manifest_path).unwrap()).unwrap();
+        let mut manifest: BootBundleManifest =
+            serde_json::from_slice(&fs::read(&manifest_path).unwrap()).unwrap();
         manifest.cosmic_seatd_sha256 = Some(digest(b"\x7fELF-seatd"));
         manifest.cosmic_dbus_sha256 = Some(digest(b"\x7fELF-dbus"));
         manifest.cosmic_pipewire_sha256 = Some(digest(b"\x7fELF-pipewire"));
@@ -2153,7 +2406,10 @@ mod tests {
         let (_, loaded) = load_bound_documents(&plan, &journal).unwrap();
         assert_eq!(loaded.status, JournalStatus::Prepared);
         assert!(staged_generation_path(&plan).unwrap().is_file());
-        assert_eq!(fs::metadata(journal).unwrap().permissions().mode() & 0o777, 0o600);
+        assert_eq!(
+            fs::metadata(journal).unwrap().permissions().mode() & 0o777,
+            0o600
+        );
     }
 
     #[test]
@@ -2165,14 +2421,29 @@ mod tests {
         let hardware = write_hardware_plan(&root.0);
         let plan = root.0.join("plan.json");
         let journal = root.0.join("journal.json");
-        prepare_with_hardware_plan(&state, &plan, &journal, &generation, &boot_bundle, &hardware).unwrap();
+        prepare_with_hardware_plan(
+            &state,
+            &plan,
+            &journal,
+            &generation,
+            &boot_bundle,
+            &hardware,
+        )
+        .unwrap();
         let (loaded, _) = load_bound_documents(&plan, &journal).unwrap();
         assert!(loaded.hardware_plan_sha256.is_some());
-        assert!(validate_hardware_plan_file(
-            &staged_hardware_plan_path(&plan).unwrap(),
-            loaded.hardware_plan_sha256.as_deref()
-        ).is_ok());
-        assert!(loaded.operations.contains(&InstallOperation::HardwareProvision));
+        assert!(
+            validate_hardware_plan_file(
+                &staged_hardware_plan_path(&plan).unwrap(),
+                loaded.hardware_plan_sha256.as_deref()
+            )
+            .is_ok()
+        );
+        assert!(
+            loaded
+                .operations
+                .contains(&InstallOperation::HardwareProvision)
+        );
     }
 
     #[test]
@@ -2187,7 +2458,8 @@ mod tests {
             &root.0.join("journal.json"),
             &generation,
             &boot_bundle,
-        ).unwrap_err();
+        )
+        .unwrap_err();
         assert!(error.message.contains("unknown field"));
     }
 
@@ -2211,7 +2483,12 @@ mod tests {
         assert_eq!(store.active().unwrap(), None);
         let value: InstallJournal = read_private_json(&journal).unwrap();
         assert_eq!(value.status, JournalStatus::RolledBack);
-        assert!(value.mutations.iter().any(|mutation| mutation == "corinth-generation:rolled-back"));
+        assert!(
+            value
+                .mutations
+                .iter()
+                .any(|mutation| mutation == "corinth-generation:rolled-back")
+        );
     }
 
     #[test]
@@ -2275,7 +2552,10 @@ mod tests {
 
         let (plan, mut journal) = load_bound_documents(&plan_path, &journal_path).unwrap();
         let store_root = target_store_root(&target).unwrap();
-        assert_eq!(FilesystemGenerationStore::inspect_active(&store_root).unwrap(), None);
+        assert_eq!(
+            FilesystemGenerationStore::inspect_active(&store_root).unwrap(),
+            None
+        );
         assert!(!store_root.exists());
 
         journal.status = JournalStatus::Applying;
@@ -2286,8 +2566,10 @@ mod tests {
             &staged_generation_path(&plan_path).unwrap(),
             MAX_GENERATION_BYTES as u64,
             true,
-        ).unwrap();
-        let checkpoint_journal = checkpoint_transaction(&target, &plan, &journal, &generation_bytes, None).unwrap();
+        )
+        .unwrap();
+        let checkpoint_journal =
+            checkpoint_transaction(&target, &plan, &journal, &generation_bytes, None).unwrap();
         fs::remove_file(&plan_path).unwrap();
         fs::remove_file(&journal_path).unwrap();
         fs::remove_file(staged_generation_path(&plan_path).unwrap()).unwrap();
