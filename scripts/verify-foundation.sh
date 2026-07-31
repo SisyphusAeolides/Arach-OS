@@ -25,7 +25,9 @@ grep -Fq 'repository = "https://github.com/SisyphusAeolides/Arach-Packages.git"'
     "$root/components.lock.toml"
 grep -Fq 'repository = "https://github.com/SisyphusAeolides/Arach-HWD.git"' \
     "$root/components.lock.toml"
-python3 "$root/scripts/verify-components.py" --lock "$root/components.lock.toml"
+python3 "$root/scripts/verify-components.py" \
+    --lock "$root/components.lock.toml" \
+    --manifest "$root/Cargo.toml"
 python3 "$root/scripts/test_verify_components.py"
 python3 "$root/installer/calamares/modules/arachtransaction/test_protocol.py"
 grep -Fxq 'session = "cosmic-session"' "$root/live/profile.toml"

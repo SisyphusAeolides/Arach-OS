@@ -37,6 +37,17 @@ class ComponentLockTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "component set differs"):
             VERIFY.validate(components)
 
+    def test_rust_dependency_revisions_follow_component_lock(self) -> None:
+        VERIFY.validate_rust_pins(self.components, ROOT / "Cargo.toml")
+
+    def test_stale_hwd_dependency_is_rejected(self) -> None:
+        components = copy.deepcopy(self.components)
+        next(component for component in components if component["name"] == "arach-hwd")[
+            "revision"
+        ] = "0" * 40
+        with self.assertRaisesRegex(ValueError, "arach-hwd revision differs"):
+            VERIFY.validate_rust_pins(components, ROOT / "Cargo.toml")
+
 
 if __name__ == "__main__":
     unittest.main()

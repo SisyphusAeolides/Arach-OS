@@ -66,6 +66,35 @@ def validate(components: list[dict[str, str]]) -> None:
             raise ValueError(f"{name} role differs from the composition contract")
 
 
+def validate_rust_pins(
+    components: list[dict[str, str]], manifest_path: pathlib.Path
+) -> None:
+    """Ensure host-side Rust integration uses the locked component objects.
+
+    The live-image lock is the release authority, but arach-compose and
+    Corinth also import Arach-HWD at build time.  Allowing either manifest to
+    drift creates two Rust crate identities with the same package name and
+    silently breaks the installer boundary.
+    """
+    manifest = tomllib.loads(manifest_path.read_text(encoding="utf-8"))
+    dependencies = manifest.get("dependencies")
+    if not isinstance(dependencies, dict):
+        raise ValueError("Cargo.toml has no dependency table")
+    locked = {component["name"]: component["revision"] for component in components}
+    for package_name, component_name in (("corinth", "corinth"), ("arach-hwd", "arach-hwd")):
+        dependency = dependencies.get(package_name)
+        if not isinstance(dependency, dict):
+            raise ValueError(f"Cargo.toml dependency {package_name} must be a Git table")
+        if dependency.get("git") != (
+            f"https://github.com/SisyphusAeolides/{'Corinth' if package_name == 'corinth' else 'Arach-HWD'}.git"
+        ):
+            raise ValueError(f"Cargo.toml dependency {package_name} repository differs")
+        if dependency.get("rev") != locked[component_name]:
+            raise ValueError(
+                f"Cargo.toml dependency {package_name} revision differs from components.lock.toml"
+            )
+
+
 def verify_remote(component: dict[str, str]) -> str:
     with tempfile.TemporaryDirectory(prefix="arach-component-") as directory:
         subprocess.run(
@@ -109,10 +138,12 @@ def verify_remote(component: dict[str, str]) -> str:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--lock", type=pathlib.Path, required=True)
+    parser.add_argument("--manifest", type=pathlib.Path, default=pathlib.Path("Cargo.toml"))
     parser.add_argument("--remote", action="store_true")
     arguments = parser.parse_args()
     components = load_lock(arguments.lock)
     validate(components)
+    validate_rust_pins(components, arguments.manifest)
     if arguments.remote:
         with concurrent.futures.ThreadPoolExecutor(max_workers=4) as workers:
             list(workers.map(verify_remote, components))
