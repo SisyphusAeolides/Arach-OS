@@ -4,7 +4,7 @@ distribution = "Arach OS"
 [[component]]
 name = "arach-kernel"
 repository = "https://github.com/SisyphusAeolides/Arach-Kernel.git"
-revision = "a7d6c84343f428b45fb468e265685f56d9a65827"
+revision = "42570b168732847d16da959348e5ffe58d7688c1"
 role = "kernel"
 
 [[component]]
@@ -22,7 +22,7 @@ role = "pid1"
 [[component]]
 name = "granite"
 repository = "https://github.com/SisyphusAeolides/Granite.git"
-revision = "2ceca668a0b03b8bfe301c9342e856bfc176e5e8"
+revision = "13b152ea3a515e3fac7dbb992387703e99848d92"
 role = "bootloader"
 
 [[component]]
@@ -34,7 +34,7 @@ role = "package-manager"
 [[component]]
 name = "arach-packages"
 repository = "https://github.com/SisyphusAeolides/Arach-Packages.git"
-revision = "45832326c9b24465447a41da9497f2337b698945"
+revision = "75059f72bc24506f83fb37dbb6a659ef2374f6b3"
 role = "package-recipes"
 
 [[component]]
