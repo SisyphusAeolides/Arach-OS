@@ -51,6 +51,12 @@ lock also binds the exact Arach-Packages repository revision used for source
 fallback; the installer consumes that value instead of embedding a moving
 package commit in its executable.
 
+For unresolved devices, the report retains source-scoped candidate fields
+(candidate_*_sources) in addition to module and firmware names. These fields
+identify the exact live or staged modules.alias, modules.firmware, modules.dep,
+or modules.builtin table that produced each candidate, so a target-kernel
+result cannot be mistaken for evidence from the temporary live kernel.
+
 The catalog also carries `packages.toml` and its detached signature. This is
 the scoped `package-index` for prebuilt Arach hardware payloads (kernel driver
 trees and firmware). At commit, Corinth verifies the index with the catalog
