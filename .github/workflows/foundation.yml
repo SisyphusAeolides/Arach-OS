@@ -51,3 +51,73 @@ jobs:
           key: arach-os-formal-idris2-0.8.0-agda-2.8.0-v1
       - run: scripts/bootstrap-formal-toolchains.sh
       - run: scripts/check-formal-models.sh
+
+  measured-live-boot:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7
+        with:
+          repository: SisyphusAeolides/Arach-Kernel
+          ref: 1b60dace685c058ab5dbf10f582b897203c17cc2
+          path: target/live-sources/kernel
+      - uses: actions/checkout@v7
+        with:
+          repository: SisyphusAeolides/Push
+          ref: 5bd361b86c048b60b6a8422a8e173ea0ec867bff
+          path: target/live-sources/push
+      - uses: actions/checkout@v7
+        with:
+          repository: SisyphusAeolides/Granite
+          ref: c4c36daa40ed79a81751b00dcc4cb6eb4f4d9ac5
+          path: target/live-sources/granite
+      - name: Verify measured component revisions
+        run: |
+          test "$(git -C target/live-sources/kernel rev-parse HEAD)" = 1b60dace685c058ab5dbf10f582b897203c17cc2
+          test "$(git -C target/live-sources/push rev-parse HEAD)" = 5bd361b86c048b60b6a8422a8e173ea0ec867bff
+          test "$(git -C target/live-sources/granite rev-parse HEAD)" = c4c36daa40ed79a81751b00dcc4cb6eb4f4d9ac5
+      - name: Install native image execution tools
+        run: >-
+          sudo apt-get update && sudo apt-get install -y
+          build-essential chezscheme dosfstools gfortran libgmp-dev mtools
+          ovmf qemu-system-x86 squashfs-tools xorriso xz-utils curl
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: nightly-2026-07-20
+          components: rust-src
+          targets: x86_64-unknown-uefi
+      - uses: actions/cache@v6
+        with:
+          path: target/live-sources/kernel/target/formal/toolchains
+          key: arach-live-formal-idris2-0.8.0-agda-2.8.0-v1
+      - name: Build the measured native bundle
+        working-directory: target/live-sources/kernel
+        env:
+          ARACH_PUSH_ROOT: ${{ github.workspace }}/target/live-sources/push
+          ARACH_GRANITE_ROOT: ${{ github.workspace }}/target/live-sources/granite
+        run: scripts/build-c0-bundle.sh
+      - name: Assemble the measured live ISO
+        run: |
+          mkdir -p target/live-boot-input
+          install -m 0644 target/live-sources/kernel/target/c0/granite/x86_64-unknown-uefi/release/granite.efi target/live-boot-input/granite.efi
+          install -m 0644 target/live-sources/kernel/target/c0/kernel/x86_64-arach/release/arach target/live-boot-input/arach
+          install -m 0644 target/live-sources/kernel/target/c0/push/x86_64-arach/release/push target/live-boot-input/push
+          install -m 0644 target/live-sources/kernel/target/c0/probe/x86_64-arach/release/arach-c0-probe target/live-boot-input/crest
+          ARACH_TEST_BOOT_ARTIFACT_ROOT="$PWD/target/live-boot-input" \
+          ARACH_TEST_ISO_OUTPUT="$PWD/target/arach-os-c0.iso" \
+            scripts/test-live-root.sh
+      - name: Execute the measured live ISO under QEMU/OVMF
+        run: |
+          scripts/run-live-iso-qemu.sh \
+            "$PWD/target/arach-os-c0.iso" \
+            "$PWD/target/arach-os-c0.serial.log"
+      - name: Upload measured live-boot evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arach-live-boot-${{ github.sha }}
+          path: |
+            target/arach-os-c0.iso.json
+            target/arach-os-c0.serial.log
+          if-no-files-found: warn

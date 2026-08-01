@@ -147,6 +147,21 @@ scripts/check-formal-models.sh
 scripts/test-live-root.sh
 ```
 
+Execute an ISO assembled with measured Arach boot artifacts under OVMF and
+require the ring-3 native and Linux-personality evidence with:
+
+```sh
+scripts/run-live-iso-qemu.sh /absolute/path/to/arach-os.iso
+```
+
+The image-construction test accepts `ARACH_TEST_BOOT_ARTIFACT_ROOT` to replace
+its four header fixtures with a directory containing `granite.efi`, `arach`,
+`push`, and `crest`. `ARACH_TEST_ISO_OUTPUT` preserves that assembled test ISO
+for the execution gate. The foundation workflow builds those four artifacts
+from the exact locked revisions, boots the resulting ISO, and retains its
+serial transcript and image sidecar as qualification evidence. Neither option
+weakens the default structural tests.
+
 Build the installer input bundle with:
 
 ```sh

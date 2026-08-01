@@ -6,6 +6,25 @@ tmp=$(mktemp -d "${TMPDIR:-/tmp}/arach-live-test.XXXXXX")
 cleanup() { rm -rf -- "$tmp"; }
 trap cleanup EXIT
 
+boot_artifact_root=${ARACH_TEST_BOOT_ARTIFACT_ROOT:-}
+preserved_iso=${ARACH_TEST_ISO_OUTPUT:-}
+if [[ -n "$boot_artifact_root" ]]; then
+    [[ "$boot_artifact_root" = /* && -d "$boot_artifact_root" && ! -L "$boot_artifact_root" ]] || {
+        echo 'ARACH_TEST_BOOT_ARTIFACT_ROOT must be an absolute, real directory' >&2
+        exit 64
+    }
+fi
+if [[ -n "$preserved_iso" ]]; then
+    [[ "$preserved_iso" = /* ]] || {
+        echo 'ARACH_TEST_ISO_OUTPUT must be absolute' >&2
+        exit 64
+    }
+    [[ ! -e "$preserved_iso" && ! -e "$preserved_iso.json" ]] || {
+        echo 'ARACH_TEST_ISO_OUTPUT or its sidecar already exists' >&2
+        exit 1
+    }
+fi
+
 artifacts="$tmp/artifacts"
 source="$tmp/source"
 bundle_inputs="$tmp/bundle-inputs"
@@ -79,10 +98,21 @@ printf 'PNG test branding\n' > "$installer_artifact/branding/arach-logo.png"
 cp -a -- "$root/installer" "$installer_artifact/"
 
 "$root/scripts/materialize-live-system.sh" "$artifacts" "$source"
-printf 'MZ test Granite\n' > "$bundle_inputs/granite.efi"
-printf '\177ELF test Arach\n' > "$bundle_inputs/arach"
-printf '\177ELF test Push\n' > "$bundle_inputs/push"
-printf '\177ELF test Crest\n' > "$bundle_inputs/crest"
+if [[ -n "$boot_artifact_root" ]]; then
+    for artifact in granite.efi arach push crest; do
+        source_artifact="$boot_artifact_root/$artifact"
+        [[ -f "$source_artifact" && ! -L "$source_artifact" ]] || {
+            echo "measured boot test artifact is missing or symlinked: $source_artifact" >&2
+            exit 1
+        }
+        cp -- "$source_artifact" "$bundle_inputs/$artifact"
+    done
+else
+    printf 'MZ test Granite\n' > "$bundle_inputs/granite.efi"
+    printf '\177ELF test Arach\n' > "$bundle_inputs/arach"
+    printf '\177ELF test Push\n' > "$bundle_inputs/push"
+    printf '\177ELF test Crest\n' > "$bundle_inputs/crest"
+fi
 for artifact in seatd dbus-broker pipewire wireplumber cosmic-comp cosmic-greeter cosmic-session xdg-desktop-portal-cosmic; do
     printf '\177ELF test %s\n' "$artifact" > "$bundle_inputs/$artifact"
 done
@@ -177,6 +207,12 @@ if "$have_image_tools"; then
     "$root/scripts/build-live-iso.sh" "$output" "$tmp/arach-os.iso"
     test -s "$tmp/arach-os.iso"
     test -s "$tmp/arach-os.iso.json"
+    if [[ -n "$preserved_iso" ]]; then
+        mkdir -p -- "$(dirname -- "$preserved_iso")"
+        cp -- "$tmp/arach-os.iso" "$preserved_iso"
+        cp -- "$tmp/arach-os.iso.json" "$preserved_iso.json"
+        sync -f "$(dirname -- "$preserved_iso")"
+    fi
     set +e
     "$root/scripts/build-live-iso.sh" >/dev/null 2>&1
     missing_args_status=$?
