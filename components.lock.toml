@@ -4,7 +4,7 @@ distribution = "Arach OS"
 [[component]]
 name = "arach-kernel"
 repository = "https://github.com/SisyphusAeolides/Arach-Kernel.git"
-revision = "1b60dace685c058ab5dbf10f582b897203c17cc2"
+revision = "8f4ea4fa8d558b1e5f0016f57d0be1ec6dd04002"
 role = "kernel"
 
 [[component]]
@@ -34,7 +34,7 @@ role = "package-manager"
 [[component]]
 name = "arach-packages"
 repository = "https://github.com/SisyphusAeolides/Arach-Packages.git"
-revision = "cfe4c219fd3d0529addcc696f6386661fe94123d"
+revision = "17b98c5da4056793e25d488da2137059f6ee7414"
 role = "package-recipes"
 
 [[component]]
@@ -52,7 +52,7 @@ role = "input-stack"
 [[component]]
 name = "elan-guardian"
 repository = "https://github.com/SisyphusAeolides/elan-guardian.git"
-revision = "1b3403da938ebd8be9b81de4df00680e0c3fc7ed"
+revision = "13552f392ec404c831899989cf0d29450e400469"
 role = "input-recovery"
 
 [[component]]

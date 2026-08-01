@@ -29,17 +29,18 @@ Arach OS image.
 
 The current closed component graph pins:
 
-- Arach Kernel `1b60dace685c058ab5dbf10f582b897203c17cc2`;
+- Arach Kernel `8f4ea4fa8d558b1e5f0016f57d0be1ec6dd04002`;
 - Corinth `c2a5bc758c1e26be39e67af1b410eca2d1e8d338`;
-- Arach-Packages `cfe4c219fd3d0529addcc696f6386661fe94123d`;
+- Arach-Packages `17b98c5da4056793e25d488da2137059f6ee7414`;
 - Arach-HWD `569c40a530fb8e5fe9fc618b97c7ae4a5795f634`;
 - exact Granite, Push, Slope, libinput-rs, elan-guardian, tuned-rs, and ccze-rs
   revisions recorded beside them in the lock.
 
-The pinned kernel contains the measured Akashic VFS-backed Linux file bridge
-and generation-bound `set_tid_address` exit clearing. The pinned package
-repository contains kernel recipe release 20 and installer recipe release 24,
-including the exact Calamares and transaction outputs required by the image.
+The pinned kernel contains the measured Akashic VFS-backed Linux file bridge,
+generation-bound `set_tid_address` exit clearing, and private futex
+compare/block/wake path. The pinned package repository contains kernel recipe
+release 21, Elan Guardian 0.2.6, and installer recipe release 24, including the
+exact Calamares and transaction outputs required by the image.
 The final foundation matrix verifies every remote revision, strict Rust checks,
 Fortran, Idris 2, Agda, live-root composition, SquashFS construction, and UEFI
 ISO layout before publication.
@@ -123,8 +124,8 @@ The remaining qualification boundary is explicit:
 - the UEFI ISO has not yet completed a full boot-to-COSMIC login/session gate;
 - the kernel's current Akashic file storage is bounded and ephemeral rather
   than persistent and block-backed;
-- robust futex recovery, complete signal delivery, FS-base TLS, and Linux thread
-  groups remain incomplete;
+- cross-thread futex wake qualification, robust-list recovery, complete signal
+  delivery, FS-base TLS, and Linux thread groups remain incomplete;
 - native graphics, audio, networking, suspend/resume, and broad physical
   hardware operation still require end-to-end runtime evidence.
 
