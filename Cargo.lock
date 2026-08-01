@@ -58,7 +58,7 @@ checksum = "9330f8b2ff13f34540b44e946ef35111825727b38d33286ef986142615121801"
 [[package]]
 name = "corinth"
 version = "0.1.0"
-source = "git+https://github.com/SisyphusAeolides/Corinth.git?rev=e075d777aed4877b63f52d9b31b021da3d4670ad#e075d777aed4877b63f52d9b31b021da3d4670ad"
+source = "git+https://github.com/SisyphusAeolides/Corinth.git?rev=43334a0db0047ade54305dade218f6f6ceee20f3#43334a0db0047ade54305dade218f6f6ceee20f3"
 dependencies = [
  "arach-hwd",
  "libc",
