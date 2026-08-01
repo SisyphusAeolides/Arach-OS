@@ -29,9 +29,9 @@ Arach OS image.
 
 The current closed component graph pins:
 
-- Arach Kernel `5d58363df323d5550be2d8715887aed523b78017`;
+- Arach Kernel `192294c05b1082a884ac11b0d52d2283d8397620`;
 - Corinth `376716e04c2ad80cb94546209c40ebe50b44cbac`;
-- Arach-Packages `2060b1826bf3cc6c08478423c2f468f9ef2107d6`;
+- Arach-Packages `6b18f19a1f711c072a67c368534a3fded5061c5d`;
 - Arach-HWD `8a02fa4a41d5e21b447a92414db23b4b706f3731`;
 - exact Granite, Push, Slope, libinput-rs, elan-guardian, tuned-rs, and ccze-rs
   revisions recorded beside them in the lock.
@@ -40,9 +40,9 @@ The pinned kernel contains the measured Akashic VFS-backed Linux file bridge,
 generation-bound `set_tid_address` exit clearing, private futex
 compare/block/wake, generation-safe x86-64 FS-base TLS, and independently
 measured shared-address-space clone, robust owner-death wake, descriptor
-sharing, clear-child-tid wake, and bounded x86-64 self-signal delivery and
-exact-frame return. The pinned package repository contains kernel recipe
-release 25, Elan Guardian 0.2.6, and
+sharing, clear-child-tid wake, bounded x86-64 self-signal delivery and
+exact-frame return, and measured multi-member `exit_group`. The pinned package
+repository contains kernel recipe release 26, Elan Guardian 0.2.6, and
 installer recipe release 24, including the exact Calamares and transaction
 outputs required by the image.
 The final foundation matrix verifies every remote revision, strict Rust checks,
