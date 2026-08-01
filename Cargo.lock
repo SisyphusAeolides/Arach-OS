@@ -58,11 +58,12 @@ checksum = "9330f8b2ff13f34540b44e946ef35111825727b38d33286ef986142615121801"
 [[package]]
 name = "corinth"
 version = "0.1.0"
-source = "git+https://github.com/SisyphusAeolides/Corinth.git?rev=5507dff407742925f6956df638f4b2e04c6f7912#5507dff407742925f6956df638f4b2e04c6f7912"
+source = "git+https://github.com/SisyphusAeolides/Corinth.git?rev=2a72794c8f64ada2d889e12d00d61a905e5d2a8c#2a72794c8f64ada2d889e12d00d61a905e5d2a8c"
 dependencies = [
  "arach-hwd",
  "libc",
  "serde",
+ "serde_json",
  "sha2 0.10.9",
  "slope",
  "toml",
