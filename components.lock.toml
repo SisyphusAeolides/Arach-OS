@@ -28,13 +28,13 @@ role = "bootloader"
 [[component]]
 name = "corinth"
 repository = "https://github.com/SisyphusAeolides/Corinth.git"
-revision = "c2a5bc758c1e26be39e67af1b410eca2d1e8d338"
+revision = "e075d777aed4877b63f52d9b31b021da3d4670ad"
 role = "package-manager"
 
 [[component]]
 name = "arach-packages"
 repository = "https://github.com/SisyphusAeolides/Arach-Packages.git"
-revision = "513866cf68bbec886c4a795d3af589ed22613301"
+revision = "685ee09d63c429387d85fe1c2f797450fcc0b227"
 role = "package-recipes"
 
 [[component]]
