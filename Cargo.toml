@@ -10,7 +10,7 @@ default-run = "arach-compose"
 
 [dependencies]
 arach-hwd = { git = "https://github.com/SisyphusAeolides/Arach-HWD.git", rev = "569c40a530fb8e5fe9fc618b97c7ae4a5795f634" }
-corinth = { git = "https://github.com/SisyphusAeolides/Corinth.git", rev = "2e0a7cffe973b681a9a3e074bbf923dc2dcb21e8", features = ["host-store"] }
+corinth = { git = "https://github.com/SisyphusAeolides/Corinth.git", rev = "c2a5bc758c1e26be39e67af1b410eca2d1e8d338", features = ["host-store"] }
 libc = "=0.2.189"
 serde = { version = "=1.0.229", features = ["derive"] }
 serde_json = "=1.0.151"
