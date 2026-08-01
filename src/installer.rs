@@ -506,7 +506,7 @@ fn provision_hardware(
     let (binary_plans, source_plans) = partition_hardware_plans(&binary_index, &verified);
     let expected_packages = verified
         .iter()
-        .flat_map(|plan| plan.plan.package.iter().map(|intent| intent.name.clone()))
+        .flat_map(|plan| plan.plan().package.iter().map(|intent| intent.name.clone()))
         .collect::<BTreeSet<_>>();
     if !expected_packages.is_empty() {
         journal.hardware_packages = expected_packages.into_iter().collect();
@@ -542,7 +542,7 @@ fn provision_hardware(
             .acquire_recipe_repository(&catalog.recipe_repository, &catalog.recipe_revision, false)
             .map_err(|error| InstallerError::invalid(format!("hardware recipes: {error}")))?;
         let receipts = provisioner
-            .build_verified_set(&verified, &recipes)
+            .build_verified_set(&source_plans, &recipes)
             .map_err(|error| InstallerError::invalid(format!("hardware build: {error}")))?;
         provisioner
             .install_plan_set_to_root(
@@ -607,22 +607,13 @@ fn partition_hardware_plans(
     let mut binary = Vec::new();
     let mut source = Vec::new();
     for verified in plans {
-        let mut binary_plan = verified.plan.clone();
-        binary_plan.package.clear();
-        let mut source_plan = verified.plan.clone();
-        source_plan.package.clear();
-        for intent in &verified.plan.package {
-            if binary_intent_covers(index, intent) {
-                binary_plan.package.push(intent.clone());
-            } else {
-                source_plan.package.push(intent.clone());
-            }
+        let (binary_plan, source_plan) =
+            verified.partition_packages(|intent| binary_intent_covers(index, intent));
+        if let Some(plan) = binary_plan {
+            binary.push(plan);
         }
-        if !binary_plan.package.is_empty() {
-            binary.push(corinth::hardware::VerifiedHardwarePlan { plan: binary_plan });
-        }
-        if !source_plan.package.is_empty() {
-            source.push(corinth::hardware::VerifiedHardwarePlan { plan: source_plan });
+        if let Some(plan) = source_plan {
+            source.push(plan);
         }
     }
     (binary, source)
@@ -633,7 +624,7 @@ fn validate_hardware_package_set(
 ) -> Result<(), InstallerError> {
     let mut packages = BTreeMap::<String, arach_hwd::plan::CorinthIntent>::new();
     for plan in plans {
-        for intent in &plan.plan.package {
+        for intent in &plan.plan().package {
             if let Some(previous) = packages.insert(intent.name.clone(), intent.clone()) {
                 if previous.version != intent.version
                     || previous.scope != intent.scope
@@ -1749,17 +1740,13 @@ fn operations_for(has_hardware_plan: bool) -> Vec<InstallOperation> {
 
 fn read_hardware_plan(path: &Path) -> Result<Vec<u8>, InstallerError> {
     let bytes = read_regular(path, DOCUMENT_LIMIT, false)?;
-    let value: toml::Value = toml::from_slice(&bytes)
+    let plan: PlanSet = toml::from_slice(&bytes)
         .map_err(|error| InstallerError::invalid(format!("invalid hardware plan: {error}")))?;
-    let schema = value
-        .get("schema")
-        .and_then(toml::Value::as_integer)
-        .and_then(|value| u32::try_from(value).ok());
-    let plan = value.get("plan").and_then(toml::Value::as_array);
-    if schema != Some(1) || plan.is_none() {
-        return Err(InstallerError::invalid(
-            "hardware plan does not satisfy schema 1",
-        ));
+    if plan.schema != arach_hwd::plan::PLAN_SCHEMA {
+        return Err(InstallerError::invalid(format!(
+            "hardware plan does not satisfy schema {}",
+            arach_hwd::plan::PLAN_SCHEMA
+        )));
     }
     Ok(bytes)
 }
@@ -2246,7 +2233,11 @@ mod tests {
 
     fn write_hardware_plan(root: &Path) -> PathBuf {
         let path = root.join("hardware.plan.toml");
-        fs::write(&path, "schema = 1\n\nplan = []\n").unwrap();
+        fs::write(
+            &path,
+            format!("schema = {}\n\nplan = []\n", arach_hwd::plan::PLAN_SCHEMA),
+        )
+        .unwrap();
         path
     }
 

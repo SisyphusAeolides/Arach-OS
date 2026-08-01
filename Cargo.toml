@@ -9,8 +9,8 @@ description = "Strict Arach OS image composition contract validator"
 default-run = "arach-compose"
 
 [dependencies]
-arach-hwd = { git = "https://github.com/SisyphusAeolides/Arach-HWD.git", rev = "569c40a530fb8e5fe9fc618b97c7ae4a5795f634" }
-corinth = { git = "https://github.com/SisyphusAeolides/Corinth.git", rev = "e5b16f6340ac4221dd0e397f430b18b811fac3b1", features = ["host-store"] }
+arach-hwd = { git = "https://github.com/SisyphusAeolides/Arach-HWD.git", rev = "c4f02c6d5ad06624b43058d3adbafadd69072fc8" }
+corinth = { git = "https://github.com/SisyphusAeolides/Corinth.git", rev = "f7923f290a0040bebc550d6fa9c7765a257dd69e", features = ["host-store"] }
 libc = "=0.2.189"
 serde = { version = "=1.0.229", features = ["derive"] }
 serde_json = "=1.0.151"

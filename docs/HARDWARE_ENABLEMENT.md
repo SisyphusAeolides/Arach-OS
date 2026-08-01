@@ -3,8 +3,9 @@
 Arach-HWD follows a scan, resolve, plan, apply, verify, and rollback pipeline.
 It runs in the live image, during installation, at first boot, and for hotplug.
 
-The scanner records PCI, USB, I2C, ACPI, DMI, Linux class devices, firmware,
-and native capability facts. Inventory schema 5 groups network, wireless,
+The scanner records CPU architecture/vendor/family/model/stepping, a closed
+CPU feature vocabulary, PCI, USB, I2C, ACPI, DMI, Linux class devices,
+firmware, and native capability facts. Inventory schema 6 groups network, wireless,
 audio, graphics, storage, input, Bluetooth, and firmware while preserving
 stable modalias queries. A profile is eligible only when every required match
 clause passes. The resolver selects the highest-priority non-conflicting
@@ -37,6 +38,14 @@ incompatible Driver ABI stops the installation before partitioning. A driver
 bound by the temporary live Linux kernel is not treated as proof that the
 target Arach kernel has that driver. Virtual network interfaces and child
 ALSA/DRM/block/input class nodes are not mistaken for missing drivers.
+
+Provision plan schema 2 carries the exact CPU identity and only the
+intersection of observed CPU features with the signed profile's allowed set.
+Corinth re-observes the CPU before use and converts the closed feature enum to
+deterministic C, C++, Fortran, and Rust flags inside its build sandbox. Raw
+flags, vendor strings, and model names are never executable input. A missing
+required feature, changed CPU identity, altered health/rollback/recovery
+policy, or compiler target mismatch is a hard failure.
 
 Every inventory and preflight report also carries a `driver_sources` manifest.
 It records SHA-256 digests for the exact kernel metadata tables consulted,
@@ -83,6 +92,6 @@ Arach drivers. Linux C source can be adapted, rebuilt, measured, and packaged
 when its hardware semantics can be expressed through the Arach ABI.
 
 Every profile records supported device IDs, ABI range, package identity,
-firmware requirements, conflicts, initramfs requirements, health checks, and
-rollback instructions. Unknown required fields or an unverified post-activate
-device state abort the transaction.
+firmware requirements, conflicts, health checks, rollback instructions, and
+an optional bounded compiler policy. Unknown required fields or an unverified
+post-activate device state abort the transaction.

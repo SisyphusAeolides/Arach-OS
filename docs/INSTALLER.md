@@ -23,7 +23,9 @@ the signed `/etc/arach/hwd` catalog. It writes the discovery report to
 `/run/arach-installer/hardware.plan.toml`. Every present physical capability
 must resolve to a compatible signed profile; unresolved modaliases, missing
 signatures, or an incompatible Driver ABI are hard stops rather than guessed
-package choices. The reviewed
+package choices. Plan schema 2 also binds the local CPU identity and the exact
+signed-policy feature intersection used by Corinth's sandboxed native builds.
+The reviewed
 installer baseline is Calamares 3.4.2 from
 `https://codeberg.org/Calamares/calamares.git`, peeled to Git object
 `36d30c492e5c7b5d6d32fed5c5d9790522e1eea3`. The engine produces a complete
@@ -64,9 +66,8 @@ probe is not a desktop image.
 `/boot/EFI/BOOT/BOOTX64.EFI` and the three measured payloads under `/boot/BOOT`,
 and retains backups in the target recovery checkpoint. `verify` re-hashes the
 installed files; rollback restores the previous boot files, including after a
-process or machine interruption. Artifact deployment is implemented, while the
-complete live ISO and bounded QEMU/C0 session qualification remain release
-gates.
+process or machine interruption. The release workflow assembles the complete
+live ISO and executes its measured QEMU/OVMF C0 session as a required gate.
 
 Image assembly should use `scripts/assemble-boot-bundle.sh`; it rejects
 symlinks, oversized or incorrectly typed artifacts, writes the canonical JSON
