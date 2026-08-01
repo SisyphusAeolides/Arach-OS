@@ -28,7 +28,7 @@ role = "bootloader"
 [[component]]
 name = "corinth"
 repository = "https://github.com/SisyphusAeolides/Corinth.git"
-revision = "376716e04c2ad80cb94546209c40ebe50b44cbac"
+revision = "f19a418a8c4bf1acae6c48942e366c99c71188c4"
 role = "package-manager"
 
 [[component]]
