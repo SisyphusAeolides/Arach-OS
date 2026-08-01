@@ -95,7 +95,66 @@ def validate_rust_pins(
             )
 
 
-def verify_remote(component: dict[str, str]) -> str:
+def show_remote_file(directory: str, path: str) -> str:
+    result = subprocess.run(
+        ["git", "-C", directory, "show", f"FETCH_HEAD:{path}"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        raise ValueError(f"locked component is missing {path}: {result.stderr.strip()}")
+    return result.stdout
+
+
+def validate_nested_authority(
+    component: dict[str, str], directory: str, locked: dict[str, str]
+) -> None:
+    if component["name"] == "corinth":
+        manifest = tomllib.loads(show_remote_file(directory, "Cargo.toml"))
+        dependencies = manifest.get("dependencies")
+        dependency = (
+            dependencies.get("arach-hwd")
+            if isinstance(dependencies, dict)
+            else None
+        )
+        if (
+            not isinstance(dependency, dict)
+            or dependency.get("git")
+            != "https://github.com/SisyphusAeolides/Arach-HWD.git"
+            or dependency.get("rev") != locked["arach-hwd"]
+        ):
+            raise ValueError("locked Corinth imports a different Arach-HWD revision")
+    if component["name"] != "arach-packages":
+        return
+    for recipe_path, repository, component_name in (
+        (
+            "recipes/base/corinth/package.toml",
+            "https://github.com/SisyphusAeolides/Corinth.git",
+            "corinth",
+        ),
+        (
+            "recipes/base/arach-hwd/package.toml",
+            "https://github.com/SisyphusAeolides/Arach-HWD.git",
+            "arach-hwd",
+        ),
+    ):
+        recipe = tomllib.loads(show_remote_file(directory, recipe_path))
+        sources = recipe.get("source")
+        if (
+            not isinstance(sources, list)
+            or len(sources) != 1
+            or not isinstance(sources[0], dict)
+            or sources[0].get("kind") != "git"
+            or sources[0].get("url") != repository
+            or sources[0].get("revision") != locked[component_name]
+        ):
+            raise ValueError(
+                f"locked Arach-Packages {component_name} recipe differs from the component graph"
+            )
+
+
+def verify_remote(component: dict[str, str], locked: dict[str, str]) -> str:
     with tempfile.TemporaryDirectory(prefix="arach-component-") as directory:
         subprocess.run(
             ["git", "init", "--bare", "--quiet", directory],
@@ -132,6 +191,7 @@ def verify_remote(component: dict[str, str]) -> str:
         ).stdout.strip()
         if fetched != component["revision"]:
             raise ValueError(f"{component['name']} fetched object differs from its pin")
+        validate_nested_authority(component, directory, locked)
     return component["name"]
 
 
@@ -145,8 +205,16 @@ def main() -> None:
     validate(components)
     validate_rust_pins(components, arguments.manifest)
     if arguments.remote:
+        locked = {
+            component["name"]: component["revision"] for component in components
+        }
         with concurrent.futures.ThreadPoolExecutor(max_workers=4) as workers:
-            list(workers.map(verify_remote, components))
+            futures = [
+                workers.submit(verify_remote, component, locked)
+                for component in components
+            ]
+            for future in futures:
+                future.result()
     print(f"verified {len(components)} exact Arach OS component pins")
 
 

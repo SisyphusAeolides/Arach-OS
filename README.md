@@ -30,8 +30,8 @@ Arach OS image.
 The current closed component graph pins:
 
 - Arach Kernel `b2084d47237e64f425bb4834341766c224c202ea`;
-- Corinth `2a72794c8f64ada2d889e12d00d61a905e5d2a8c`;
-- Arach-Packages `6b18f19a1f711c072a67c368534a3fded5061c5d`;
+- Corinth `7b2fa540fbdbc959920ce30367dd8dd0db73cd7c`;
+- Arach-Packages `884c2d763886b0acbd24540ddb306cabe3c94a9a`;
 - Arach-HWD `8a02fa4a41d5e21b447a92414db23b4b706f3731`;
 - exact Granite, Push, Slope, libinput-rs, elan-guardian, tuned-rs, and ccze-rs
   revisions recorded beside them in the lock.

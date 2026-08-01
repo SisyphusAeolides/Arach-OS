@@ -3,6 +3,7 @@ import copy
 import importlib.util
 import pathlib
 import unittest
+from unittest import mock
 
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
@@ -47,6 +48,49 @@ class ComponentLockTests(unittest.TestCase):
         ] = "0" * 40
         with self.assertRaisesRegex(ValueError, "arach-hwd revision differs"):
             VERIFY.validate_rust_pins(components, ROOT / "Cargo.toml")
+
+    def test_corinth_nested_hwd_drift_is_rejected(self) -> None:
+        locked = {
+            component["name"]: component["revision"] for component in self.components
+        }
+        manifest = """
+[dependencies.arach-hwd]
+git = "https://github.com/SisyphusAeolides/Arach-HWD.git"
+rev = "0000000000000000000000000000000000000000"
+"""
+        with mock.patch.object(VERIFY, "show_remote_file", return_value=manifest):
+            with self.assertRaisesRegex(ValueError, "different Arach-HWD"):
+                VERIFY.validate_nested_authority(
+                    {"name": "corinth"}, "/unused", locked
+                )
+
+    def test_package_recipe_nested_drift_is_rejected(self) -> None:
+        locked = {
+            component["name"]: component["revision"] for component in self.components
+        }
+        documents = {
+            "recipes/base/corinth/package.toml": f"""
+[[source]]
+kind = "git"
+url = "https://github.com/SisyphusAeolides/Corinth.git"
+revision = "{locked['corinth']}"
+""",
+            "recipes/base/arach-hwd/package.toml": """
+[[source]]
+kind = "git"
+url = "https://github.com/SisyphusAeolides/Arach-HWD.git"
+revision = "0000000000000000000000000000000000000000"
+""",
+        }
+
+        def document(_directory: str, path: str) -> str:
+            return documents[path]
+
+        with mock.patch.object(VERIFY, "show_remote_file", side_effect=document):
+            with self.assertRaisesRegex(ValueError, "arach-hwd recipe differs"):
+                VERIFY.validate_nested_authority(
+                    {"name": "arach-packages"}, "/unused", locked
+                )
 
 
 if __name__ == "__main__":
