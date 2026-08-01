@@ -6,9 +6,9 @@
 
 Arach OS is an experimental operating-system distribution built around Arach
 Kernel and the COSMIC Epoch desktop. This repository is the composition and
-release authority: it pins independently versioned system components, defines
-the live image and installer, selects signed package snapshots, and runs the
-cross-component boot and desktop gates.
+release authority: it pins independently versioned components, defines the
+live image and installer, selects signed package snapshots, and runs the
+cross-component foundation, image, and desktop gates.
 
 ## Component repositories
 
@@ -22,110 +22,157 @@ cross-component boot and desktop gates.
 
 The exact revisions used by an image are recorded in
 [`components.lock.toml`](components.lock.toml). Independent repositories remain
-the development authorities until their histories are deliberately consolidated
-into this monorepo.
+the development authorities; this lock is the release authority for a composed
+Arach OS image.
+
+## Current release authority
+
+The current closed component graph pins:
+
+- Arach Kernel `1b60dace685c058ab5dbf10f582b897203c17cc2`;
+- Corinth `017a20599e68c5d374890de33ea611c491e07ec6`;
+- Arach-Packages `ed0873356178e383b0d12a5298ccf0e57b2eb8d9`;
+- Arach-HWD `569c40a530fb8e5fe9fc618b97c7ae4a5795f634`;
+- exact Granite, Push, Slope, libinput-rs, elan-guardian, tuned-rs, and ccze-rs
+  revisions recorded beside them in the lock.
+
+The pinned kernel contains the measured Akashic VFS-backed Linux file bridge
+and generation-bound `set_tid_address` exit clearing. The pinned package
+repository contains kernel recipe release 20 and installer recipe release 24,
+including the exact Calamares and transaction outputs required by the image.
+The final foundation matrix verifies every remote revision, strict Rust checks,
+Fortran, Idris 2, Agda, live-root composition, SquashFS construction, and UEFI
+ISO layout before publication.
+
+This is a release-graph and image-construction qualification. It is not yet a
+claim that the image reaches a complete COSMIC session under QEMU or on
+physical hardware.
 
 ## Desktop and installer
 
 The live-image contract installs the locked `cosmic-desktop` bundle, including
-the complete pinned COSMIC Epoch component tree, plus the pinned `greetd`
-display manager, its `cosmic-greeter` session configuration, the `cosmic-term`
-terminal, and the signed Firefox runtime artifact. It boots directly into
-COSMIC and launches a branded Calamares installer; SDDM is not part of this
-path. Calamares 3.4.2 is pinned to an exact upstream Codeberg
-object. Its native modules own storage, encryption, users, passwords, locale,
-timezone, and keyboard configuration. The Arach transaction boundary owns the
-immutable Corinth package plan, Granite activation, COSMIC verification, and
-rollback journal. See [`docs/INSTALLER.md`](docs/INSTALLER.md).
+the complete pinned COSMIC Epoch component tree, the pinned `greetd` display
+manager and `cosmic-greeter` session configuration, `cosmic-term`, and the
+signed Firefox runtime artifact. It is designed to boot directly into COSMIC
+and launch a branded Calamares installer; SDDM is not part of this path.
 
-The medium also ships `/system/arach-hwd` and the signed
-`arach-hardware-catalog` at `/etc/arach/hwd`. Its Calamares preflight
-enumerates network/Wi-Fi, audio, graphics, storage, input, Bluetooth, and
-firmware capability evidence, resolves the detached-signature profile set, and
-writes the exact Corinth plan before partitioning. The catalog lock also
-carries hashed `modules.alias`, `modules.dep`, `modules.builtin`,
-`modules.firmware`, and `modules.builtin.modinfo` target metadata under
-`/etc/arach/hwd/driver-sources`; HWD
-uses those files first, then compares any live/target/offline module and
-firmware trees it can see. Built-in modinfo contributes both firmware
-requirements and `module.alias=` matches when a target kernel omits a
-generated `modules.alias`. A physical device with no
-bound driver or compatible signed profile stops the install; no package is
-guessed from an interface name. The catalog is therefore a required release
-artifact, not an optional fallback.
+Calamares 3.4.2 is pinned to an exact upstream Codeberg object. Its native
+modules own storage, encryption, users, passwords, locale, timezone, and
+keyboard configuration. The Arach transaction boundary owns the immutable
+Corinth package plan, Granite activation, COSMIC verification, and rollback
+journal. See [`docs/INSTALLER.md`](docs/INSTALLER.md).
+
+The installer recipe publishes the journaled `arach-install` binary, canonical
+branding, Calamares settings, hardware-preflight modules, transaction modules,
+and the native partition, user, and unpack configuration consumed by the live
+image. Package and OS validation both check those declared outputs exactly.
 
 The canonical logo is [`branding/arach-logo.png`](branding/arach-logo.png).
-Despite the extension of the originally supplied file, its actual format is a
-706×706 RGBA PNG; the original bytes are retained under `branding/source/`.
+The retained source bytes are stored under `branding/source/`.
 
 ### Desktop boundary
 
 COSMIC is the only desktop shipped by Arach OS: `seatd` owns the login seat,
 `greetd` launches `cosmic-greeter`, `pipewire` and `wireplumber` provide the
-audio session, and the greeter starts `cosmic-comp`; the session, portal,
-terminal, and all other pinned COSMIC component outputs are copied from the
-complete `cosmic-desktop` tree. Crest is **not** a desktop environment,
-desktop package, compositor, session, or greeter in this distribution. The
-lowercase `crest` file retained inside the measured Granite boot bundle is a
-compatibility-named C0 bootstrap/probe payload required by the current Granite
-handoff; it never enters the live system provider set. The composition validator
-and materializer reject any Crest-named desktop provider.
+audio session, and the greeter starts `cosmic-comp`. The session, portal,
+terminal, and all other pinned COSMIC outputs are copied from the complete
+`cosmic-desktop` tree.
+
+Crest is **not** a desktop environment, desktop package, compositor, session,
+or greeter. The lowercase `crest` file retained inside the measured Granite
+boot bundle is a compatibility-named C0 bootstrap/probe payload required by the
+current handoff. It never enters the live provider set, and the composition
+validator rejects any Crest-named desktop provider.
+
+## Hardware boundary
+
+The medium ships `/system/arach-hwd` and the signed
+`arach-hardware-catalog` at `/etc/arach/hwd`. Calamares preflight enumerates
+network/Wi-Fi, audio, graphics, storage, input, Bluetooth, firmware, and other
+hardware evidence, resolves detached-signature profiles, and writes the exact
+Corinth plan before partitioning.
+
+The catalog lock carries hashed `modules.alias`, `modules.dep`,
+`modules.builtin`, `modules.firmware`, and `modules.builtin.modinfo` target
+metadata under `/etc/arach/hwd/driver-sources`. HWD uses those files before
+comparing live, staged-target, or offline module and firmware trees. A physical
+device with no bound driver or compatible signed target profile stops the
+install; no package is guessed from an interface or class name.
+
+The signed catalog is therefore a required release artifact, not an optional
+fallback. Passing the catalog and image gates does not claim universal hardware
+coverage: installability still depends on an exact signed profile, package
+intent, payload, and compatible Driver ABI.
 
 ## Current status
 
-The composition contract, component pins, Calamares configuration, private
-state handoff, journal-bound transaction state machine, and signed
-Corinth-artifact-to-live-root materializer are established.
-The production transaction can now validate and publish a canonical Corinth
+The composition contract, exact component pins, Calamares configuration,
+private state handoff, journal-bound transaction state machine, signed Corinth
+artifact materializer, live-root assembler, SquashFS image, and UEFI ISO builder
+are established and exercised in CI.
+
+The production transaction can validate and publish a canonical Corinth
 generation with a target-persistent recovery checkpoint, atomically activate a
-manifest-bound Granite/Arach/Push/C0 boot bundle, verify the installed
-artifacts, and restore both boot files and package authority after process or
-machine interruption. A bootable live ISO, complete package repository,
-hardware-profile database, and full COSMIC behavior gate remain active work;
-the installer still fails closed when the live boot bundle is absent or does
-not match its plan.
+manifest-bound Granite/Arach/Push/C0 boot bundle, verify installed artifacts,
+and restore both boot files and package authority after process or machine
+interruption. The image gate now constructs the required live root and UEFI ISO
+instead of treating those artifacts as future work.
+
+The remaining qualification boundary is explicit:
+
+- the UEFI ISO has not yet completed a full boot-to-COSMIC login/session gate;
+- the kernel's current Akashic file storage is bounded and ephemeral rather
+  than persistent and block-backed;
+- robust futex recovery, complete signal delivery, FS-base TLS, and Linux thread
+  groups remain incomplete;
+- native graphics, audio, networking, suspend/resume, and broad physical
+  hardware operation still require end-to-end runtime evidence.
 
 Rust validates the executable image and installer contracts. Fortran schedules
-only trust-admitted build stages and rejects an installer missing any transaction
+only trust-admitted build stages and rejects an installer missing a transaction
 guard. The total Idris model and safe Agda model require exact component pins,
 encode the readiness chain, and make mutation without a durable journal and
 secret-bearing handoff values unconstructable.
 
 ## Validation
 
-    cargo fmt --all -- --check
-    cargo clippy --locked --all-targets -- -D warnings
-    cargo test --locked
-    cargo run --locked --bin arach-compose -- verify --root .
-    scripts/verify-foundation.sh
-    scripts/check-fortran.sh
-    scripts/check-formal-models.sh
+```sh
+cargo fmt --all -- --check
+cargo clippy --locked --all-targets -- -D warnings
+cargo test --locked
+cargo run --locked --bin arach-compose -- verify --root .
+scripts/verify-foundation.sh
+scripts/check-fortran.sh
+scripts/check-formal-models.sh
+scripts/test-live-root.sh
+```
 
 Build the installer input bundle with:
 
-    scripts/assemble-boot-bundle.sh ARTIFACT_DIR /run/arach-live/boot-bundle
+```sh
+scripts/assemble-boot-bundle.sh ARTIFACT_DIR /run/arach-live/boot-bundle
+```
 
 `ARTIFACT_DIR` must contain the measured Granite PE/COFF image, ELF `arach` and
-`push` images, and the measured C0 probe artifact supplied in the compatibility
-slot named `crest`. The latter is a boot probe, not a desktop image. The
-assembler writes the bounded, digest-bound manifest consumed by
-`arach-install`.
+`push` images, and the measured C0 probe supplied in the compatibility slot
+named `crest`. The latter is a boot probe, not a desktop image. The assembler
+writes the bounded, digest-bound manifest consumed by `arach-install`.
 
 The live-root boundary is explicit in [`live/image.toml`](live/image.toml), and
-the package-to-runtime mapping is locked in [`live/system.toml`](live/system.toml).
-`scripts/materialize-live-system.sh` consumes the versioned Corinth artifact
-directories, rejects symlinks and path escapes, installs the measured Push,
-Corinth, D-Bus, greetd, the complete COSMIC tree (including its greetd config
-and `cosmic-term`), Firefox, Calamares, and installer paths, and writes
-`/run/arach-live/system.json`. The materializer requires the display manager,
-greeter configuration, terminal, and browser before it publishes the live
-root, so the Calamares session never starts without them.
-`scripts/assemble-live-root.sh`
-then consumes
-that POSIX root, the manifest-bound Granite/Arach/Push/C0 bundle, and a
-signed Corinth generation. It refuses to publish a root unless both system and
-image manifests are present and the complete runtime path set is present.
-Finally, `scripts/build-live-iso.sh` creates the UEFI-bootable ISO with
-xorriso, placing Granite at `/EFI/BOOT/BOOTX64.EFI` and preserving its
-measured `/BOOT` inputs; the command exits with status 69 when xorriso is not
-installed rather than publishing an unqualified image.
+the package-to-runtime mapping is locked in
+[`live/system.toml`](live/system.toml).
+
+`scripts/materialize-live-system.sh` consumes versioned Corinth artifact
+directories, rejects symlinks and path escapes, installs measured Push,
+Corinth, D-Bus, greetd, the complete COSMIC tree, Firefox, Calamares, and the
+installer, then writes `/run/arach-live/system.json`. It requires the display
+manager, greeter configuration, terminal, and browser before publishing the
+root.
+
+`scripts/assemble-live-root.sh` consumes that POSIX root, the manifest-bound
+Granite/Arach/Push/C0 bundle, and a signed Corinth generation. It refuses to
+publish unless both manifests and the complete runtime path set are present.
+Finally, `scripts/build-live-iso.sh` creates the UEFI ISO with xorriso, places
+Granite at `/EFI/BOOT/BOOTX64.EFI`, and preserves its measured `/BOOT` inputs.
+The command exits with status 69 when xorriso is unavailable instead of
+publishing an unqualified image.
