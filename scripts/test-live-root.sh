@@ -70,30 +70,40 @@ printf 'format = 1\nsnapshot = "test"\nkeyring_sha256 = "%s"\nrecipe_repository 
     > "$artifacts/arach-hardware-catalog-2026.1/etc/arach/hwd/catalog.lock"
 printf '%s' "$catalog_driver_source_records" \
     >> "$artifacts/arach-hardware-catalog-2026.1/etc/arach/hwd/catalog.lock"
+make_fake_elf() {
+    local target="$1"
+    local name="$2"
+    if [[ -n "${ARACH_TEST_BOOT_ARTIFACT_ROOT:-}" ]]; then
+        cp "$ARACH_TEST_BOOT_ARTIFACT_ROOT/crest" "$target"
+    else
+        printf '\177ELF test %s\n' "$name" > "$target"
+    fi
+}
+
 mkdir -p "$artifacts/dbus-broker-1/usr/bin"
-cp "$ARACH_TEST_BOOT_ARTIFACT_ROOT/crest" "$artifacts/dbus-broker-1/usr/bin/dbus-broker-launch"
+make_fake_elf "$artifacts/dbus-broker-1/usr/bin/dbus-broker-launch" "D-Bus"
 mkdir -p "$artifacts/seatd-0.9.3-1/usr/bin"
-cp "$ARACH_TEST_BOOT_ARTIFACT_ROOT/crest" "$artifacts/seatd-0.9.3-1/usr/bin/seatd"
+make_fake_elf "$artifacts/seatd-0.9.3-1/usr/bin/seatd" "seatd"
 mkdir -p "$artifacts/pipewire-1.4.9-1/usr/bin"
-cp "$ARACH_TEST_BOOT_ARTIFACT_ROOT/crest" "$artifacts/pipewire-1.4.9-1/usr/bin/pipewire"
-cp "$ARACH_TEST_BOOT_ARTIFACT_ROOT/crest" "$artifacts/pipewire-1.4.9-1/usr/bin/pipewire-pulse"
+make_fake_elf "$artifacts/pipewire-1.4.9-1/usr/bin/pipewire" "PipeWire"
+make_fake_elf "$artifacts/pipewire-1.4.9-1/usr/bin/pipewire-pulse" "PipeWire Pulse"
 mkdir -p "$artifacts/wireplumber-0.5.9-1/usr/bin"
-cp "$ARACH_TEST_BOOT_ARTIFACT_ROOT/crest" "$artifacts/wireplumber-0.5.9-1/usr/bin/wireplumber"
+make_fake_elf "$artifacts/wireplumber-0.5.9-1/usr/bin/wireplumber" "WirePlumber"
 mkdir -p "$artifacts/greetd-0.10.3-1/target/release"
-cp "$ARACH_TEST_BOOT_ARTIFACT_ROOT/crest" "$artifacts/greetd-0.10.3-1/target/release/greetd"
+make_fake_elf "$artifacts/greetd-0.10.3-1/target/release/greetd" "greetd"
 for binary in cosmic-comp cosmic-greeter cosmic-greeter-start cosmic-session cosmic-term xdg-desktop-portal-cosmic; do
     mkdir -p "$artifacts/cosmic-desktop-0.1.0-1/usr/bin"
-    cp "$ARACH_TEST_BOOT_ARTIFACT_ROOT/crest" "$artifacts/cosmic-desktop-0.1.0-1/usr/bin/$binary"
+    make_fake_elf "$artifacts/cosmic-desktop-0.1.0-1/usr/bin/$binary" "$binary"
 done
 mkdir -p "$artifacts/cosmic-desktop-0.1.0-1/etc/greetd"
 printf '[default_session]\ncommand = "cosmic-greeter-start"\n' > "$artifacts/cosmic-desktop-0.1.0-1/etc/greetd/cosmic-greeter.toml"
 mkdir -p "$artifacts/firefox-140.4.0esr-1/usr/bin"
-cp "$ARACH_TEST_BOOT_ARTIFACT_ROOT/crest" "$artifacts/firefox-140.4.0esr-1/usr/bin/firefox"
+make_fake_elf "$artifacts/firefox-140.4.0esr-1/usr/bin/firefox" "Firefox"
 mkdir -p "$artifacts/calamares-3.4.2-1/usr/bin"
-cp "$ARACH_TEST_BOOT_ARTIFACT_ROOT/crest" "$artifacts/calamares-3.4.2-1/usr/bin/calamares"
+make_fake_elf "$artifacts/calamares-3.4.2-1/usr/bin/calamares" "Calamares"
 installer_artifact="$artifacts/arach-os-0.1.0-1"
 mkdir -p "$installer_artifact/target/release" "$installer_artifact/branding"
-cp "$ARACH_TEST_BOOT_ARTIFACT_ROOT/crest" "$installer_artifact/target/release/arach-install"
+make_fake_elf "$installer_artifact/target/release/arach-install" "Installer"
 printf 'PNG test branding\n' > "$installer_artifact/branding/arach-logo.png"
 cp -a -- "$root/installer" "$installer_artifact/"
 
