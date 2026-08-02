@@ -29,10 +29,10 @@ Arach OS image.
 
 The current closed component graph pins:
 
-- Arach Kernel `c619b64b39d758bde934eca2bf332a8542836b34`;
+- Arach Kernel `bb80ee758033ab4aa3e45bb68b88a15289558669`;
 - Granite `1e7110ffee23900cbec480b1cea90abd8c9dc3e8`;
 - Corinth `711be83330ed12291d98f68bc1de4dc2805ef9c4`;
-- Arach-Packages `99e4f7bb4de0e4d223dacf6db034777c481b53c0`;
+- Arach-Packages `369f029882f7f213f0aabadc7d366292ef9e4acc`;
 - Arach-HWD `8a02fa4a41d5e21b447a92414db23b4b706f3731`;
 - exact Push, Slope, libinput-rs, elan-guardian, tuned-rs, and ccze-rs
   revisions recorded beside them in the lock.
@@ -70,7 +70,11 @@ proves duplicate `mkdir` rejection. Exact bounded `DT_RUNPATH` entries on the
 root and middle objects resolve their direct dependencies from three nested
 provider paths, retain each selected path as evidence, and reject relative,
 duplicate, empty, dot-segment, legacy `DT_RPATH`, and over-capacity input. The
-main image invokes a one-shot x86-64
+same graph measures normal Linux first-definition weak function binding by
+selecting an earlier weak provider despite a later strong definition, then
+writes an unversioned unresolved weak slot as zero. Weak data/TLS and
+unresolved versioned weak functions remain rejected. The main image invokes a
+one-shot x86-64
 finalizer callback that runs four finalizer arrays and four finalizer functions
 in reverse dependency order before process-group exit. The pinned Granite UEFI
 target fixes the PE timestamp, removes its varying CodeView signature, and
@@ -86,7 +90,7 @@ full-duplex and vector transfer, peer identity, half-close, and measured
 QEMU/OVMF readiness evidence. Bounded `SCM_RIGHTS` now transfers exact open
 descriptions across process generations, while generation-bound memfds provide
 shared physical mappings that survive descriptor close. The pinned package
-repository contains kernel recipe release 35, Corinth recipe
+repository contains kernel recipe release 36, Corinth recipe
 release 34, Granite recipe release 4, Elan Guardian 0.2.6, and
 installer recipe release 24, including the exact Calamares and transaction
 outputs required by the image. The pinned Corinth service retains multiple
@@ -211,7 +215,8 @@ scripts/test-live-root.sh
 Execute an ISO assembled with measured Arach boot artifacts under OVMF and
 require the ring-3 native, Linux-personality, four-object dependency-graph,
 canonical direct-dependency runpath resolution, relative and
-static/general-dynamic startup-TLS relocation, eager external-symbol binding,
+static/general-dynamic startup-TLS relocation, eager external-symbol and weak
+function binding,
 dependency-first initialization, and final process-lifecycle evidence with:
 
 ```sh
