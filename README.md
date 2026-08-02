@@ -29,10 +29,10 @@ Arach OS image.
 
 The current closed component graph pins:
 
-- Arach Kernel `f2cb6ef23d0ec167575bf8807bcd6ba89422e19c`;
+- Arach Kernel `8bceb52add86070b934a5df271a388a175f743b2`;
 - Granite `1e7110ffee23900cbec480b1cea90abd8c9dc3e8`;
 - Corinth `711be83330ed12291d98f68bc1de4dc2805ef9c4`;
-- Arach-Packages `814d009e381a95d86e6fa5dcee899ef5c97e6c25`;
+- Arach-Packages `4044eda92f293857e148566a47dfc1384f2a21b7`;
 - Arach-HWD `8a02fa4a41d5e21b447a92414db23b4b706f3731`;
 - exact Push, Slope, libinput-rs, elan-guardian, tuned-rs, and ccze-rs
   revisions recorded beside them in the lock.
@@ -54,7 +54,8 @@ four-object dependency diamond within an eight-object engine. It performs
 breadth-first discovery, coalesces both middle dependencies onto one core
 snapshot, rejects cycles, computes provider-first relocation order, and
 validates SysV hash chains, dynamic symbols, and bounded GNU symbol-version
-tables. It applies nine real relative relocations, one exact-version
+tables. It applies seven explicit relative relocations, two root writes decoded
+from one immutable canonical `DT_RELR` address/bitmap pair, one exact-version
 `R_X86_64_TPOFF64`, and one exact-version
 `R_X86_64_DTPMOD64`/`R_X86_64_DTPOFF64` pair. Seven exact-version object PLT
 relocations use deterministic global scope with exact provider SONAME binding;
@@ -62,7 +63,9 @@ one additional edge admits only the exact unversioned compiler-emitted
 `__tls_get_addr` reference. The loader builds a bounded startup TLS arena,
 establishes an x86-64 FS-base thread pointer, publishes a finite dynamic-thread
 vector at `FS:8`, and checks each resolver module and offset against its owned
-arena. It seals all objects to final W^X segment permissions, runs four
+arena. Packed-relative decoding bounds expansion, proves monotonic disjoint
+targets and mapped implicit addends, and completes validation before its first
+write. The loader seals all objects to final W^X segment permissions, runs four
 dependency-first initializers, and executes through both branches while
 consuming their shared static and general-dynamic TLS state. Before replacement,
 the measured Linux directory slice creates `/runpath` through `mkdirat` and
@@ -78,9 +81,9 @@ earlier weak data provider despite a later strong definition, and write one
 unresolved unversioned weak data slot as zero. Four bounded `R_X86_64_64`
 entries bind a versioned function pointer, a versioned object at a checked
 eight-byte interior addend, the earlier weak data provider, and an unresolved
-weak slot as zero. Weak TLS, `R_X86_64_COPY`, GNU-unique and IFUNC binding,
-packed relative relocation, and unresolved versioned weak symbols remain
-rejected. Cross-object execution consumes the selected weak and exact-version
+weak slot as zero. Weak TLS, `R_X86_64_COPY`, GNU-unique and IFUNC binding, and
+unresolved versioned weak symbols remain rejected. Cross-object execution
+consumes the selected weak and exact-version
 data, relocated function pointer, and interior object pointer after W^X
 sealing. The main image invokes a one-shot x86-64
 finalizer callback that runs four finalizer arrays and four finalizer functions
@@ -98,7 +101,7 @@ full-duplex and vector transfer, peer identity, half-close, and measured
 QEMU/OVMF readiness evidence. Bounded `SCM_RIGHTS` now transfers exact open
 descriptions across process generations, while generation-bound memfds provide
 shared physical mappings that survive descriptor close. The pinned package
-repository contains kernel recipe release 38, Corinth recipe
+repository contains kernel recipe release 39, Corinth recipe
 release 34, Granite recipe release 4, Elan Guardian 0.2.6, and
 installer recipe release 24, including the exact Calamares and transaction
 outputs required by the image. The pinned Corinth service retains multiple
@@ -222,8 +225,8 @@ scripts/test-live-root.sh
 
 Execute an ISO assembled with measured Arach boot artifacts under OVMF and
 require the ring-3 native, Linux-personality, four-object dependency-graph,
-canonical direct-dependency runpath resolution, relative and
-static/general-dynamic startup-TLS relocation, eager external-symbol,
+canonical direct-dependency runpath resolution, explicit and packed-relative
+relocation, static/general-dynamic startup-TLS relocation, eager external-symbol,
 weak-function, global-data, and absolute-symbol binding,
 dependency-first initialization, and final process-lifecycle evidence with:
 
