@@ -198,15 +198,18 @@ if "$root/scripts/materialize-live-system.sh" "$missing_browser" "$tmp/missing-b
 fi
 printf '%s\n' 'Arach OS browser presence gate verified'
 
-image_tools=(xorriso mkfs.fat mmd mcopy mksquashfs)
+image_tools=(xorriso mkfs.fat mcopy mksquashfs)
 have_image_tools=true
 for tool in "${image_tools[@]}"; do
     command -v "$tool" >/dev/null 2>&1 || have_image_tools=false
 done
 if "$have_image_tools"; then
     "$root/scripts/build-live-iso.sh" "$output" "$tmp/arach-os.iso"
+    "$root/scripts/build-live-iso.sh" "$output" "$tmp/arach-os-repeat.iso"
     test -s "$tmp/arach-os.iso"
     test -s "$tmp/arach-os.iso.json"
+    cmp --silent "$tmp/arach-os.iso" "$tmp/arach-os-repeat.iso"
+    cmp --silent "$tmp/arach-os.iso.json" "$tmp/arach-os-repeat.iso.json"
     if [[ -n "$preserved_iso" ]]; then
         mkdir -p -- "$(dirname -- "$preserved_iso")"
         cp -- "$tmp/arach-os.iso" "$preserved_iso"

@@ -60,7 +60,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           repository: SisyphusAeolides/Arach-Kernel
-          ref: 8559a34ac79d23c0074686d3522568207444967f
+          ref: f0c24355c286bb9dc26cf64258ab7fdc7e019842
           path: target/live-sources/kernel
       - uses: actions/checkout@v7
         with:
@@ -70,13 +70,13 @@ jobs:
       - uses: actions/checkout@v7
         with:
           repository: SisyphusAeolides/Granite
-          ref: c4c36daa40ed79a81751b00dcc4cb6eb4f4d9ac5
+          ref: 1e7110ffee23900cbec480b1cea90abd8c9dc3e8
           path: target/live-sources/granite
       - name: Verify measured component revisions
         run: |
-          test "$(git -C target/live-sources/kernel rev-parse HEAD)" = 8559a34ac79d23c0074686d3522568207444967f
+          test "$(git -C target/live-sources/kernel rev-parse HEAD)" = f0c24355c286bb9dc26cf64258ab7fdc7e019842
           test "$(git -C target/live-sources/push rev-parse HEAD)" = 5bd361b86c048b60b6a8422a8e173ea0ec867bff
-          test "$(git -C target/live-sources/granite rev-parse HEAD)" = c4c36daa40ed79a81751b00dcc4cb6eb4f4d9ac5
+          test "$(git -C target/live-sources/granite rev-parse HEAD)" = 1e7110ffee23900cbec480b1cea90abd8c9dc3e8
       - name: Install native image execution tools
         run: >-
           sudo apt-get update && sudo apt-get install -y

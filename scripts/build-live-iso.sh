@@ -9,6 +9,20 @@ fi
 live_root=$1
 output_iso=$2
 xorriso_bin=${ARACH_XORRISO:-xorriso}
+source_date_epoch=${SOURCE_DATE_EPOCH:-315532800}
+
+if [[ ! "$source_date_epoch" =~ ^[0-9]+$ ]] \
+    || ((${#source_date_epoch} > 10)) \
+    || ((source_date_epoch < 315532800 || source_date_epoch > 4354819199)); then
+    echo "SOURCE_DATE_EPOCH must fit the FAT timestamp range" >&2
+    exit 64
+fi
+iso_date=$(date --utc --date="@$source_date_epoch" +%Y%m%d%H%M%S00)
+[[ "$iso_date" =~ ^[0-9]{16}$ ]] || {
+    echo "failed to derive the deterministic ISO date" >&2
+    exit 1
+}
+export TZ=UTC
 
 for path in "$live_root" "$output_iso"; do
     [[ "$path" = /* ]] || { echo "all paths must be absolute: $path" >&2; exit 64; }
@@ -25,7 +39,7 @@ command -v "$xorriso_bin" >/dev/null 2>&1 || {
     echo "xorriso is required to produce a bootable Arach ISO" >&2
     exit 69
 }
-for tool in mkfs.fat mmd mcopy mksquashfs; do
+for tool in mkfs.fat mcopy mksquashfs; do
     command -v "$tool" >/dev/null 2>&1 || {
         echo "$tool is required to produce the installable Arach ISO" >&2
         exit 69
@@ -82,6 +96,11 @@ mkdir -p -- "$parent"
 work=$(mktemp -d "${TMPDIR:-/tmp}/arach-iso.XXXXXX")
 cleanup() { rm -rf -- "$work"; }
 trap cleanup EXIT
+
+normalize_tree() {
+    find "$1" -xdev -exec touch -h -d "@$source_date_epoch" -- {} +
+}
+
 stage="$work/root"
 mkdir -p -- "$stage"
 cp -a -- "$live_root/." "$stage/"
@@ -112,10 +131,12 @@ rootfs_source="$work/installed-root"
 mkdir -p -- "$rootfs_source"
 cp -a -- "$live_root/." "$rootfs_source/"
 rm -rf -- "$rootfs_source/run/arach-live" "$rootfs_source/run/arach-installer"
+normalize_tree "$rootfs_source"
 mkdir -p -- "$stage/run/arach-live"
 rootfs="$stage/run/arach-live/rootfs.squashfs"
 mksquashfs "$rootfs_source" "$rootfs" \
-    -noappend -all-root -comp zstd -no-progress >/dev/null
+    -noappend -all-root -comp zstd -no-progress -reproducible \
+    -mkfs-time "$source_date_epoch" -all-time "$source_date_epoch" >/dev/null
 [[ -s "$rootfs" ]] || {
     echo "mksquashfs produced an empty installer filesystem" >&2
     exit 1
@@ -143,26 +164,28 @@ fi
 # image rather than only in the surrounding ISO directory tree.
 esp="$work/efiboot.img"
 truncate -s $((128 * 1024 * 1024)) "$esp"
-mkfs.fat -F 32 -n ARACHEFI "$esp" >/dev/null
-mmd -i "$esp" ::/EFI
-mmd -i "$esp" ::/EFI/BOOT
-mmd -i "$esp" ::/BOOT
-mcopy -i "$esp" "$bundle/granite.efi" ::/EFI/BOOT/BOOTX64.EFI
-mcopy -i "$esp" "$bundle/manifest.json" ::/BOOT/MANIFEST.JSON
-mcopy -i "$esp" "$bundle/arach" ::/BOOT/ARACH
-mcopy -i "$esp" "$bundle/push" ::/BOOT/PUSH
-mcopy -i "$esp" "$bundle/crest" ::/BOOT/CREST
+mkfs.fat --invariant -F 32 -i 00000000 -n ARACHEFI "$esp" >/dev/null
+esp_root="$work/esp-root"
+mkdir -p -- "$esp_root/EFI/BOOT" "$esp_root/BOOT"
+install -m 0644 -- "$bundle/granite.efi" "$esp_root/EFI/BOOT/BOOTX64.EFI"
+install -m 0644 -- "$bundle/manifest.json" "$esp_root/BOOT/MANIFEST.JSON"
+install -m 0644 -- "$bundle/arach" "$esp_root/BOOT/ARACH"
+install -m 0644 -- "$bundle/push" "$esp_root/BOOT/PUSH"
+install -m 0644 -- "$bundle/crest" "$esp_root/BOOT/CREST"
 if [[ "$cosmic_count" -eq "${#cosmic_artifacts[@]}" ]]; then
-    mcopy -i "$esp" "$bundle/seatd" ::/BOOT/SEATD.BIN
-    mcopy -i "$esp" "$bundle/dbus-broker" ::/BOOT/DBUS.BIN
-    mcopy -i "$esp" "$bundle/pipewire" ::/BOOT/PIPEWIRE.BIN
-    mcopy -i "$esp" "$bundle/wireplumber" ::/BOOT/WIREPLUMBER.BIN
-    mcopy -i "$esp" "$bundle/cosmic-comp" ::/BOOT/COSCOMP.BIN
-    mcopy -i "$esp" "$bundle/cosmic-greeter" ::/BOOT/COSGREETER.BIN
-    mcopy -i "$esp" "$bundle/cosmic-session" ::/BOOT/COSSESSION.BIN
-    mcopy -i "$esp" "$bundle/xdg-desktop-portal-cosmic" ::/BOOT/COSPORTAL.BIN
+    install -m 0644 -- "$bundle/seatd" "$esp_root/BOOT/SEATD.BIN"
+    install -m 0644 -- "$bundle/dbus-broker" "$esp_root/BOOT/DBUS.BIN"
+    install -m 0644 -- "$bundle/pipewire" "$esp_root/BOOT/PIPEWIRE.BIN"
+    install -m 0644 -- "$bundle/wireplumber" "$esp_root/BOOT/WIREPLUMBER.BIN"
+    install -m 0644 -- "$bundle/cosmic-comp" "$esp_root/BOOT/COSCOMP.BIN"
+    install -m 0644 -- "$bundle/cosmic-greeter" "$esp_root/BOOT/COSGREETER.BIN"
+    install -m 0644 -- "$bundle/cosmic-session" "$esp_root/BOOT/COSSESSION.BIN"
+    install -m 0644 -- "$bundle/xdg-desktop-portal-cosmic" "$esp_root/BOOT/COSPORTAL.BIN"
 fi
+normalize_tree "$esp_root"
+mcopy -smp -i "$esp" "$esp_root"/* ::/
 cp -- "$esp" "$stage/EFI/BOOT/efiboot.img"
+normalize_tree "$stage"
 
 temporary="$work/image.iso"
 "$xorriso_bin" \
@@ -171,6 +194,8 @@ temporary="$work/image.iso"
     -full-iso9660-filenames \
     -J -joliet-long -R \
     -V ARACH_OS \
+    --modification-date="$iso_date" \
+    --set_all_file_dates "$iso_date" \
     -eltorito-alt-boot \
     -e EFI/BOOT/efiboot.img \
     -no-emul-boot \
