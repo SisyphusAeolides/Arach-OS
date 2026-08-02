@@ -92,6 +92,47 @@ revision = "0000000000000000000000000000000000000000"
                     {"name": "arach-packages"}, "/unused", locked
                 )
 
+    def test_package_kernel_recipe_drift_is_rejected(self) -> None:
+        locked = {
+            component["name"]: component["revision"] for component in self.components
+        }
+        documents = {
+            "recipes/base/corinth/package.toml": f"""
+[[source]]
+kind = "git"
+url = "https://github.com/SisyphusAeolides/Corinth.git"
+revision = "{locked['corinth']}"
+""",
+            "recipes/base/arach-hwd/package.toml": f"""
+[[source]]
+kind = "git"
+url = "https://github.com/SisyphusAeolides/Arach-HWD.git"
+revision = "{locked['arach-hwd']}"
+""",
+            "recipes/base/arach-kernel/package.toml": f"""
+[[source]]
+kind = "git"
+url = "https://github.com/SisyphusAeolides/Arach-Kernel.git"
+revision = "{'0' * 40}"
+submodules = false
+
+[[source]]
+kind = "git"
+url = "https://github.com/SisyphusAeolides/Push.git"
+revision = "{locked['push']}"
+submodules = false
+""",
+        }
+
+        def document(_directory: str, path: str) -> str:
+            return documents[path]
+
+        with mock.patch.object(VERIFY, "show_remote_file", side_effect=document):
+            with self.assertRaisesRegex(ValueError, "kernel recipe differs"):
+                VERIFY.validate_nested_authority(
+                    {"name": "arach-packages"}, "/unused", locked
+                )
+
 
 if __name__ == "__main__":
     unittest.main()

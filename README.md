@@ -29,9 +29,9 @@ Arach OS image.
 
 The current closed component graph pins:
 
-- Arach Kernel `aeeb6cf74bdc23913d9b449cf383cd2da65ff4dd`;
+- Arach Kernel `d2ee5bf3329c32ac9da2b0ea7433fb7050e58bed`;
 - Corinth `711be83330ed12291d98f68bc1de4dc2805ef9c4`;
-- Arach-Packages `9caac5c7125dcc0cbf324e00c8342f96f494579f`;
+- Arach-Packages `cac7bce29da4d93570bc02aa051c60903059eb0a`;
 - Arach-HWD `8a02fa4a41d5e21b447a92414db23b4b706f3731`;
 - exact Granite, Push, Slope, libinput-rs, elan-guardian, tuned-rs, and ccze-rs
   revisions recorded beside them in the lock.
@@ -48,12 +48,15 @@ vector, measured linker-to-main transfer, same-PID image exchange,
 close-on-exec and signal transitions, and deferred old-root reclamation. The
 pinned kernel also provides bounded generation-owned private file mappings,
 zero-filled file tails, exact whole-mapping W^X protection transitions, and
-rollback-safe page-table updates. Its measured C linker closes an exact
-main-to-consumer-to-provider `DT_NEEDED` graph, applies and verifies the
-provider's real relative relocation, eagerly binds the consumer's real
-external PLT relocation through bounded SysV symbol tables, seals both objects
-to final W^X segment permissions, and executes the cross-object call through
-both relocated states. A dense generation-bound descriptor/open-object table
+rollback-safe page-table updates. Its measured C linker now closes a bounded
+four-object dependency diamond within an eight-object engine. It performs
+breadth-first discovery, coalesces both middle dependencies onto one core
+snapshot, rejects cycles, computes provider-first relocation order, validates
+SysV hash chains and dynamic symbols, applies one real relative relocation,
+eagerly binds four real external PLT relocations through deterministic global
+scope, seals all objects to final W^X segment permissions, and executes through
+both branches and their shared relocated core. A dense generation-bound
+descriptor/open-object table
 now unifies standard streams, files, eventfd, timerfd, epoll, and anonymous
 pipes; it supplies alias-safe `dup` and bounded `fcntl`, descriptor-local
 close-on-exec, poll/epoll readiness, and exact last-close watch removal. The
@@ -62,7 +65,7 @@ full-duplex and vector transfer, peer identity, half-close, and measured
 QEMU/OVMF readiness evidence. Bounded `SCM_RIGHTS` now transfers exact open
 descriptions across process generations, while generation-bound memfds provide
 shared physical mappings that survive descriptor close. The pinned package
-repository contains kernel recipe release 29, Corinth recipe
+repository contains kernel recipe release 30, Corinth recipe
 release 34, Elan Guardian 0.2.6, and
 installer recipe release 24, including the exact Calamares and transaction
 outputs required by the image. The pinned Corinth service retains multiple

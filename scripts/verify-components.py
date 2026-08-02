@@ -152,6 +152,28 @@ def validate_nested_authority(
             raise ValueError(
                 f"locked Arach-Packages {component_name} recipe differs from the component graph"
             )
+    kernel_recipe = tomllib.loads(
+        show_remote_file(directory, "recipes/base/arach-kernel/package.toml")
+    )
+    kernel_sources = kernel_recipe.get("source")
+    expected_kernel_sources = [
+        {
+            "kind": "git",
+            "url": "https://github.com/SisyphusAeolides/Arach-Kernel.git",
+            "revision": locked["arach-kernel"],
+            "submodules": False,
+        },
+        {
+            "kind": "git",
+            "url": "https://github.com/SisyphusAeolides/Push.git",
+            "revision": locked["push"],
+            "submodules": False,
+        },
+    ]
+    if kernel_sources != expected_kernel_sources:
+        raise ValueError(
+            "locked Arach-Packages kernel recipe differs from the component graph"
+        )
 
 
 def verify_remote(component: dict[str, str], locked: dict[str, str]) -> str:
