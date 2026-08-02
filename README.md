@@ -29,9 +29,9 @@ Arach OS image.
 
 The current closed component graph pins:
 
-- Arach Kernel `d2ee5bf3329c32ac9da2b0ea7433fb7050e58bed`;
+- Arach Kernel `8559a34ac79d23c0074686d3522568207444967f`;
 - Corinth `711be83330ed12291d98f68bc1de4dc2805ef9c4`;
-- Arach-Packages `cac7bce29da4d93570bc02aa051c60903059eb0a`;
+- Arach-Packages `b7fc47a4e7e1293c26d3fc50abf3ca98a589c1f4`;
 - Arach-HWD `8a02fa4a41d5e21b447a92414db23b4b706f3731`;
 - exact Granite, Push, Slope, libinput-rs, elan-guardian, tuned-rs, and ccze-rs
   revisions recorded beside them in the lock.
@@ -52,11 +52,13 @@ rollback-safe page-table updates. Its measured C linker now closes a bounded
 four-object dependency diamond within an eight-object engine. It performs
 breadth-first discovery, coalesces both middle dependencies onto one core
 snapshot, rejects cycles, computes provider-first relocation order, validates
-SysV hash chains and dynamic symbols, applies one real relative relocation,
-eagerly binds four real external PLT relocations through deterministic global
-scope, seals all objects to final W^X segment permissions, and executes through
-both branches and their shared relocated core. A dense generation-bound
-descriptor/open-object table
+SysV hash chains and dynamic symbols, applies five real relative relocations,
+one static-TLS relocation, and four real external PLT relocations through
+deterministic global scope. It builds a bounded initial TLS arena, establishes
+an x86-64 FS-base thread pointer, seals all objects to final W^X segment
+permissions, runs four dependency-first initializers, and executes through both
+branches while consuming their shared relocated and FS-relative state. A dense
+generation-bound descriptor/open-object table
 now unifies standard streams, files, eventfd, timerfd, epoll, and anonymous
 pipes; it supplies alias-safe `dup` and bounded `fcntl`, descriptor-local
 close-on-exec, poll/epoll readiness, and exact last-close watch removal. The
@@ -65,7 +67,7 @@ full-duplex and vector transfer, peer identity, half-close, and measured
 QEMU/OVMF readiness evidence. Bounded `SCM_RIGHTS` now transfers exact open
 descriptions across process generations, while generation-bound memfds provide
 shared physical mappings that survive descriptor close. The pinned package
-repository contains kernel recipe release 30, Corinth recipe
+repository contains kernel recipe release 31, Corinth recipe
 release 34, Elan Guardian 0.2.6, and
 installer recipe release 24, including the exact Calamares and transaction
 outputs required by the image. The pinned Corinth service retains multiple
@@ -188,9 +190,9 @@ scripts/test-live-root.sh
 ```
 
 Execute an ISO assembled with measured Arach boot artifacts under OVMF and
-require the ring-3 native, Linux-personality, two-object dependency-graph,
-relative-relocation, eager external-symbol binding, and final process-lifecycle
-evidence with:
+require the ring-3 native, Linux-personality, four-object dependency-graph,
+relative and static-TLS relocation, eager external-symbol binding,
+dependency-first initialization, and final process-lifecycle evidence with:
 
 ```sh
 scripts/run-live-iso-qemu.sh /absolute/path/to/arach-os.iso
