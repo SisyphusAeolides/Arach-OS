@@ -96,6 +96,7 @@ jobs:
         env:
           ARACH_PUSH_ROOT: ${{ github.workspace }}/target/live-sources/push
           ARACH_GRANITE_ROOT: ${{ github.workspace }}/target/live-sources/granite
+          ARACH_PUSH_FEATURES: "os-bin,cosmic-boot"
         run: scripts/build-c0-bundle.sh
       - name: Assemble the measured live ISO
         run: |
