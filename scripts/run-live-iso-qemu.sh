@@ -90,13 +90,44 @@ for marker in \
     "ARACH_C1_THREAD_FUTEX_PASS" \
     "ARACH_C1_ROBUST_FUTEX_PASS" \
     "ARACH_C1_SIGNAL_RETURN_PASS" \
+    "ARACH_C2_FILE_MMAP_PASS" \
+    "ARACH_C2_MPROTECT_PASS" \
     "ARACH_C1_LINUX_SYSCALL_PASS" \
+    "ARACH_C2_RUNTIME_LINKER_ENTER" \
+    "ARACH_C2_DT_NEEDED_PASS" \
+    "ARACH_C2_DEPENDENCY_GRAPH_PASS" \
+    "ARACH_C2_SHARED_RELOCATION_PASS" \
+    "ARACH_C2_EXTERNAL_SYMBOL_PASS" \
+    "ARACH_C2_RUNTIME_LINKER_PASS" \
+    "ARACH_C1_EXECVE_PASS" \
     "ARACH_C1_EXIT_GROUP_ARMED" \
     "[PID 1] child 2 exited with status 0"; do
     grep -F -- "$marker" "$log" >/dev/null || {
         echo "live ISO serial evidence missing: $marker" >&2
         exit 1
     }
+done
+
+previous_line=0
+for marker in \
+    "ARACH_C2_FILE_MMAP_PASS" \
+    "ARACH_C2_MPROTECT_PASS" \
+    "ARACH_C1_LINUX_SYSCALL_PASS" \
+    "ARACH_C2_RUNTIME_LINKER_ENTER" \
+    "ARACH_C2_DT_NEEDED_PASS" \
+    "ARACH_C2_DEPENDENCY_GRAPH_PASS" \
+    "ARACH_C2_SHARED_RELOCATION_PASS" \
+    "ARACH_C2_EXTERNAL_SYMBOL_PASS" \
+    "ARACH_C2_RUNTIME_LINKER_PASS" \
+    "ARACH_C1_EXECVE_PASS" \
+    "ARACH_C1_EXIT_GROUP_ARMED" \
+    "[PID 1] child 2 exited with status 0"; do
+    line=$(grep -nF -m1 -- "$marker" "$log" | cut -d: -f1)
+    if [[ "$line" -le "$previous_line" ]]; then
+        echo "live ISO serial evidence is out of order: $marker" >&2
+        exit 1
+    fi
+    previous_line=$line
 done
 
 if [[ "$status" -eq 124 ]]; then

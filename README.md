@@ -29,7 +29,7 @@ Arach OS image.
 
 The current closed component graph pins:
 
-- Arach Kernel `fafc19f7888a189335e277f5f7d069ea945eac9c`;
+- Arach Kernel `d43b99b83956f484f875083cf1c431b7d5b0cd79`;
 - Corinth `7b2fa540fbdbc959920ce30367dd8dd0db73cd7c`;
 - Arach-Packages `884c2d763886b0acbd24540ddb306cabe3c94a9a`;
 - Arach-HWD `8a02fa4a41d5e21b447a92414db23b4b706f3731`;
@@ -48,10 +48,12 @@ vector, measured linker-to-main transfer, same-PID image exchange,
 close-on-exec and signal transitions, and deferred old-root reclamation. The
 pinned kernel also provides bounded generation-owned private file mappings,
 zero-filled file tails, exact whole-mapping W^X protection transitions, and
-rollback-safe page-table updates. Its measured C linker discovers one bounded
-`DT_NEEDED` object, applies and verifies a real relative relocation, seals
-final W^X segment permissions, resolves the exported symbol, and executes code
-through the relocated state. The pinned package repository contains kernel
+rollback-safe page-table updates. Its measured C linker closes an exact
+main-to-consumer-to-provider `DT_NEEDED` graph, applies and verifies the
+provider's real relative relocation, eagerly binds the consumer's real
+external PLT relocation through bounded SysV symbol tables, seals both objects
+to final W^X segment permissions, and executes the cross-object call through
+both relocated states. The pinned package repository contains kernel
 recipe release 26, Elan Guardian 0.2.6, and
 installer recipe release 24, including the exact Calamares and transaction
 outputs required by the image.
@@ -138,8 +140,9 @@ The remaining qualification boundary is explicit:
 - the UEFI ISO has not yet completed a full boot-to-COSMIC login/session gate;
 - the kernel's current Akashic file storage is bounded and ephemeral rather
   than persistent and block-backed;
-- cross-thread futex wake qualification, robust-list recovery, complete signal
-  delivery, FS-base TLS, and Linux thread groups remain incomplete;
+- process-shared and priority-inheritance futexes, general clone/fork modes,
+  asynchronous cross-process signals, and complete leader-exit semantics
+  remain incomplete;
 - native graphics, audio, networking, suspend/resume, and broad physical
   hardware operation still require end-to-end runtime evidence.
 
@@ -163,7 +166,9 @@ scripts/test-live-root.sh
 ```
 
 Execute an ISO assembled with measured Arach boot artifacts under OVMF and
-require the ring-3 native and Linux-personality evidence with:
+require the ring-3 native, Linux-personality, two-object dependency-graph,
+relative-relocation, eager external-symbol binding, and final process-lifecycle
+evidence with:
 
 ```sh
 scripts/run-live-iso-qemu.sh /absolute/path/to/arach-os.iso
