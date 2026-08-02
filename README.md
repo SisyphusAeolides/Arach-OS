@@ -29,9 +29,9 @@ Arach OS image.
 
 The current closed component graph pins:
 
-- Arach Kernel `d43b99b83956f484f875083cf1c431b7d5b0cd79`;
+- Arach Kernel `52b8f42e26e22e18f92f0098943c8d69acf682d4`;
 - Corinth `711be83330ed12291d98f68bc1de4dc2805ef9c4`;
-- Arach-Packages `2c4f01847df8e71867ce272a1b77ca6713bb6859`;
+- Arach-Packages `20cdbc74fc37baa7acf0403bff6094944c518e92`;
 - Arach-HWD `8a02fa4a41d5e21b447a92414db23b4b706f3731`;
 - exact Granite, Push, Slope, libinput-rs, elan-guardian, tuned-rs, and ccze-rs
   revisions recorded beside them in the lock.
@@ -53,8 +53,12 @@ main-to-consumer-to-provider `DT_NEEDED` graph, applies and verifies the
 provider's real relative relocation, eagerly binds the consumer's real
 external PLT relocation through bounded SysV symbol tables, seals both objects
 to final W^X segment permissions, and executes the cross-object call through
-both relocated states. The pinned package repository contains kernel
-recipe release 26, Corinth recipe release 34, Elan Guardian 0.2.6, and
+both relocated states. A dense generation-bound descriptor/open-object table
+now unifies standard streams, files, eventfd, timerfd, epoll, and anonymous
+pipes; it supplies alias-safe `dup` and bounded `fcntl`, descriptor-local
+close-on-exec, poll/epoll readiness, and exact last-close watch removal. The
+pinned package repository contains kernel recipe release 27, Corinth recipe
+release 34, Elan Guardian 0.2.6, and
 installer recipe release 24, including the exact Calamares and transaction
 outputs required by the image. The pinned Corinth service retains multiple
 native package versions under signed monotonic sequences, resolves signed
