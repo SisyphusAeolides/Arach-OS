@@ -29,10 +29,10 @@ Arach OS image.
 
 The current closed component graph pins:
 
-- Arach Kernel `0f31fe8cae20fb1876592a28eda322d98b430461`;
+- Arach Kernel `f2cb6ef23d0ec167575bf8807bcd6ba89422e19c`;
 - Granite `1e7110ffee23900cbec480b1cea90abd8c9dc3e8`;
 - Corinth `711be83330ed12291d98f68bc1de4dc2805ef9c4`;
-- Arach-Packages `0bf1ec81599bd3bc308da9592c685ce577c78dac`;
+- Arach-Packages `814d009e381a95d86e6fa5dcee899ef5c97e6c25`;
 - Arach-HWD `8a02fa4a41d5e21b447a92414db23b4b706f3731`;
 - exact Push, Slope, libinput-rs, elan-guardian, tuned-rs, and ccze-rs
   revisions recorded beside them in the lock.
@@ -75,10 +75,14 @@ selecting an earlier weak provider despite a later strong definition, then
 writes an unversioned unresolved weak slot as zero. Three eager
 `R_X86_64_GLOB_DAT` entries bind one exact-version global object, select an
 earlier weak data provider despite a later strong definition, and write one
-unresolved unversioned weak data slot as zero. Weak TLS, broader data
-relocations, and unresolved versioned weak functions or data remain rejected.
-Cross-object execution consumes the selected weak and exact-version data after
-W^X sealing. The main image invokes a one-shot x86-64
+unresolved unversioned weak data slot as zero. Four bounded `R_X86_64_64`
+entries bind a versioned function pointer, a versioned object at a checked
+eight-byte interior addend, the earlier weak data provider, and an unresolved
+weak slot as zero. Weak TLS, `R_X86_64_COPY`, GNU-unique and IFUNC binding,
+packed relative relocation, and unresolved versioned weak symbols remain
+rejected. Cross-object execution consumes the selected weak and exact-version
+data, relocated function pointer, and interior object pointer after W^X
+sealing. The main image invokes a one-shot x86-64
 finalizer callback that runs four finalizer arrays and four finalizer functions
 in reverse dependency order before process-group exit. The pinned Granite UEFI
 target fixes the PE timestamp, removes its varying CodeView signature, and
@@ -94,7 +98,7 @@ full-duplex and vector transfer, peer identity, half-close, and measured
 QEMU/OVMF readiness evidence. Bounded `SCM_RIGHTS` now transfers exact open
 descriptions across process generations, while generation-bound memfds provide
 shared physical mappings that survive descriptor close. The pinned package
-repository contains kernel recipe release 37, Corinth recipe
+repository contains kernel recipe release 38, Corinth recipe
 release 34, Granite recipe release 4, Elan Guardian 0.2.6, and
 installer recipe release 24, including the exact Calamares and transaction
 outputs required by the image. The pinned Corinth service retains multiple
@@ -220,7 +224,7 @@ Execute an ISO assembled with measured Arach boot artifacts under OVMF and
 require the ring-3 native, Linux-personality, four-object dependency-graph,
 canonical direct-dependency runpath resolution, relative and
 static/general-dynamic startup-TLS relocation, eager external-symbol,
-weak-function, and global-data binding,
+weak-function, global-data, and absolute-symbol binding,
 dependency-first initialization, and final process-lifecycle evidence with:
 
 ```sh
