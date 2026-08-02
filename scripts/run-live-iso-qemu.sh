@@ -63,7 +63,7 @@ cp -- "$ovmf_vars" "$vars"
 
 mkdir -p -- "$(dirname -- "$log")"
 : >"$log"
-timeout_seconds=${ARACH_LIVE_TIMEOUT_SECONDS:-30}
+timeout_seconds=${ARACH_LIVE_TIMEOUT_SECONDS:-120}
 set +e
 timeout --kill-after=5s "${timeout_seconds}s" "$qemu" \
     -machine q35 \
@@ -117,7 +117,20 @@ for marker in \
     "ARACH_C1_EXECVE_PASS" \
     "ARACH_C2_FINALIZATION_PASS" \
     "ARACH_C1_EXIT_GROUP_ARMED" \
-    "[PID 1] child 2 exited with status 0"; do
+    "[PID 1] child 2 exited with status 0" \
+    "[PID 1] Kairos-dispatched workload complete" \
+    "[PID 1] requesting 'seatd'" \
+    "[PID 1] spawned service 9 as PID" \
+    "[PID 1] requesting 'dbus-broker'" \
+    "[PID 1] spawned service 4 as PID" \
+    "[PID 1] requesting 'pipewire'" \
+    "[PID 1] spawned service 10 as PID" \
+    "[PID 1] requesting 'wireplumber'" \
+    "[PID 1] spawned service 11 as PID" \
+    "[PID 1] requesting 'cosmic-comp'" \
+    "[PID 1] spawned service 5 as PID" \
+    "[PID 1] requesting 'greetd (cosmic-greeter)'" \
+    "[PID 1] spawned service 6 as PID"; do
     grep -F -- "$marker" "$log" >/dev/null || {
         echo "live ISO serial evidence missing: $marker" >&2
         exit 1
@@ -153,7 +166,20 @@ for marker in \
     "ARACH_C1_EXECVE_PASS" \
     "ARACH_C2_FINALIZATION_PASS" \
     "ARACH_C1_EXIT_GROUP_ARMED" \
-    "[PID 1] child 2 exited with status 0"; do
+    "[PID 1] child 2 exited with status 0" \
+    "[PID 1] Kairos-dispatched workload complete" \
+    "[PID 1] requesting 'seatd'" \
+    "[PID 1] spawned service 9 as PID" \
+    "[PID 1] requesting 'dbus-broker'" \
+    "[PID 1] spawned service 4 as PID" \
+    "[PID 1] requesting 'pipewire'" \
+    "[PID 1] spawned service 10 as PID" \
+    "[PID 1] requesting 'wireplumber'" \
+    "[PID 1] spawned service 11 as PID" \
+    "[PID 1] requesting 'cosmic-comp'" \
+    "[PID 1] spawned service 5 as PID" \
+    "[PID 1] requesting 'greetd (cosmic-greeter)'" \
+    "[PID 1] spawned service 6 as PID"; do
     line=$(grep -nF -m1 -- "$marker" "$log" | cut -d: -f1)
     if [[ "$line" -le "$previous_line" ]]; then
         echo "live ISO serial evidence is out of order: $marker" >&2
