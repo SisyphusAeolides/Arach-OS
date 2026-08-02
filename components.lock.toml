@@ -4,7 +4,7 @@ distribution = "Arach OS"
 [[component]]
 name = "arach-kernel"
 repository = "https://github.com/SisyphusAeolides/Arach-Kernel.git"
-revision = "52b8f42e26e22e18f92f0098943c8d69acf682d4"
+revision = "51d123b8e0902f06e71e29078eba264463e8ce13"
 role = "kernel"
 
 [[component]]
@@ -34,7 +34,7 @@ role = "package-manager"
 [[component]]
 name = "arach-packages"
 repository = "https://github.com/SisyphusAeolides/Arach-Packages.git"
-revision = "20cdbc74fc37baa7acf0403bff6094944c518e92"
+revision = "167940d4d9a8c21fb0317ba92172aebcee495409"
 role = "package-recipes"
 
 [[component]]
