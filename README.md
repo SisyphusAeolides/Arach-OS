@@ -29,10 +29,10 @@ Arach OS image.
 
 The current closed component graph pins:
 
-- Arach Kernel `f0c24355c286bb9dc26cf64258ab7fdc7e019842`;
+- Arach Kernel `314574dd482451d843f5923a5e867a45e89dad0b`;
 - Granite `1e7110ffee23900cbec480b1cea90abd8c9dc3e8`;
 - Corinth `711be83330ed12291d98f68bc1de4dc2805ef9c4`;
-- Arach-Packages `533fed9ea6f3954585d38cc360d1963dc1ca7d4b`;
+- Arach-Packages `3a5990d39154059b4aedbd6388b7283ffd1d7bad`;
 - Arach-HWD `8a02fa4a41d5e21b447a92414db23b4b706f3731`;
 - exact Push, Slope, libinput-rs, elan-guardian, tuned-rs, and ccze-rs
   revisions recorded beside them in the lock.
@@ -54,13 +54,18 @@ four-object dependency diamond within an eight-object engine. It performs
 breadth-first discovery, coalesces both middle dependencies onto one core
 snapshot, rejects cycles, computes provider-first relocation order, and
 validates SysV hash chains, dynamic symbols, and bounded GNU symbol-version
-tables. It applies nine real relative relocations, one exact-version static-TLS
-relocation, and seven exact-version external PLT relocations through
-deterministic global scope with exact provider SONAME binding. It builds a
-bounded initial TLS arena, establishes an x86-64 FS-base thread pointer, seals
-all objects to final W^X segment permissions, runs four dependency-first
-initializers, and executes through both branches while consuming their shared
-relocated and FS-relative state. The main image invokes a one-shot x86-64
+tables. It applies nine real relative relocations, one exact-version
+`R_X86_64_TPOFF64`, and one exact-version
+`R_X86_64_DTPMOD64`/`R_X86_64_DTPOFF64` pair. Seven exact-version object PLT
+relocations use deterministic global scope with exact provider SONAME binding;
+one additional edge admits only the exact unversioned compiler-emitted
+`__tls_get_addr` reference. The loader builds a bounded startup TLS arena,
+establishes an x86-64 FS-base thread pointer, publishes a finite dynamic-thread
+vector at `FS:8`, and checks each resolver module and offset against its owned
+arena. It seals all objects to final W^X segment permissions, runs four
+dependency-first initializers, and executes through both branches while
+consuming their shared static and general-dynamic TLS state. The main image
+invokes a one-shot x86-64
 finalizer callback that runs four finalizer arrays and four finalizer functions
 in reverse dependency order before process-group exit. The pinned Granite UEFI
 target fixes the PE timestamp, removes its varying CodeView signature, and
@@ -76,7 +81,7 @@ full-duplex and vector transfer, peer identity, half-close, and measured
 QEMU/OVMF readiness evidence. Bounded `SCM_RIGHTS` now transfers exact open
 descriptions across process generations, while generation-bound memfds provide
 shared physical mappings that survive descriptor close. The pinned package
-repository contains kernel recipe release 33, Corinth recipe
+repository contains kernel recipe release 34, Corinth recipe
 release 34, Granite recipe release 4, Elan Guardian 0.2.6, and
 installer recipe release 24, including the exact Calamares and transaction
 outputs required by the image. The pinned Corinth service retains multiple
@@ -200,7 +205,8 @@ scripts/test-live-root.sh
 
 Execute an ISO assembled with measured Arach boot artifacts under OVMF and
 require the ring-3 native, Linux-personality, four-object dependency-graph,
-relative and static-TLS relocation, eager external-symbol binding,
+relative and static/general-dynamic startup-TLS relocation, eager
+external-symbol binding,
 dependency-first initialization, and final process-lifecycle evidence with:
 
 ```sh
