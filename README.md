@@ -30,8 +30,8 @@ Arach OS image.
 The current closed component graph pins:
 
 - Arach Kernel `d43b99b83956f484f875083cf1c431b7d5b0cd79`;
-- Corinth `6d877ae417ee7aab53632d3b5c04c81cf4e2daad`;
-- Arach-Packages `0c0c948b01e988830a3ec22632bd49282424ade9`;
+- Corinth `711be83330ed12291d98f68bc1de4dc2805ef9c4`;
+- Arach-Packages `2c4f01847df8e71867ce272a1b77ca6713bb6859`;
 - Arach-HWD `8a02fa4a41d5e21b447a92414db23b4b706f3731`;
 - exact Granite, Push, Slope, libinput-rs, elan-guardian, tuned-rs, and ccze-rs
   revisions recorded beside them in the lock.
@@ -54,7 +54,7 @@ provider's real relative relocation, eagerly binds the consumer's real
 external PLT relocation through bounded SysV symbol tables, seals both objects
 to final W^X segment permissions, and executes the cross-object call through
 both relocated states. The pinned package repository contains kernel
-recipe release 26, Corinth recipe release 33, Elan Guardian 0.2.6, and
+recipe release 26, Corinth recipe release 34, Elan Guardian 0.2.6, and
 installer recipe release 24, including the exact Calamares and transaction
 outputs required by the image. The pinned Corinth service retains multiple
 native package versions under signed monotonic sequences, resolves signed
@@ -63,6 +63,10 @@ deterministically, and commits each dependency-first install or update through
 one recoverable journal. The standard package lifecycle also preserves exact
 version pins and refuses conflicts, ambiguity, cycles, reverse-dependency
 removal, and sequence downgrades.
+Signed source catalogs route Arch/AUR, Fedora specs, Debian control files,
+Alpine APKBUILDs, Gentoo ebuilds, CRUX Pkgfiles, fixed-output Nix exports, and
+Cargo closures through one measured ingress. Dynamic packaging scripts remain
+outside this static admission boundary.
 The final foundation matrix verifies every remote revision, strict Rust checks,
 Fortran, Idris 2, Agda, live-root composition, SquashFS construction, and UEFI
 ISO layout before publication.
