@@ -31,8 +31,8 @@ The current closed component graph pins:
 
 - Arach Kernel `46a8b9ce1b8cbcf6b645456ac46bde7a10156c54`;
 - Granite `1e7110ffee23900cbec480b1cea90abd8c9dc3e8`;
-- Corinth `711be83330ed12291d98f68bc1de4dc2805ef9c4`;
-- Arach-Packages `d2411c4e97ac95cb9291483a8ddbd71d0c2b632d`;
+- Corinth `585623e998ef8a07db69199fbbb61d07daa6dc07`;
+- Arach-Packages `ad0983ee53f2b5aab425e022927d251fcfb94f8b`;
 - Arach-HWD `8a02fa4a41d5e21b447a92414db23b4b706f3731`;
 - exact Push, Slope, libinput-rs, elan-guardian, tuned-rs, and ccze-rs
   revisions recorded beside them in the lock.
