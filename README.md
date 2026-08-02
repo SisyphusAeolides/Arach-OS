@@ -29,9 +29,9 @@ Arach OS image.
 
 The current closed component graph pins:
 
-- Arach Kernel `51d123b8e0902f06e71e29078eba264463e8ce13`;
+- Arach Kernel `aeeb6cf74bdc23913d9b449cf383cd2da65ff4dd`;
 - Corinth `711be83330ed12291d98f68bc1de4dc2805ef9c4`;
-- Arach-Packages `167940d4d9a8c21fb0317ba92172aebcee495409`;
+- Arach-Packages `9caac5c7125dcc0cbf324e00c8342f96f494579f`;
 - Arach-HWD `8a02fa4a41d5e21b447a92414db23b4b706f3731`;
 - exact Granite, Push, Slope, libinput-rs, elan-guardian, tuned-rs, and ccze-rs
   revisions recorded beside them in the lock.
@@ -59,8 +59,10 @@ pipes; it supplies alias-safe `dup` and bounded `fcntl`, descriptor-local
 close-on-exec, poll/epoll readiness, and exact last-close watch removal. The
 same table carries bounded Unix stream socketpairs and named listeners with
 full-duplex and vector transfer, peer identity, half-close, and measured
-QEMU/OVMF readiness evidence. The pinned package repository contains kernel
-recipe release 28, Corinth recipe
+QEMU/OVMF readiness evidence. Bounded `SCM_RIGHTS` now transfers exact open
+descriptions across process generations, while generation-bound memfds provide
+shared physical mappings that survive descriptor close. The pinned package
+repository contains kernel recipe release 29, Corinth recipe
 release 34, Elan Guardian 0.2.6, and
 installer recipe release 24, including the exact Calamares and transaction
 outputs required by the image. The pinned Corinth service retains multiple
