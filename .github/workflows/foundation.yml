@@ -60,7 +60,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           repository: SisyphusAeolides/Arach-Kernel
-          ref: 53d179899ef816ac985fc55940f40b5db0bf8aa8
+          ref: 6bbefe99a6bfc64220127a27886e6d6d801d8347
           path: target/live-sources/kernel
       - uses: actions/checkout@v7
         with:
@@ -74,7 +74,7 @@ jobs:
           path: target/live-sources/granite
       - name: Verify measured component revisions
         run: |
-          test "$(git -C target/live-sources/kernel rev-parse HEAD)" = 53d179899ef816ac985fc55940f40b5db0bf8aa8
+          test "$(git -C target/live-sources/kernel rev-parse HEAD)" = 6bbefe99a6bfc64220127a27886e6d6d801d8347
           test "$(git -C target/live-sources/push rev-parse HEAD)" = 5bd361b86c048b60b6a8422a8e173ea0ec867bff
           test "$(git -C target/live-sources/granite rev-parse HEAD)" = c4c36daa40ed79a81751b00dcc4cb6eb4f4d9ac5
       - name: Install native image execution tools
