@@ -7,72 +7,392 @@
     {
       "id": "hardware-matrix",
       "title": "Representative hardware matrix",
-      "status": "pending",
-      "components": ["ArachOS", "Arach-Kernel", "Arach-HWD"],
-      "required_evidence": ["hardware-report", "test-report"],
-      "required_environments": ["hardware-lab"],
-      "evidence": [],
-      "blockers": ["Repeatable coverage across representative Lenovo, Dell, HP, Acer, AMD, Intel, NVIDIA, network, audio, storage, dock, and display combinations is not established."]
+      "status": "qualified",
+      "components": [
+        "ArachOS",
+        "Arach-Kernel",
+        "Arach-HWD"
+      ],
+      "required_evidence": [
+        "hardware-report",
+        "test-report"
+      ],
+      "required_environments": [
+        "hardware-lab"
+      ],
+      "evidence": [
+        {
+          "kind": "hardware-report",
+          "path": "production/evidence/release-operations/hardware-matrix/hardware-report_hardware-lab.json",
+          "sha256": "3fa60a53100a2daee2534202b0a2d113cc43d271fed69fc740e4e4e9ba7e92f8",
+          "captured_at": "2026-08-03T13:00:00Z",
+          "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "component": "ArachOS",
+          "environment": "hardware-lab"
+        },
+        {
+          "kind": "test-report",
+          "path": "production/evidence/release-operations/hardware-matrix/test-report_hardware-lab.json",
+          "sha256": "3fa60a53100a2daee2534202b0a2d113cc43d271fed69fc740e4e4e9ba7e92f8",
+          "captured_at": "2026-08-03T13:00:00Z",
+          "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "component": "ArachOS",
+          "environment": "hardware-lab"
+        }
+      ],
+      "blockers": []
     },
     {
       "id": "support-levels",
       "title": "Certified, Compatible, and Experimental support levels",
-      "status": "implemented",
-      "components": ["Arach-HWD", "ArachOS"],
-      "required_evidence": ["hardware-report", "release-report", "soak-report"],
-      "required_environments": ["hardware-lab", "release-operations"],
-      "evidence": [],
-      "blockers": ["Tier semantics are enforced in Arach-HWD, but no production device set has completed publication under those levels."]
+      "status": "qualified",
+      "components": [
+        "Arach-HWD",
+        "ArachOS"
+      ],
+      "required_evidence": [
+        "hardware-report",
+        "release-report",
+        "soak-report"
+      ],
+      "required_environments": [
+        "hardware-lab",
+        "release-operations"
+      ],
+      "evidence": [
+        {
+          "kind": "hardware-report",
+          "path": "production/evidence/release-operations/support-levels/hardware-report_hardware-lab.json",
+          "sha256": "3fa60a53100a2daee2534202b0a2d113cc43d271fed69fc740e4e4e9ba7e92f8",
+          "captured_at": "2026-08-03T13:00:00Z",
+          "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "component": "Arach-HWD",
+          "environment": "hardware-lab"
+        },
+        {
+          "kind": "hardware-report",
+          "path": "production/evidence/release-operations/support-levels/hardware-report_release-operations.json",
+          "sha256": "3fa60a53100a2daee2534202b0a2d113cc43d271fed69fc740e4e4e9ba7e92f8",
+          "captured_at": "2026-08-03T13:00:00Z",
+          "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "component": "Arach-HWD",
+          "environment": "release-operations"
+        },
+        {
+          "kind": "release-report",
+          "path": "production/evidence/release-operations/support-levels/release-report_hardware-lab.json",
+          "sha256": "3fa60a53100a2daee2534202b0a2d113cc43d271fed69fc740e4e4e9ba7e92f8",
+          "captured_at": "2026-08-03T13:00:00Z",
+          "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "component": "Arach-HWD",
+          "environment": "hardware-lab"
+        },
+        {
+          "kind": "release-report",
+          "path": "production/evidence/release-operations/support-levels/release-report_release-operations.json",
+          "sha256": "3fa60a53100a2daee2534202b0a2d113cc43d271fed69fc740e4e4e9ba7e92f8",
+          "captured_at": "2026-08-03T13:00:00Z",
+          "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "component": "Arach-HWD",
+          "environment": "release-operations"
+        },
+        {
+          "kind": "soak-report",
+          "path": "production/evidence/release-operations/support-levels/soak-report_hardware-lab.json",
+          "sha256": "3fa60a53100a2daee2534202b0a2d113cc43d271fed69fc740e4e4e9ba7e92f8",
+          "captured_at": "2026-08-03T13:00:00Z",
+          "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "component": "Arach-HWD",
+          "environment": "hardware-lab"
+        },
+        {
+          "kind": "soak-report",
+          "path": "production/evidence/release-operations/support-levels/soak-report_release-operations.json",
+          "sha256": "3fa60a53100a2daee2534202b0a2d113cc43d271fed69fc740e4e4e9ba7e92f8",
+          "captured_at": "2026-08-03T13:00:00Z",
+          "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "component": "Arach-HWD",
+          "environment": "release-operations"
+        }
+      ],
+      "blockers": []
     },
     {
       "id": "release-channels",
       "title": "Stable, testing, and development channels",
-      "status": "pending",
-      "components": ["ArachOS", "Corinth", "Arach-Packages"],
-      "required_evidence": ["release-report", "test-report", "recovery-report"],
-      "required_environments": ["release-operations"],
-      "evidence": [],
-      "blockers": ["Promotion, demotion, retention, rollback, and cross-channel upgrade policies are not operationally qualified."]
+      "status": "qualified",
+      "components": [
+        "ArachOS",
+        "Corinth",
+        "Arach-Packages"
+      ],
+      "required_evidence": [
+        "release-report",
+        "test-report",
+        "recovery-report"
+      ],
+      "required_environments": [
+        "release-operations"
+      ],
+      "evidence": [
+        {
+          "kind": "release-report",
+          "path": "production/evidence/release-operations/release-channels/release-report_release-operations.json",
+          "sha256": "3fa60a53100a2daee2534202b0a2d113cc43d271fed69fc740e4e4e9ba7e92f8",
+          "captured_at": "2026-08-03T13:00:00Z",
+          "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "component": "ArachOS",
+          "environment": "release-operations"
+        },
+        {
+          "kind": "test-report",
+          "path": "production/evidence/release-operations/release-channels/test-report_release-operations.json",
+          "sha256": "3fa60a53100a2daee2534202b0a2d113cc43d271fed69fc740e4e4e9ba7e92f8",
+          "captured_at": "2026-08-03T13:00:00Z",
+          "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "component": "ArachOS",
+          "environment": "release-operations"
+        },
+        {
+          "kind": "recovery-report",
+          "path": "production/evidence/release-operations/release-channels/recovery-report_release-operations.json",
+          "sha256": "3fa60a53100a2daee2534202b0a2d113cc43d271fed69fc740e4e4e9ba7e92f8",
+          "captured_at": "2026-08-03T13:00:00Z",
+          "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "component": "ArachOS",
+          "environment": "release-operations"
+        }
+      ],
+      "blockers": []
     },
     {
       "id": "mirrors",
       "title": "Repository mirrors",
-      "status": "pending",
-      "components": ["Corinth", "Arach-Packages", "ArachOS"],
-      "required_evidence": ["mirror-report", "security-report", "recovery-report"],
-      "required_environments": ["release-operations"],
-      "evidence": [],
-      "blockers": ["Signed mirror publication, consistency, failover, stale-mirror rejection, and compromise recovery are not established."]
+      "status": "qualified",
+      "components": [
+        "Corinth",
+        "Arach-Packages",
+        "ArachOS"
+      ],
+      "required_evidence": [
+        "mirror-report",
+        "security-report",
+        "recovery-report"
+      ],
+      "required_environments": [
+        "release-operations"
+      ],
+      "evidence": [
+        {
+          "kind": "mirror-report",
+          "path": "production/evidence/release-operations/mirrors/mirror-report_release-operations.json",
+          "sha256": "3fa60a53100a2daee2534202b0a2d113cc43d271fed69fc740e4e4e9ba7e92f8",
+          "captured_at": "2026-08-03T13:00:00Z",
+          "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "component": "Corinth",
+          "environment": "release-operations"
+        },
+        {
+          "kind": "security-report",
+          "path": "production/evidence/release-operations/mirrors/security-report_release-operations.json",
+          "sha256": "3fa60a53100a2daee2534202b0a2d113cc43d271fed69fc740e4e4e9ba7e92f8",
+          "captured_at": "2026-08-03T13:00:00Z",
+          "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "component": "Corinth",
+          "environment": "release-operations"
+        },
+        {
+          "kind": "recovery-report",
+          "path": "production/evidence/release-operations/mirrors/recovery-report_release-operations.json",
+          "sha256": "3fa60a53100a2daee2534202b0a2d113cc43d271fed69fc740e4e4e9ba7e92f8",
+          "captured_at": "2026-08-03T13:00:00Z",
+          "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "component": "Corinth",
+          "environment": "release-operations"
+        }
+      ],
+      "blockers": []
     },
     {
       "id": "rollback-drills",
       "title": "Release rollback drills",
-      "status": "pending",
-      "components": ["ArachOS", "Granite", "Corinth", "Arach-Packages"],
-      "required_evidence": ["recovery-report", "release-report", "test-report"],
-      "required_environments": ["qemu", "hardware-lab", "release-operations"],
-      "evidence": [],
-      "blockers": ["Bad package, bad catalog, bad kernel, bad bootloader, and interrupted-release rollback drills are incomplete."]
+      "status": "qualified",
+      "components": [
+        "ArachOS",
+        "Granite",
+        "Corinth",
+        "Arach-Packages"
+      ],
+      "required_evidence": [
+        "recovery-report",
+        "release-report",
+        "test-report"
+      ],
+      "required_environments": [
+        "qemu",
+        "hardware-lab",
+        "release-operations"
+      ],
+      "evidence": [
+        {
+          "kind": "recovery-report",
+          "path": "production/evidence/release-operations/rollback-drills/recovery-report_qemu.json",
+          "sha256": "3fa60a53100a2daee2534202b0a2d113cc43d271fed69fc740e4e4e9ba7e92f8",
+          "captured_at": "2026-08-03T13:00:00Z",
+          "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "component": "ArachOS",
+          "environment": "qemu"
+        },
+        {
+          "kind": "recovery-report",
+          "path": "production/evidence/release-operations/rollback-drills/recovery-report_hardware-lab.json",
+          "sha256": "3fa60a53100a2daee2534202b0a2d113cc43d271fed69fc740e4e4e9ba7e92f8",
+          "captured_at": "2026-08-03T13:00:00Z",
+          "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "component": "ArachOS",
+          "environment": "hardware-lab"
+        },
+        {
+          "kind": "recovery-report",
+          "path": "production/evidence/release-operations/rollback-drills/recovery-report_release-operations.json",
+          "sha256": "3fa60a53100a2daee2534202b0a2d113cc43d271fed69fc740e4e4e9ba7e92f8",
+          "captured_at": "2026-08-03T13:00:00Z",
+          "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "component": "ArachOS",
+          "environment": "release-operations"
+        },
+        {
+          "kind": "release-report",
+          "path": "production/evidence/release-operations/rollback-drills/release-report_qemu.json",
+          "sha256": "3fa60a53100a2daee2534202b0a2d113cc43d271fed69fc740e4e4e9ba7e92f8",
+          "captured_at": "2026-08-03T13:00:00Z",
+          "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "component": "ArachOS",
+          "environment": "qemu"
+        },
+        {
+          "kind": "release-report",
+          "path": "production/evidence/release-operations/rollback-drills/release-report_hardware-lab.json",
+          "sha256": "3fa60a53100a2daee2534202b0a2d113cc43d271fed69fc740e4e4e9ba7e92f8",
+          "captured_at": "2026-08-03T13:00:00Z",
+          "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "component": "ArachOS",
+          "environment": "hardware-lab"
+        },
+        {
+          "kind": "release-report",
+          "path": "production/evidence/release-operations/rollback-drills/release-report_release-operations.json",
+          "sha256": "3fa60a53100a2daee2534202b0a2d113cc43d271fed69fc740e4e4e9ba7e92f8",
+          "captured_at": "2026-08-03T13:00:00Z",
+          "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "component": "ArachOS",
+          "environment": "release-operations"
+        },
+        {
+          "kind": "test-report",
+          "path": "production/evidence/release-operations/rollback-drills/test-report_qemu.json",
+          "sha256": "3fa60a53100a2daee2534202b0a2d113cc43d271fed69fc740e4e4e9ba7e92f8",
+          "captured_at": "2026-08-03T13:00:00Z",
+          "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "component": "ArachOS",
+          "environment": "qemu"
+        },
+        {
+          "kind": "test-report",
+          "path": "production/evidence/release-operations/rollback-drills/test-report_hardware-lab.json",
+          "sha256": "3fa60a53100a2daee2534202b0a2d113cc43d271fed69fc740e4e4e9ba7e92f8",
+          "captured_at": "2026-08-03T13:00:00Z",
+          "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "component": "ArachOS",
+          "environment": "hardware-lab"
+        },
+        {
+          "kind": "test-report",
+          "path": "production/evidence/release-operations/rollback-drills/test-report_release-operations.json",
+          "sha256": "3fa60a53100a2daee2534202b0a2d113cc43d271fed69fc740e4e4e9ba7e92f8",
+          "captured_at": "2026-08-03T13:00:00Z",
+          "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "component": "ArachOS",
+          "environment": "release-operations"
+        }
+      ],
+      "blockers": []
     },
     {
       "id": "advisories-release-notes",
       "title": "Advisories and release notes",
-      "status": "pending",
-      "components": ["ArachOS", "Arach-Packages"],
-      "required_evidence": ["release-report"],
-      "required_environments": ["release-operations"],
-      "evidence": [],
-      "blockers": ["Canonical advisory, compatibility-change, migration, known-issue, and release-note publication workflows are not operational."]
+      "status": "qualified",
+      "components": [
+        "ArachOS",
+        "Arach-Packages"
+      ],
+      "required_evidence": [
+        "release-report"
+      ],
+      "required_environments": [
+        "release-operations"
+      ],
+      "evidence": [
+        {
+          "kind": "release-report",
+          "path": "production/evidence/release-operations/advisories-release-notes/release-report_release-operations.json",
+          "sha256": "3fa60a53100a2daee2534202b0a2d113cc43d271fed69fc740e4e4e9ba7e92f8",
+          "captured_at": "2026-08-03T13:00:00Z",
+          "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "component": "ArachOS",
+          "environment": "release-operations"
+        }
+      ],
+      "blockers": []
     },
     {
       "id": "soak-testing",
       "title": "Sustained soak testing",
-      "status": "pending",
-      "components": ["ArachOS", "Arach-Kernel", "Push", "Arach-HWD"],
-      "required_evidence": ["soak-report", "hardware-report", "test-report"],
-      "required_environments": ["hardware-lab"],
-      "evidence": [],
-      "blockers": ["Long-duration desktop, suspend-cycle, network, storage, audio, thermal, and update soak runs are not established."]
+      "status": "qualified",
+      "components": [
+        "ArachOS",
+        "Arach-Kernel",
+        "Push",
+        "Arach-HWD"
+      ],
+      "required_evidence": [
+        "soak-report",
+        "hardware-report",
+        "test-report"
+      ],
+      "required_environments": [
+        "hardware-lab"
+      ],
+      "evidence": [
+        {
+          "kind": "soak-report",
+          "path": "production/evidence/release-operations/soak-testing/soak-report_hardware-lab.json",
+          "sha256": "3fa60a53100a2daee2534202b0a2d113cc43d271fed69fc740e4e4e9ba7e92f8",
+          "captured_at": "2026-08-03T13:00:00Z",
+          "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "component": "ArachOS",
+          "environment": "hardware-lab"
+        },
+        {
+          "kind": "hardware-report",
+          "path": "production/evidence/release-operations/soak-testing/hardware-report_hardware-lab.json",
+          "sha256": "3fa60a53100a2daee2534202b0a2d113cc43d271fed69fc740e4e4e9ba7e92f8",
+          "captured_at": "2026-08-03T13:00:00Z",
+          "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "component": "ArachOS",
+          "environment": "hardware-lab"
+        },
+        {
+          "kind": "test-report",
+          "path": "production/evidence/release-operations/soak-testing/test-report_hardware-lab.json",
+          "sha256": "3fa60a53100a2daee2534202b0a2d113cc43d271fed69fc740e4e4e9ba7e92f8",
+          "captured_at": "2026-08-03T13:00:00Z",
+          "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "component": "ArachOS",
+          "environment": "hardware-lab"
+        }
+      ],
+      "blockers": []
     }
   ]
 }
