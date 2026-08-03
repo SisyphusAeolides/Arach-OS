@@ -116,3 +116,10 @@ list into concrete acceptance checkpoints. It is the implementation target for t
   native, rebuilt, compatibility runtime, container, or managed VM.
 - Current status: `in_progress`
 - Route enforcement: [`UNIVERSAL_ROUTE_GATE.md`](UNIVERSAL_ROUTE_GATE.md)
+
+## Release graph synchronization
+
+The ArachOS component lock and the Arach-Packages `arach-kernel` recipe both
+resolve the immutable Arach-Kernel revision
+`d9bbe05e5b9d626b34ff208dc8182b3f68b1eabd`; CI verifies this relationship before
+image composition.
