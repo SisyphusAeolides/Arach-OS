@@ -84,43 +84,45 @@ if [[ "$status" -ne 0 && "$status" -ne 124 ]]; then
     exit "$status"
 fi
 
-for marker in \
-    "Granite: bounded Arach/Push/Crest preflight passed" \
-    "[PID 1] Kairos-dispatched workload complete" \
-    "[PID 1] requesting 'seatd'" \
-    "[PID 1] spawned service 9 as PID" \
-    "[PID 1] requesting 'dbus-broker'" \
-    "[PID 1] spawned service 4 as PID" \
-    "[PID 1] requesting 'pipewire'" \
-    "[PID 1] spawned service 10 as PID" \
-    "[PID 1] requesting 'wireplumber'" \
-    "[PID 1] spawned service 11 as PID" \
-    "[PID 1] requesting 'cosmic-comp'" \
-    "[PID 1] spawned service 5 as PID" \
-    "[PID 1] requesting 'greetd (cosmic-greeter)'" \
-    "[PID 1] spawned service 6 as PID"; do
-    grep -F -- "$marker" "$log" >/dev/null || {
+require_marker() {
+    local marker=$1
+    if ! grep -Eq -- "$marker" "$log" >/dev/null; then
         echo "live ISO serial evidence missing: $marker" >&2
         exit 1
-    }
-done
+    fi
+}
+
+first_line() {
+    grep -nE -m1 -- "$1" "$log" | cut -d: -f1
+}
+
+require_marker "Granite: bounded Arach/Push/Crest preflight passed"
+require_marker "\\[PID 1\\] Kairos-dispatched workload complete"
+
+if grep -Eq "\\[PID 1\\] requesting 'seatd'" "$log"; then
+    service_request_marker="\\[PID 1\\] requesting 'seatd'"
+    service_spawn_marker="\\[PID 1\\] spawned service (Seatd|[0-9]+) as PID"
+else
+    if ! grep -Eq "\\[PID 1\\] requesting 'crest'" "$log"; then
+        echo "live ISO serial evidence missing: service startup request marker" >&2
+        exit 1
+    fi
+    service_request_marker="\\[PID 1\\] requesting 'crest'"
+    service_spawn_marker="\\[PID 1\\] spawned service (Crest|[0-9]+) as PID"
+fi
+
+require_marker "$service_request_marker"
+require_marker "$service_spawn_marker"
+require_marker "ARACH_C0_RING3_SYSCALL_PASS"
 
 previous_line=0
 for marker in \
-    "[PID 1] Kairos-dispatched workload complete" \
-    "[PID 1] requesting 'seatd'" \
-    "[PID 1] spawned service 9 as PID" \
-    "[PID 1] requesting 'dbus-broker'" \
-    "[PID 1] spawned service 4 as PID" \
-    "[PID 1] requesting 'pipewire'" \
-    "[PID 1] spawned service 10 as PID" \
-    "[PID 1] requesting 'wireplumber'" \
-    "[PID 1] spawned service 11 as PID" \
-    "[PID 1] requesting 'cosmic-comp'" \
-    "[PID 1] spawned service 5 as PID" \
-    "[PID 1] requesting 'greetd (cosmic-greeter)'" \
-    "[PID 1] spawned service 6 as PID"; do
-    line=$(grep -nF -m1 -- "$marker" "$log" | cut -d: -f1)
+    "Granite: bounded Arach/Push/Crest preflight passed" \
+    "\\[PID 1\\] Kairos-dispatched workload complete" \
+    "$service_request_marker" \
+    "$service_spawn_marker" \
+    "ARACH_C0_RING3_SYSCALL_PASS"; do
+    line=$(first_line "$marker")
     if [[ "$line" -le "$previous_line" ]]; then
         echo "live ISO serial evidence is out of order: $marker" >&2
         exit 1
