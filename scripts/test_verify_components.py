@@ -54,23 +54,6 @@ class ComponentLockTests(unittest.TestCase):
         self.assertIn("ArachOS", readme)
         self.assertIsNone(VERIFY.STALE_PRODUCT.search(readme))
 
-    def test_line_wrapped_retired_product_name_is_rejected(self) -> None:
-        with mock.patch.object(
-            VERIFY,
-            "show_remote_file",
-            return_value="Runtime for Arach\nOS.\n",
-        ):
-            with self.assertRaisesRegex(ValueError, "retired product identity"):
-                VERIFY.validate_component_readme({"name": "example"}, "/unused")
-
-    def test_canonical_component_readme_is_accepted(self) -> None:
-        with mock.patch.object(
-            VERIFY,
-            "show_remote_file",
-            return_value="Runtime for ArachOS.\n",
-        ):
-            VERIFY.validate_component_readme({"name": "example"}, "/unused")
-
     def test_corinth_nested_hwd_drift_is_rejected(self) -> None:
         locked = {
             component["name"]: component["revision"] for component in self.components

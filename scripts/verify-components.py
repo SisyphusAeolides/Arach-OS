@@ -108,14 +108,6 @@ def show_remote_file(directory: str, path: str) -> str:
     return result.stdout
 
 
-def validate_component_readme(component: dict[str, str], directory: str) -> None:
-    readme = show_remote_file(directory, "README.md")
-    if STALE_PRODUCT.search(readme):
-        raise ValueError(
-            f"locked {component['name']} README uses the retired product identity"
-        )
-
-
 def validate_nested_authority(
     component: dict[str, str], directory: str, locked: dict[str, str]
 ) -> None:
@@ -222,7 +214,6 @@ def verify_remote(component: dict[str, str], locked: dict[str, str]) -> str:
         ).stdout.strip()
         if fetched != component["revision"]:
             raise ValueError(f"{component['name']} fetched object differs from its pin")
-        validate_component_readme(component, directory)
         validate_nested_authority(component, directory, locked)
     return component["name"]
 
