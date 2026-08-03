@@ -93,6 +93,8 @@ Qualified readiness evidence must use real immutable revisions and retained
 artifacts; placeholder revisions and mock artifacts are rejected by CI.
 Hardware qualification evidence can be recorded from retained lifecycle
 artifacts with `arach-hwd-record` and verified with `arach-hwd-qualify`.
+COSMIC lifecycle traces can likewise be retained as revision-bound marker
+evidence for QEMU or physical hardware qualification.
 
 ## Validation
 

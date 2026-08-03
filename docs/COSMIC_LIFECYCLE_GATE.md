@@ -52,6 +52,11 @@ cosmic-session.*ready
 
 The run exits non-zero if required markers are missing or out of sequence.
 
+To retain a revision-bound lifecycle artifact, invoke the marker verifier with
+`--evidence`, `--revision`, and either `--environment qemu` or
+`--environment physical-hardware`. Evidence creation is non-overwriting and
+records the serial-log SHA-256 plus the ordered marker locations.
+
 ## Production evidence matrix (not yet automated)
 
 - Installer media and rollback checkpoints are currently validated in existing gates.

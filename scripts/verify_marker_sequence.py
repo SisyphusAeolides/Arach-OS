@@ -4,9 +4,12 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
+import json
 import re
 import sys
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 
 
@@ -78,17 +81,65 @@ def write_report(path: Path, matches: list[MarkerMatch]) -> None:
         raise MarkerSequenceError(f"cannot write marker report {path}: {error}") from error
 
 
+def write_evidence(
+    path: Path,
+    log: Path,
+    matches: list[MarkerMatch],
+    revision: str,
+    environment: str,
+) -> None:
+    if path.exists() or path.is_symlink():
+        raise MarkerSequenceError(f"lifecycle evidence already exists or is unsafe: {path}")
+    if not re.fullmatch(r"[0-9a-f]{40,64}", revision):
+        raise MarkerSequenceError("lifecycle evidence revision must be a full lowercase Git object ID")
+    if len(set(revision)) == 1:
+        raise MarkerSequenceError("lifecycle evidence revision cannot be a placeholder")
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        if path.parent.is_symlink():
+            raise MarkerSequenceError(f"lifecycle evidence parent cannot be a symlink: {path.parent}")
+        document = {
+            "schema": 1,
+            "kind": "cosmic-lifecycle",
+            "environment": environment,
+            "revision": revision,
+            "captured_at": datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z"),
+            "serial_log_sha256": hashlib.sha256(log.read_bytes()).hexdigest(),
+            "markers": [{"pattern": match.pattern, "line_number": match.line_number} for match in matches],
+        }
+        with path.open("x", encoding="utf-8") as stream:
+            json.dump(document, stream, separators=(",", ":"), sort_keys=True)
+            stream.write("\n")
+    except OSError as error:
+        raise MarkerSequenceError(f"cannot write lifecycle evidence {path}: {error}") from error
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--log", required=True, type=Path)
     parser.add_argument("--report", type=Path)
+    parser.add_argument("--evidence", type=Path)
+    parser.add_argument("--revision")
+    parser.add_argument("--environment", choices=("qemu", "physical-hardware"))
     parser.add_argument("--marker", action="append", dest="markers", default=[])
     arguments = parser.parse_args()
 
     try:
+        if (arguments.evidence is None) != (arguments.revision is None):
+            raise MarkerSequenceError("--evidence and --revision must be supplied together")
+        if arguments.evidence is not None and arguments.environment is None:
+            raise MarkerSequenceError("--evidence requires --environment")
         matches = verify_sequence(load_lines(arguments.log), arguments.markers)
         if arguments.report is not None:
             write_report(arguments.report, matches)
+        if arguments.evidence is not None:
+            write_evidence(
+                arguments.evidence,
+                arguments.log,
+                matches,
+                arguments.revision,
+                arguments.environment,
+            )
     except MarkerSequenceError as error:
         print(error, file=sys.stderr)
         return 1
