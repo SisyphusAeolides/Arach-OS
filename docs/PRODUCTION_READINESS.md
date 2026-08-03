@@ -89,6 +89,7 @@ list into concrete acceptance checkpoints. It is the implementation target for t
   privilege separation, app sandboxing, key management + rotation/revocation, SBOMs,
   attestations, reproducible builds, vuln intake, and patch SLAs.
 - Current status: `in_progress`
+- Concrete control checklist: [`SECURITY_GATE.md`](SECURITY_GATE.md)
 
 ## 12. Hardware lab and release operations
 
