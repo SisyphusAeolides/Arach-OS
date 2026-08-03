@@ -1,69 +1,93 @@
-# Arach OS installer integration
+# ArachOS installer integration
 
-The installer configuration targets Calamares 3.4.2 at the exact peeled Git
-object recorded in `contract.toml`. The COSMIC live session installs the
-canonical Arach branding asset into the Calamares branding directory according
-to the measured asset mapping in that contract.
-
-The live session uses `greetd` with the pinned `seatd`, PipeWire, and
-WirePlumber runtime services plus the pinned COSMIC
-`/etc/greetd/cosmic-greeter.toml` configuration; SDDM is intentionally not a
-runtime dependency. The complete COSMIC install tree, greeter launcher,
-terminal, portal, and display-manager binary are required before the image is
+The ArachOS installer targets the exact Calamares revision recorded in
+[`contract.toml`](contract.toml). The COSMIC live session installs the canonical
+ArachOS branding asset into Calamares and requires the complete display,
+session, portal, audio, and installer runtime before the image can be
 published.
 
-The hardware catalog is equally complete at the discovery boundary. Its lock
-ships signed profile/index data plus hashed `modules.alias`, `modules.dep`,
-`modules.builtin`, `modules.firmware`, and `modules.builtin.modinfo` snapshots under
-`/etc/arach/hwd/driver-sources`. Calamares feeds those exact tables to
-`arach-hwd` before it considers live, target, or offline module roots, so
-Wi-Fi, audio, graphics, storage, input, Bluetooth, and firmware lookup is
-reproducible for the target rather than dependent on the temporary live
-kernel.
+## Runtime boundary
 
-The external `arachtransaction` module has two instances. `prepare` runs before
-the partition job and requires `arach-install` to create the immutable plan and
-recovery journal. `commit` runs after the root filesystem has been mounted and
-unpacked; it applies and verifies the plan, invoking rollback on failure.
+The live session uses:
 
-Calamares retains user and root passwords and the LUKS passphrase. The
-transaction handoff is an allowlist and never reads or serializes those keys. It
-invokes binaries with argument arrays and never through a shell.
+- `seatd` for seat permissions;
+- `greetd` and the pinned COSMIC greeter configuration;
+- `dbus-broker` for desktop IPC;
+- PipeWire and WirePlumber for media policy;
+- `cosmic-comp`, `cosmic-greeter`, `cosmic-session`, and the COSMIC portal;
+- `arach-install` for the journaled target transaction.
 
-`arach-install prepare` validates the private state document and Corinth
-generation, then binds both to a private canonical plan and SHA-256 journal.
-It also binds the SHA-256 of the live boot-bundle manifest. Apply persists a
-second recovery bundle under the mounted target before it publishes Corinth
-authority, then atomically installs the manifest-verified Granite, Arach, Push,
-and C0 probe artifacts into the EFI layout. The C0 probe is stored under the
-legacy `crest` boot slot and is not a desktop environment. Verify re-hashes
-those files, and
-Calamares rolls both boot files and Corinth authority back on failure; after a
-restart, `arach-install recover --target <root>` performs the same recovery
-from the target bundle. The complete live ISO and bounded QEMU/C0 session gate
-remain separate release work.
+SDDM is not part of the ArachOS runtime path.
 
-The production native-COSMIC bundle contains the complete measured service
-set: `seatd`, `dbus-broker`, `pipewire`, `wireplumber`, `cosmic-comp`,
-`cosmic-greeter`, `cosmic-session`, and `xdg-desktop-portal-cosmic`. The
-installer accepts this set only when all eight ELF files and all eight manifest
-digests are present; partial sets are rejected. The C0-only four-artifact
-bundle remains valid for the compatibility qualification path.
+## Hardware preflight
 
-The boot bundle directory is fixed and contains:
+The signed hardware catalog contains profiles, detached signatures, package
+metadata, and target-kernel evidence. Its lock covers:
+
+- `modules.alias`;
+- `modules.dep`;
+- `modules.builtin`;
+- `modules.firmware`;
+- `modules.builtin.modinfo`.
+
+Calamares passes those exact files to Arach-HWD before partitioning. A live
+Linux driver binding is not treated as proof that the target Arach kernel has a
+qualified driver. Unresolved physical devices remain a hard failure unless the
+operation is explicitly inventory-only.
+
+## Transaction lifecycle
+
+The external `arachtransaction` module has two instances:
+
+1. `prepare` runs before storage mutation and requires `arach-install` to create
+   the immutable plan and recovery journal.
+2. `commit` runs after the target root is mounted and unpacked; it applies and
+   verifies the plan and invokes rollback on failure.
+
+The handoff excludes user passwords, the root password, and the LUKS
+passphrase. Commands are executed as argument arrays and never through a shell.
+
+`arach-install prepare` validates the private state document, Corinth
+generation, and live boot-bundle manifest. Apply persists a recovery bundle on
+the target before publishing package authority and atomically activates the
+measured Granite, Arach, Push, and bootstrap artifacts. Verify re-hashes those
+artifacts. `arach-install recover --target <root>` restores the same state after
+a restart.
+
+## Boot bundle
+
+The complete native COSMIC bundle contains:
 
 ```text
-manifest.json       # schema = 1, four base fields plus eight COSMIC fields
-granite.efi         # PE/COFF UEFI image
-arach               # ELF kernel image
-push                # ELF PID 1 image
-crest               # ELF measured C0 bootstrap/probe image; not a desktop
-seatd               # native COSMIC seat/session permission service
-dbus-broker         # native COSMIC D-Bus service
-pipewire            # native COSMIC audio/video service
-wireplumber         # native COSMIC session manager
-cosmic-comp         # native COSMIC compositor
-cosmic-greeter      # native COSMIC greeter
-cosmic-session      # native COSMIC session
-xdg-desktop-portal-cosmic # native COSMIC portal
+manifest.json
+granite.efi
+arach
+push
+crest
+seatd
+dbus-broker
+pipewire
+wireplumber
+cosmic-comp
+cosmic-greeter
+cosmic-session
+xdg-desktop-portal-cosmic
 ```
+
+The lowercase `crest` file is the measured C0 bootstrap/probe compatibility
+slot. It is not a desktop environment, package, compositor, session, or
+greeter.
+
+The installer accepts the native COSMIC bundle only when every required ELF
+file and manifest digest is present. Partial service sets are rejected. The
+four-artifact C0 bundle remains a separate compatibility qualification path.
+
+## Certification
+
+Installer qualification is tracked by
+[`../production/installer-recovery.json`](../production/installer-recovery.json).
+Clean install, reinstall, dual boot, encryption, TPM recovery, Secure Boot,
+interrupted partitioning, disk full, corrupted cache, power loss, failed-kernel
+rollback, rescue media, and major-version upgrade remain independently
+certified scenarios. A scenario cannot pass without hash-bound recovery, boot,
+and COSMIC evidence.
