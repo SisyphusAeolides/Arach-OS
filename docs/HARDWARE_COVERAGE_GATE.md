@@ -30,6 +30,28 @@ This gate expands kernel and userspace driver coverage beyond baseline installer
 - driver resolution trace
 - rollback or compatibility-route evidence where native paths are not available
 
+## Completed bounded implementation scope
+
+The implementation portion of this gate is complete and enforced across the
+ArachOS integration graph:
+
+- Arach-HWD records exact bus, modalias, module, firmware, target-kernel, and
+  source-table provenance before it can emit a plan.
+- Signed profiles bind the device identity, Driver ABI, package intent,
+  firmware digest, health checks, rollback policy, and any closed compiler
+  feature policy.
+- Corinth accepts only the signed HWD plan and the signed package index or the
+  pinned Arach-Packages recipe; unresolved hardware fails closed.
+- Installer preflight compares live and target-kernel evidence and rejects a
+  live-kernel binding that is absent from the target profile.
+- Native-driver, rebuilt-driver, and bounded compatibility routes are distinct
+  and measured; none is silently promoted to universal support.
+
+The remaining qualification work is evidence collection on representative
+physical systems for each matrix class, including suspend/resume, hot-plug,
+firmware, power, display, audio, networking, and rollback behavior. QEMU,
+static matrix fixtures, and CI success do not substitute for that evidence.
+
 ## Current status
 
 `in_progress`  

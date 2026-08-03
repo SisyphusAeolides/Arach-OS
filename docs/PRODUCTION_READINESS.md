@@ -32,6 +32,10 @@ list into concrete acceptance checkpoints. It is the implementation target for t
   hibernation, hot-plug; plus bounded Linux compatibility for non-native drivers.
 - Current status: `in_progress`
 - Coverage matrix: [`HARDWARE_COVERAGE_GATE.md`](HARDWARE_COVERAGE_GATE.md)
+- Implementation status: the signed inventory, target-kernel provenance,
+  Driver ABI, package-index, compatibility-route, and rollback boundaries are
+  enforced. Physical matrix qualification remains the only open portion of
+  this gate.
 
 ## 4. Automatic Corinth repository service
 

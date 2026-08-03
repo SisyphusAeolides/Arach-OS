@@ -1061,7 +1061,12 @@ mod tests {
         let root = Path::new(env!("CARGO_MANIFEST_DIR"));
         let text = fs::read_to_string(root.join("live/system.toml")).unwrap();
         let mut system = parse_live_system_contract(&text).unwrap();
-        let mut provider = system.provider.iter().find(|p| p.name == "cosmic-desktop").cloned().unwrap();
+        let mut provider = system
+            .provider
+            .iter()
+            .find(|p| p.name == "cosmic-desktop")
+            .cloned()
+            .unwrap();
         provider.route = Some("magic".into());
         system.provider.retain(|p| p.name != "cosmic-desktop");
         system.provider.push(provider);

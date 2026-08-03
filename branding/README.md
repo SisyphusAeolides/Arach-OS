@@ -10,3 +10,14 @@ the supplied source artwork and has SHA-256 digest:
 All boot, live-session, installer, greeter, desktop, documentation, and release
 derivatives must be generated from this file. Generated sizes belong under
 `branding/generated/`; they must not replace the canonical source.
+
+## Current ArachOS integration status
+
+This project is maintained as part of the ArachOS production graph. Its role is
+the immutable distribution branding inputs used by release verification..
+
+CI and release evidence are evaluated on immutable revisions. Hardware support
+is reported by bounded route and support level; this README does not claim
+universal native support. Gate 3 requires signed hardware identity, target
+kernel provenance, package authority, health checks, rollback behavior, and
+representative physical-hardware evidence before production qualification.
