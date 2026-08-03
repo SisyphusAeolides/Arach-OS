@@ -17,5 +17,5 @@ Every workload must terminate in one explicit execution route:
 
 ## Current status
 
-`in_progress`  
-Route statement is formalized and being wired into package metadata.
+`done`  
+Route statement is formalized and wired into package metadata.

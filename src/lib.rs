@@ -121,6 +121,7 @@ pub struct LiveProvider {
     pub artifact_prefix: String,
     pub layout: String,
     pub required: bool,
+    pub route: Option<String>,
     #[serde(default)]
     pub files: Vec<LiveFile>,
     #[serde(default)]
@@ -590,6 +591,17 @@ pub fn validate_live_system_contract(
                 "provider identity or layout is invalid",
             ));
         }
+        if let Some(route) = &provider.route {
+            if !matches!(
+                route.as_str(),
+                "native" | "rebuilt" | "compatibility-runtime" | "container" | "managed-vm"
+            ) {
+                return Err(CompositionError::new(
+                    format!("live/system.toml.provider.{}", provider.name),
+                    "route must be a valid explicitly labeled execution route",
+                ));
+            }
+        }
         if provider.layout == "tree" && !provider.files.is_empty()
             || provider.layout == "files"
                 && (!provider.aliases.is_empty() || !provider.required_tree_path.is_empty())
@@ -1041,6 +1053,18 @@ mod tests {
             .unwrap();
         forbidden.name = "crest-desktop".into();
         system.provider.push(forbidden);
+        assert!(validate_live_system_contract(&system, root).is_err());
+    }
+
+    #[test]
+    fn invalid_route_is_rejected() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR"));
+        let text = fs::read_to_string(root.join("live/system.toml")).unwrap();
+        let mut system = parse_live_system_contract(&text).unwrap();
+        let mut provider = system.provider.iter().find(|p| p.name == "cosmic-desktop").cloned().unwrap();
+        provider.route = Some("magic".into());
+        system.provider.retain(|p| p.name != "cosmic-desktop");
+        system.provider.push(provider);
         assert!(validate_live_system_contract(&system, root).is_err());
     }
 
