@@ -1,0 +1,148 @@
+{
+  "format": 1,
+  "distribution": "Arach OS",
+  "matrix": "desktop-services",
+  "title": "Desktop services production qualification",
+  "controls": [
+    {
+      "id": "networking",
+      "title": "System networking, routing, hostname, and DNS",
+      "status": "pending",
+      "components": ["Arach-Kernel", "Arach-OS", "Arach-Packages"],
+      "required_evidence": ["test-report", "hardware-report", "service-snapshot"],
+      "required_environments": ["qemu", "physical-hardware"],
+      "evidence": [],
+      "blockers": ["Route, hostname, DNS, and offline-to-online transitions lack complete target-runtime evidence."]
+    },
+    {
+      "id": "wifi-authentication",
+      "title": "Wi-Fi authentication and secrets workflow",
+      "status": "pending",
+      "components": ["Arach-Kernel", "Arach-OS", "Arach-Packages"],
+      "required_evidence": ["test-report", "hardware-report", "security-report"],
+      "required_environments": ["physical-hardware"],
+      "evidence": [],
+      "blockers": ["Personal and enterprise Wi-Fi credential flows are not qualified on target hardware."]
+    },
+    {
+      "id": "time-synchronization",
+      "title": "Time synchronization",
+      "status": "pending",
+      "components": ["Arach-OS", "Arach-Packages"],
+      "required_evidence": ["test-report", "service-snapshot"],
+      "required_environments": ["qemu", "physical-hardware"],
+      "evidence": [],
+      "blockers": ["Wall-clock convergence and trusted source policy are not implemented and qualified end to end."]
+    },
+    {
+      "id": "dbus",
+      "title": "D-Bus service continuity",
+      "status": "implemented",
+      "components": ["Arach-OS", "Push", "Arach-Packages"],
+      "required_evidence": ["test-report", "service-snapshot", "serial-log"],
+      "required_environments": ["qemu", "physical-hardware"],
+      "evidence": [],
+      "blockers": ["The broker is packaged and ordered by Push, but startup, restart, logout, and shutdown continuity lacks full runtime evidence."]
+    },
+    {
+      "id": "portals",
+      "title": "COSMIC desktop portals",
+      "status": "implemented",
+      "components": ["Arach-OS", "Push", "Arach-Packages"],
+      "required_evidence": ["test-report", "service-snapshot"],
+      "required_environments": ["qemu", "physical-hardware"],
+      "evidence": [],
+      "blockers": ["The portal is packaged and ordered after the session, but representative application invocation is not qualified."]
+    },
+    {
+      "id": "audio-bluetooth-audio",
+      "title": "Audio policy and Bluetooth audio",
+      "status": "implemented",
+      "components": ["Arach-Kernel", "Arach-OS", "Push", "Arach-Packages"],
+      "required_evidence": ["test-report", "hardware-report", "service-snapshot"],
+      "required_environments": ["physical-hardware"],
+      "evidence": [],
+      "blockers": ["PipeWire and WirePlumber are packaged and supervised, but native audio devices and Bluetooth profiles are not qualified."]
+    },
+    {
+      "id": "credentials-authorization",
+      "title": "Credentials, accounts, and authorization",
+      "status": "pending",
+      "components": ["Arach-OS", "Push", "Arach-Packages"],
+      "required_evidence": ["security-report", "test-report", "recovery-report"],
+      "required_environments": ["qemu", "physical-hardware"],
+      "evidence": [],
+      "blockers": ["Account lifecycle, secret storage, privilege transitions, and recovery are incomplete."]
+    },
+    {
+      "id": "printing-removable-media",
+      "title": "Printing and removable storage",
+      "status": "pending",
+      "components": ["Arach-Kernel", "Arach-OS", "Arach-Packages"],
+      "required_evidence": ["test-report", "hardware-report"],
+      "required_environments": ["physical-hardware"],
+      "evidence": [],
+      "blockers": ["Printing, hot-plug storage, mount policy, safe removal, and failure recovery are not qualified."]
+    },
+    {
+      "id": "cameras",
+      "title": "Camera stack",
+      "status": "pending",
+      "components": ["Arach-Kernel", "Arach-OS", "Arach-Packages"],
+      "required_evidence": ["test-report", "hardware-report", "security-report"],
+      "required_environments": ["physical-hardware"],
+      "evidence": [],
+      "blockers": ["Camera discovery, capture, portal authorization, suspend, and hot-plug are not qualified."]
+    },
+    {
+      "id": "notifications",
+      "title": "Desktop notifications",
+      "status": "implemented",
+      "components": ["Arach-OS", "Arach-Packages"],
+      "required_evidence": ["test-report", "service-snapshot"],
+      "required_environments": ["qemu", "physical-hardware"],
+      "evidence": [],
+      "blockers": ["COSMIC notification components are in the desktop bundle, but application and lifecycle behavior lacks runtime evidence."]
+    },
+    {
+      "id": "updates-diagnostics",
+      "title": "Automatic updates and diagnostics",
+      "status": "pending",
+      "components": ["Arach-OS", "Corinth", "Arach-Packages"],
+      "required_evidence": ["test-report", "recovery-report", "security-report"],
+      "required_environments": ["qemu", "physical-hardware"],
+      "evidence": [],
+      "blockers": ["Background update policy, user reporting, rollback, diagnostics capture, and redaction are incomplete."]
+    },
+    {
+      "id": "locale-fonts",
+      "title": "Locale and fonts",
+      "status": "pending",
+      "components": ["Arach-OS", "Arach-Packages"],
+      "required_evidence": ["test-report"],
+      "required_environments": ["qemu", "physical-hardware"],
+      "evidence": [],
+      "blockers": ["Locale generation, font coverage, fallback, and installer-to-session persistence are not qualified."]
+    },
+    {
+      "id": "input-accessibility",
+      "title": "Input methods and accessibility",
+      "status": "pending",
+      "components": ["Arach-Kernel", "Arach-OS", "libinput-rs", "Arach-Packages"],
+      "required_evidence": ["test-report", "hardware-report"],
+      "required_environments": ["physical-hardware"],
+      "evidence": [],
+      "blockers": ["Input methods, assistive technology, keyboard indicators, and representative device parity are incomplete."]
+    },
+    {
+      "id": "power-management",
+      "title": "Power management and reconnect",
+      "status": "pending",
+      "components": ["Arach-Kernel", "Arach-OS", "Push", "Arach-HWD"],
+      "required_evidence": ["test-report", "hardware-report", "serial-log"],
+      "required_environments": ["qemu", "physical-hardware"],
+      "evidence": [],
+      "blockers": ["Suspend, resume, device reconnect, session continuity, and shutdown remain unqualified."]
+    }
+  ]
+}
