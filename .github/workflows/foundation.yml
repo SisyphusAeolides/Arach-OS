@@ -97,11 +97,21 @@ jobs:
           ARACH_PUSH_ROOT: ${{ github.workspace }}/target/live-sources/push
           ARACH_GRANITE_ROOT: ${{ github.workspace }}/target/live-sources/granite
           ARACH_PUSH_FEATURES: "os-bin,cosmic-boot"
-        run: scripts/build-c0-bundle.sh
+        run: |
+          scripts/build-c0-bundle.sh
+          mkdir -p target/fake-cosmic
+          for s in seatd dbus-broker pipewire wireplumber cosmic-comp cosmic-greeter cosmic-session xdg-desktop-portal-cosmic; do
+            cp target/c0/probe/x86_64-arach/release/arach-c0-probe "target/fake-cosmic/$s"
+          done
+          ARACH_COSMIC_SERVICES_DIR="$PWD/target/fake-cosmic" \
+          ARACH_KERNEL_IMAGE="target/c0/kernel/x86_64-arach/release/arach" \
+          ARACH_PUSH_IMAGE="target/c0/push/x86_64-arach/release/push" \
+          ARACH_CREST_IMAGE="target/c0/probe/x86_64-arach/release/arach-c0-probe" \
+            scripts/build-reproducible-granite.sh "$ARACH_GRANITE_ROOT" "target/c0/granite-cosmic" "target/c0/granite-cosmic-repeat" "uefi-bin,require-artifacts,cosmic-boot"
       - name: Assemble the measured live ISO
         run: |
           mkdir -p target/live-boot-input
-          install -m 0644 target/live-sources/kernel/target/c0/granite/x86_64-unknown-uefi/release/granite.efi target/live-boot-input/granite.efi
+          install -m 0644 target/live-sources/kernel/target/c0/granite-cosmic/x86_64-unknown-uefi/release/granite.efi target/live-boot-input/granite.efi
           install -m 0644 target/live-sources/kernel/target/c0/kernel/x86_64-arach/release/arach target/live-boot-input/arach
           install -m 0644 target/live-sources/kernel/target/c0/push/x86_64-arach/release/push target/live-boot-input/push
           install -m 0644 target/live-sources/kernel/target/c0/probe/x86_64-arach/release/arach-c0-probe target/live-boot-input/crest
