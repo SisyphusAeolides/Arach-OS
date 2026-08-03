@@ -96,6 +96,7 @@ list into concrete acceptance checkpoints. It is the implementation target for t
   (Certified/Compatible/Experimental), channel operations, mirrors, rollback drills,
   advisories, and soak testing.
 - Current status: `in_progress`
+- Detailed matrix and promotion criteria: [`HARDWARE_LAB_GATE.md`](HARDWARE_LAB_GATE.md)
 
 ## 13. Universal route statement
 
