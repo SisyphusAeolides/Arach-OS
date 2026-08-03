@@ -1,5 +1,5 @@
 format = 1
-distribution = "Arach OS"
+distribution = "ArachOS"
 
 [[component]]
 name = "arach-kernel"
