@@ -28,12 +28,17 @@ jobs:
           rm scripts/repair_distribution_constant.py
           git diff --check
       - name: Validate composition contract
-        run: cargo test --locked repository_composition_is_valid
+        run: |
+          cargo test --locked repository_composition_is_valid
+          if git grep -In -e 'Arach OS' -e 'Arach-OS' -- .; then
+            echo 'retired ArachOS identity remains' >&2
+            exit 1
+          fi
       - name: Commit repaired identity
         run: |
           git config user.name 'SisyphusAeolides'
           git config user.email '37166405+SisyphusAeolides@users.noreply.github.com'
-          git add src/lib.rs scripts/repair_distribution_constant.py
-          git commit -m 'fix: align composition identity'
+          git add -A
+          git commit -m 'fix: complete ArachOS identity migration'
           git pull --rebase origin main
           git push origin HEAD:main
