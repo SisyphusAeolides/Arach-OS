@@ -26,5 +26,5 @@ Route each workload through the most appropriate path and track transitions.
 
 ## Current status
 
-`in_progress`  
-Tier matrix is now explicit; runtime route evidence is next implementation target.
+`complete`  
+Tier matrix is now explicit; runtime route evidence is implemented and enforced.
