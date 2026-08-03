@@ -103,8 +103,19 @@ jobs:
           for s in seatd dbus-broker pipewire wireplumber cosmic-comp cosmic-greeter cosmic-session xdg-desktop-portal-cosmic; do
             cp target/c0/probe/x86_64-arach/release/arach-c0-probe "target/fake-cosmic/$s"
           done
+          
           ARACH_COSMIC_SERVICES_DIR="$PWD/target/fake-cosmic" \
-          ARACH_KERNEL_IMAGE="$PWD/target/c0/kernel/x86_64-arach/release/arach" \
+          ARACH_PUSH_IMAGE="$PWD/target/c0/push/x86_64-arach/release/push" \
+          ARACH_BOOTSTRAP_IMAGE="$PWD/target/c0/probe/x86_64-arach/release/arach-c0-probe" \
+          CARGO_TARGET_DIR="$PWD/target/c0/kernel-cosmic" \
+            cargo build --locked --release -p arach --bin arach \
+                --no-default-features --features kernel-bin,reference-driver,fortran-control \
+                --target x86_64-arach.json -Z json-target-spec \
+                -Z build-std=core,alloc,compiler_builtins \
+                -Z build-std-features=compiler-builtins-mem
+
+          ARACH_COSMIC_SERVICES_DIR="$PWD/target/fake-cosmic" \
+          ARACH_KERNEL_IMAGE="$PWD/target/c0/kernel-cosmic/x86_64-arach/release/arach" \
           ARACH_PUSH_IMAGE="$PWD/target/c0/push/x86_64-arach/release/push" \
           ARACH_CREST_IMAGE="$PWD/target/c0/probe/x86_64-arach/release/arach-c0-probe" \
             scripts/build-reproducible-granite.sh "$ARACH_GRANITE_ROOT" "$PWD/target/c0/granite-cosmic" "$PWD/target/c0/granite-cosmic-repeat" "uefi-bin,require-artifacts,cosmic-boot"
@@ -112,7 +123,7 @@ jobs:
         run: |
           mkdir -p target/live-boot-input
           install -m 0644 target/live-sources/kernel/target/c0/granite-cosmic/x86_64-unknown-uefi/release/granite.efi target/live-boot-input/granite.efi
-          install -m 0644 target/live-sources/kernel/target/c0/kernel/x86_64-arach/release/arach target/live-boot-input/arach
+          install -m 0644 target/live-sources/kernel/target/c0/kernel-cosmic/x86_64-arach/release/arach target/live-boot-input/arach
           install -m 0644 target/live-sources/kernel/target/c0/push/x86_64-arach/release/push target/live-boot-input/push
           install -m 0644 target/live-sources/kernel/target/c0/probe/x86_64-arach/release/arach-c0-probe target/live-boot-input/crest
           ARACH_TEST_BOOT_ARTIFACT_ROOT="$PWD/target/live-boot-input" \
