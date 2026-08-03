@@ -257,6 +257,7 @@ ARACH_LIVE_SESSION_MARKERS=$'cosmic-greeter|COSGREET\nCosmic desktop session rea
 
 Or place the newline-separated patterns in a file and pass it with
 `ARACH_LIVE_SESSION_MARKERS_FILE`.
+Lines starting with `#` are ignored.
 
 The image-construction test accepts `ARACH_TEST_BOOT_ARTIFACT_ROOT` to replace
 its four header fixtures with a directory containing `granite.efi`, `arach`,

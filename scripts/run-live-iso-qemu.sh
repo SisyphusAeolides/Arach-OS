@@ -99,8 +99,16 @@ first_line() {
 collect_markers() {
     local src=$1
     local -n out=$2
+    local -n seen=$3
     while IFS= read -r marker; do
-        if [[ -n "$marker" ]]; then
+        marker=${marker//$'\r'/}
+        marker=${marker#"${marker%%[![:space:]]*}"}
+        marker=${marker%"${marker##*[![:space:]]}"}
+        if [[ -z "$marker" ]] || [[ "$marker" == \#* ]]; then
+            continue
+        fi
+        if [[ -z "${seen[$marker]:-}" ]]; then
+            seen[$marker]=1
             out+=("$marker")
         fi
     done < <(printf '%s\n' "$src")
@@ -126,19 +134,28 @@ require_marker "$service_spawn_marker"
 require_marker "ARACH_C0_RING3_SYSCALL_PASS"
 
 session_markers=()
+declare -A session_markers_seen
 if [[ -n "${ARACH_LIVE_SESSION_MARKERS_FILE:-}" ]]; then
     if [[ ! -f "$ARACH_LIVE_SESSION_MARKERS_FILE" ]]; then
         echo "ARACH_LIVE_SESSION_MARKERS_FILE must point to an existing file" >&2
         exit 1
     fi
     while IFS= read -r marker; do
-        [[ -z "$marker" ]] && continue
-        session_markers+=("$marker")
+        marker=${marker//$'\r'/}
+        marker=${marker#"${marker%%[![:space:]]*}"}
+        marker=${marker%"${marker##*[![:space:]]}"}
+        if [[ -z "$marker" ]] || [[ "$marker" == \#* ]]; then
+            continue
+        fi
+        if [[ -z "${session_markers_seen[$marker]:-}" ]]; then
+            session_markers_seen[$marker]=1
+            session_markers+=("$marker")
+        fi
     done < "$ARACH_LIVE_SESSION_MARKERS_FILE"
 fi
 
 if [[ -n "${ARACH_LIVE_SESSION_MARKERS:-}" ]]; then
-    collect_markers "$ARACH_LIVE_SESSION_MARKERS" session_markers
+    collect_markers "$ARACH_LIVE_SESSION_MARKERS" session_markers session_markers_seen
 fi
 
 previous_line=0
