@@ -1,0 +1,36 @@
+name: Production control matrices
+
+on:
+  push:
+    paths:
+      - production/control-matrices/**
+      - production/evidence/desktop-services/**
+      - production/evidence/security/**
+      - production/evidence/release-operations/**
+      - scripts/verify_control_matrices.py
+      - tests/test_control_matrices.py
+      - .github/workflows/control-matrices.yml
+  pull_request:
+    paths:
+      - production/control-matrices/**
+      - production/evidence/desktop-services/**
+      - production/evidence/security/**
+      - production/evidence/release-operations/**
+      - scripts/verify_control_matrices.py
+      - tests/test_control_matrices.py
+      - .github/workflows/control-matrices.yml
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - name: Validate control matrices
+        run: python3 scripts/verify_control_matrices.py --root .
+      - name: Test qualification policy
+        run: python3 -m unittest tests/test_control_matrices.py
+      - name: Check repository whitespace
+        run: git diff --check
