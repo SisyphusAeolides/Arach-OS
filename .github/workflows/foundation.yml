@@ -131,6 +131,7 @@ jobs:
             scripts/test-live-root.sh
       - name: Execute the measured live ISO under QEMU/OVMF
         run: |
+          ARACH_LIVE_MARKER_REPORT="$PWD/target/arach-os-c0.marker.tsv" \
           scripts/run-live-iso-qemu.sh \
             "$PWD/target/arach-os-c0.iso" \
             "$PWD/target/arach-os-c0.serial.log"
@@ -142,4 +143,5 @@ jobs:
           path: |
             target/arach-os-c0.iso.json
             target/arach-os-c0.serial.log
+            target/arach-os-c0.marker.tsv
           if-no-files-found: warn

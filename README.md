@@ -262,6 +262,13 @@ ARACH_LIVE_COSMIC_LIFECYCLE_MARKERS_FILE="$PWD/docs/COSMIC_LIFECYCLE_MARKERS.sam
   scripts/run-live-iso-qemu.sh /absolute/path/to/arach-os.iso
 ```
 
+If you want a structured gate report, set `ARACH_LIVE_MARKER_REPORT`:
+
+```sh
+ARACH_LIVE_MARKER_REPORT=./target/arach-os-c0.marker.tsv \
+  scripts/run-live-iso-qemu.sh /absolute/path/to/arach-os.iso
+```
+
 Or place the newline-separated patterns in a file and pass it with
 `ARACH_LIVE_SESSION_MARKERS_FILE`.
 Lines starting with `#` are ignored.

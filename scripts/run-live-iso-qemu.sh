@@ -96,6 +96,11 @@ first_line() {
     grep -nE -m1 -- "$1" "$log" | cut -d: -f1
 }
 
+tsv_escape() {
+    local value=$1
+    printf '%s' "$value" | sed -e 's/\\/\\\\/g' -e 's/\t/\\t/g' -e 's/\r/\\r/g'
+}
+
 collect_markers() {
     local src=$1
     local -n out=$2
@@ -178,6 +183,8 @@ if [[ -n "${ARACH_LIVE_COSMIC_LIFECYCLE_MARKERS:-}" ]]; then
 fi
 
 previous_line=0
+checked_marker_lines=()
+checked_markers=()
 for marker in \
     "Granite: bounded Arach/Push/Crest preflight passed" \
     "\\[PID 1\\] Kairos-dispatched workload complete" \
@@ -196,7 +203,18 @@ for marker in \
         exit 1
     fi
     previous_line=$line
+    checked_markers+=("$marker")
+    checked_marker_lines+=("$line")
 done
+
+if [[ -n "${ARACH_LIVE_MARKER_REPORT:-}" ]]; then
+    {
+        echo -e "marker\tline_number"
+        for i in "${!checked_markers[@]}"; do
+            echo -e "$(tsv_escape "${checked_markers[$i]}")\t${checked_marker_lines[$i]}"
+        done
+    } >"${ARACH_LIVE_MARKER_REPORT}"
+fi
 
 if [[ "$status" -eq 124 ]]; then
     echo "live ISO execution gate passed before bounded QEMU timeout: $log"
