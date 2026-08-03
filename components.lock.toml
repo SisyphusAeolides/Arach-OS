@@ -4,7 +4,7 @@ distribution = "Arach OS"
 [[component]]
 name = "arach-kernel"
 repository = "https://github.com/SisyphusAeolides/Arach-Kernel.git"
-revision = "46a8b9ce1b8cbcf6b645456ac46bde7a10156c54"
+revision = "d5fc48b7291b0222459b743f474e701baf999c7a"
 role = "kernel"
 
 [[component]]
@@ -16,7 +16,7 @@ role = "userspace-abi"
 [[component]]
 name = "push"
 repository = "https://github.com/SisyphusAeolides/Push.git"
-revision = "5bd361b86c048b60b6a8422a8e173ea0ec867bff"
+revision = "74b8db4640401c367fcfd1a6a9ba5f3fddd3860b"
 role = "pid1"
 
 [[component]]
@@ -28,19 +28,19 @@ role = "bootloader"
 [[component]]
 name = "corinth"
 repository = "https://github.com/SisyphusAeolides/Corinth.git"
-revision = "585623e998ef8a07db69199fbbb61d07daa6dc07"
+revision = "015c734ecfed3c78760545a5e598f672807349b1"
 role = "package-manager"
 
 [[component]]
 name = "arach-packages"
 repository = "https://github.com/SisyphusAeolides/Arach-Packages.git"
-revision = "ad0983ee53f2b5aab425e022927d251fcfb94f8b"
+revision = "6de10112d785bdc37268ba3015feddfae2696bd9"
 role = "package-recipes"
 
 [[component]]
 name = "arach-hwd"
 repository = "https://github.com/SisyphusAeolides/Arach-HWD.git"
-revision = "8a02fa4a41d5e21b447a92414db23b4b706f3731"
+revision = "a04ed76bd291612efbae807a9b709364874da498"
 role = "hardware-provisioning"
 
 [[component]]
