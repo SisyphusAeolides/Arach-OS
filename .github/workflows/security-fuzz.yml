@@ -1,0 +1,55 @@
+name: Security fuzzing
+
+on:
+  push:
+    paths:
+      - production/readiness.json
+      - production/installer-recovery.json
+      - production/threat-model.json
+      - production/control-matrices/**
+      - scripts/verify_production_readiness.py
+      - scripts/verify_installer_recovery.py
+      - scripts/verify_threat_model.py
+      - scripts/verify_control_matrices.py
+      - scripts/fuzz_control_documents.py
+      - tests/test_control_fuzzer.py
+      - .github/workflows/security-fuzz.yml
+  pull_request:
+    paths:
+      - production/readiness.json
+      - production/installer-recovery.json
+      - production/threat-model.json
+      - production/control-matrices/**
+      - scripts/verify_production_readiness.py
+      - scripts/verify_installer_recovery.py
+      - scripts/verify_threat_model.py
+      - scripts/verify_control_matrices.py
+      - scripts/fuzz_control_documents.py
+      - tests/test_control_fuzzer.py
+      - .github/workflows/security-fuzz.yml
+
+permissions:
+  contents: read
+
+jobs:
+  bounded-mutations:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - name: Fuzz production control documents
+        run: >-
+          python3 scripts/fuzz_control_documents.py
+          --root .
+          --cases 5000
+          --seed 0xA2AC0DE2026
+          --report target/control-fuzz.json
+      - name: Test fuzzing invariants
+        run: python3 -m unittest tests/test_control_fuzzer.py
+      - name: Upload fuzz report
+        uses: actions/upload-artifact@v4
+        with:
+          name: arach-control-fuzz-${{ github.sha }}
+          path: target/control-fuzz.json
+          if-no-files-found: error
+      - name: Check repository whitespace
+        run: git diff --check
