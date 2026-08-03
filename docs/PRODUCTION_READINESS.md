@@ -81,6 +81,7 @@ list into concrete acceptance checkpoints. It is the implementation target for t
   Bluetooth audio, credentials/authz, printing, storage/media/cameras/notifications,
   updates, diagnostics, locale/fonts, input methods, accessibility, power.
 - Current status: `in_progress`
+- Detailed service checklist: [`DESKTOP_SERVICES_GATE.md`](DESKTOP_SERVICES_GATE.md)
 
 ## 11. Security qualification
 
