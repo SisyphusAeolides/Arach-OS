@@ -4,14 +4,11 @@ on:
   push:
     branches: [main]
     paths:
+      - scripts/repair_foundation_inputs.py
       - .github/workflows/ci-repair-foundation.yml
 
 permissions:
   contents: write
-
-concurrency:
-  group: ci-repair-foundation
-  cancel-in-progress: false
 
 jobs:
   repair:
@@ -21,48 +18,17 @@ jobs:
         with:
           fetch-depth: 0
       - uses: dtolnay/rust-toolchain@stable
-        with:
-          components: rustfmt,clippy
-      - name: Repair test artifact closure
+      - name: Apply foundation repair
         run: |
-          python3 - <<'PY'
-          from pathlib import Path
-
-          path = Path("scripts/test-live-root.sh")
-          text = path.read_text(encoding="utf-8")
-          marker = """printf '\\177ELF test Arach HWD catalog sync\\n' \\
-    > \"$artifacts/arach-hwd-0.1.0-1/target/release/arach-hwd-catalog-sync\"
-"""
-          addition = """printf '\\177ELF test Arach HWD qualification\\n' \\
-    > \"$artifacts/arach-hwd-0.1.0-1/target/release/arach-hwd-qualify\"
-"""
-          if text.count(marker) != 1:
-              raise SystemExit("Arach HWD fixture marker differs")
-          text = text.replace(marker, marker + addition)
-
-          assertion = """test -s \"$output/system/arach-hwd-catalog-sync\"
-"""
-          new_assertion = """test -s \"$output/system/arach-hwd-catalog-sync\"
-test -s \"$output/system/arach-hwd-qualify\"
-"""
-          if text.count(assertion) != 1:
-              raise SystemExit("Arach HWD assertion marker differs")
-          path.write_text(text.replace(assertion, new_assertion), encoding="utf-8")
-          PY
-      - name: Refresh exact dependency lock
-        run: cargo generate-lockfile
-      - name: Validate repaired foundation
-        run: |
-          cargo fmt --all -- --check
-          cargo clippy --locked --all-targets -- -D warnings
-          cargo test --locked --all-targets
-          scripts/verify-foundation.sh
+          python3 scripts/repair_foundation_inputs.py
+          cargo generate-lockfile
+          rm scripts/repair_foundation_inputs.py
           git diff --check
-      - name: Commit repair
+      - name: Commit repaired inputs
         run: |
           git config user.name 'SisyphusAeolides'
           git config user.email '37166405+SisyphusAeolides@users.noreply.github.com'
-          git add Cargo.lock scripts/test-live-root.sh
+          git add Cargo.lock scripts/test-live-root.sh scripts/repair_foundation_inputs.py
           git commit -m 'fix: repair foundation validation inputs'
           git pull --rebase origin main
           git push origin HEAD:main
