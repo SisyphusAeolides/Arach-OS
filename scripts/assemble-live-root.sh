@@ -29,7 +29,7 @@ import tomllib
 
 with open(sys.argv[1], "rb") as stream:
     image = tomllib.load(stream)
-if image.get("format") != 1 or image.get("distribution") != "Arach OS":
+if image.get("format") != 1 or image.get("distribution") != "ArachOS":
     raise SystemExit("unsupported live image contract")
 if image.get("root_layout") != "posix":
     raise SystemExit("unsupported live root layout")
@@ -154,7 +154,7 @@ system_manifest = next(
 )
 image = {
     "schema": 1,
-    "distribution": "Arach OS",
+    "distribution": "ArachOS",
     "root_layout": "posix",
     "boot_bundle_manifest": boot_manifest,
     "repository_generation": generation,

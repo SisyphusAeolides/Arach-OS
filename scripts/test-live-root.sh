@@ -160,7 +160,7 @@ import sys
 with open(sys.argv[1], encoding="utf-8") as stream:
     manifest = json.load(stream)
 assert manifest["schema"] == 1
-assert manifest["distribution"] == "Arach OS"
+assert manifest["distribution"] == "ArachOS"
 assert manifest["entry_count"] > 10
 assert len(manifest["root_sha256"]) == 64
 PY
@@ -182,7 +182,7 @@ for name in (
 ):
     assert len(boot[name]) == 64
 PY
-printf '%s\n' 'Arach OS live-root assembly verified'
+printf '%s\n' 'ArachOS live-root assembly verified'
 
 bad_artifacts="$tmp/bad-artifacts"
 cp -a -- "$artifacts" "$bad_artifacts"
@@ -192,7 +192,7 @@ if "$root/scripts/materialize-live-system.sh" "$bad_artifacts" "$tmp/bad-root"; 
     echo 'materializer accepted a symlinked package output' >&2
     exit 1
 fi
-printf '%s\n' 'Arach OS materializer rejection gate verified'
+printf '%s\n' 'ArachOS materializer rejection gate verified'
 
 missing_sync="$tmp/missing-sync-artifacts"
 cp -a -- "$artifacts" "$missing_sync"
@@ -201,7 +201,7 @@ if "$root/scripts/materialize-live-system.sh" "$missing_sync" "$tmp/missing-sync
     echo 'materializer accepted an image without hardware catalog sync' >&2
     exit 1
 fi
-printf '%s\n' 'Arach OS hardware catalog sync presence gate verified'
+printf '%s\n' 'ArachOS hardware catalog sync presence gate verified'
 
 missing_browser="$tmp/missing-browser-artifacts"
 cp -a -- "$artifacts" "$missing_browser"
@@ -210,7 +210,7 @@ if "$root/scripts/materialize-live-system.sh" "$missing_browser" "$tmp/missing-b
     echo 'materializer accepted a live image without Firefox' >&2
     exit 1
 fi
-printf '%s\n' 'Arach OS browser presence gate verified'
+printf '%s\n' 'ArachOS browser presence gate verified'
 
 image_tools=(xorriso mkfs.fat mcopy mksquashfs)
 have_image_tools=true
