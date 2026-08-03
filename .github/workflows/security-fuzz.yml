@@ -27,6 +27,7 @@ on:
       - scripts/fuzz_control_documents.py
       - tests/test_control_fuzzer.py
       - .github/workflows/security-fuzz.yml
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -34,6 +35,7 @@ permissions:
 jobs:
   bounded-mutations:
     runs-on: ubuntu-24.04
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
       - name: Fuzz production control documents
