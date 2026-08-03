@@ -147,11 +147,11 @@ def validate_evidence(
         environment = item["environment"]
         component = item["component"]
         path_value = item["path"]
-        if kind not in EVIDENCE_KINDS:
+        if not isinstance(kind, str) or kind not in EVIDENCE_KINDS:
             raise ControlMatrixError(f"{item_base}.kind is invalid")
-        if environment not in ENVIRONMENTS:
+        if not isinstance(environment, str) or environment not in ENVIRONMENTS:
             raise ControlMatrixError(f"{item_base}.environment is invalid")
-        if component not in control["components"]:
+        if not isinstance(component, str) or component not in control["components"]:
             raise ControlMatrixError(f"{item_base}.component is outside the control boundary")
         if not isinstance(path_value, str) or not safe_relative(path_value):
             raise ControlMatrixError(f"{item_base}.path must be a safe relative path")
@@ -191,7 +191,7 @@ def validate_document(
 ) -> Counter[str]:
     if set(document) != {"format", "distribution", "matrix", "title", "controls"}:
         raise ControlMatrixError("matrix has unexpected or missing top-level fields")
-    if document["format"] != 1 or document["distribution"] != "Arach OS":
+    if document["format"] != 1 or document["distribution"] != "ArachOS":
         raise ControlMatrixError("matrix format or distribution identity is invalid")
     matrix_id = document["matrix"]
     if not isinstance(matrix_id, str) or not ID_RE.fullmatch(matrix_id):
@@ -222,20 +222,21 @@ def validate_document(
         if not isinstance(control["title"], str) or not control["title"].strip():
             raise ControlMatrixError(f"{base}.title is empty")
         status = control["status"]
-        if status not in STATUSES:
+        if not isinstance(status, str) or status not in STATUSES:
             raise ControlMatrixError(f"{base}.status is invalid")
         components = control["components"]
         if (
             not isinstance(components, list)
             or not components
-            or len(components) != len(set(components))
             or not all(isinstance(component, str) and component.strip() for component in components)
+            or len(components) != len(set(components))
         ):
             raise ControlMatrixError(f"{base}.components must be a non-empty unique string array")
         required_evidence = control["required_evidence"]
         if (
             not isinstance(required_evidence, list)
             or not required_evidence
+            or not all(isinstance(kind, str) for kind in required_evidence)
             or len(required_evidence) != len(set(required_evidence))
             or not set(required_evidence) <= EVIDENCE_KINDS
         ):
@@ -244,6 +245,7 @@ def validate_document(
         if (
             not isinstance(required_environments, list)
             or not required_environments
+            or not all(isinstance(environment, str) for environment in required_environments)
             or len(required_environments) != len(set(required_environments))
             or not set(required_environments) <= ENVIRONMENTS
         ):

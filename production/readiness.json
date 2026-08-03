@@ -1,6 +1,6 @@
 {
   "format": 1,
-  "distribution": "Arach OS",
+  "distribution": "ArachOS",
   "policy": {
     "fail_closed": true,
     "evidence_root": "production/evidence",
@@ -19,9 +19,9 @@
       "id": "cosmic-lifecycle",
       "title": "Full COSMIC lifecycle",
       "status": "in_progress",
-      "authority": "Arach-OS",
+      "authority": "ArachOS",
       "components": [
-        "Arach-OS",
+        "ArachOS",
         "Arach-Kernel",
         "Push"
       ],
@@ -50,7 +50,7 @@
       "id": "linux-posix-compatibility",
       "title": "Complete Linux/POSIX compatibility",
       "status": "in_progress",
-      "authority": "Arach-OS",
+      "authority": "ArachOS",
       "components": [
         "Arach-Kernel",
         "Slope"
@@ -73,7 +73,7 @@
       "id": "hardware-driver-coverage",
       "title": "Production hardware and driver coverage",
       "status": "in_progress",
-      "authority": "Arach-OS",
+      "authority": "ArachOS",
       "components": [
         "Arach-Kernel",
         "Arach-HWD",
@@ -101,7 +101,7 @@
       "id": "corinth-repository-service",
       "title": "Automatic Corinth repository service",
       "status": "in_progress",
-      "authority": "Arach-OS",
+      "authority": "ArachOS",
       "components": [
         "Corinth",
         "Arach-Packages"
@@ -128,7 +128,7 @@
       "id": "package-semantics",
       "title": "Broader package semantics",
       "status": "in_progress",
-      "authority": "Arach-OS",
+      "authority": "ArachOS",
       "components": [
         "Corinth",
         "Arach-Packages",
@@ -154,7 +154,7 @@
       "id": "dynamic-compatibility-workers",
       "title": "Dynamic compatibility workers",
       "status": "in_progress",
-      "authority": "Arach-OS",
+      "authority": "ArachOS",
       "components": [
         "Corinth",
         "Arach-Packages"
@@ -182,9 +182,9 @@
       "id": "application-compatibility-tiers",
       "title": "Linux application compatibility tiers",
       "status": "in_progress",
-      "authority": "Arach-OS",
+      "authority": "ArachOS",
       "components": [
-        "Arach-OS",
+        "ArachOS",
         "Arach-Kernel",
         "Slope",
         "Corinth"
@@ -212,7 +212,7 @@
       "id": "package-repository",
       "title": "Complete the package repository",
       "status": "in_progress",
-      "authority": "Arach-OS",
+      "authority": "ArachOS",
       "components": [
         "Arach-Packages",
         "Corinth"
@@ -242,9 +242,9 @@
       "id": "installer-recovery",
       "title": "Installer and recovery certification",
       "status": "in_progress",
-      "authority": "Arach-OS",
+      "authority": "ArachOS",
       "components": [
-        "Arach-OS",
+        "ArachOS",
         "Granite",
         "Corinth",
         "Arach-HWD"
@@ -272,9 +272,9 @@
       "id": "desktop-services",
       "title": "Desktop services",
       "status": "in_progress",
-      "authority": "Arach-OS",
+      "authority": "ArachOS",
       "components": [
-        "Arach-OS",
+        "ArachOS",
         "Push",
         "Arach-Kernel",
         "Arach-Packages"
@@ -302,9 +302,9 @@
       "id": "security-qualification",
       "title": "Security qualification",
       "status": "in_progress",
-      "authority": "Arach-OS",
+      "authority": "ArachOS",
       "components": [
-        "Arach-OS",
+        "ArachOS",
         "Arach-Kernel",
         "Granite",
         "Push",
@@ -333,9 +333,9 @@
       "id": "hardware-lab-release",
       "title": "Hardware lab and release operations",
       "status": "in_progress",
-      "authority": "Arach-OS",
+      "authority": "ArachOS",
       "components": [
-        "Arach-OS",
+        "ArachOS",
         "Arach-HWD",
         "Arach-Kernel"
       ],
@@ -363,9 +363,9 @@
       "id": "universal-route",
       "title": "Universal route statement",
       "status": "in_progress",
-      "authority": "Arach-OS",
+      "authority": "ArachOS",
       "components": [
-        "Arach-OS",
+        "ArachOS",
         "Corinth",
         "Arach-Packages",
         "Arach-Kernel"

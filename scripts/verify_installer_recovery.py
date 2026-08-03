@@ -115,7 +115,7 @@ def validate_evidence(root: Path, scenario_id: str, entries: Any) -> list[dict[s
         if not isinstance(entry["captured_at"], str):
             raise RecoveryError(f"{base}.captured_at must be a timestamp")
         timestamp(entry["captured_at"])
-        if entry["outcome"] not in OUTCOMES:
+        if not isinstance(entry["outcome"], str) or entry["outcome"] not in OUTCOMES:
             raise RecoveryError(f"{base}.outcome is invalid")
         if not isinstance(entry["post_recovery_boot"], bool) or not isinstance(entry["cosmic_launch"], bool):
             raise RecoveryError(f"{base} boot and COSMIC results must be booleans")
@@ -126,7 +126,7 @@ def validate_evidence(root: Path, scenario_id: str, entries: Any) -> list[dict[s
 def audit(root: Path, manifest: dict[str, Any]) -> dict[str, int]:
     if set(manifest) != {"format", "distribution", "scenarios"}:
         raise RecoveryError("installer recovery manifest has invalid fields")
-    if manifest["format"] != 1 or manifest["distribution"] != "Arach OS":
+    if manifest["format"] != 1 or manifest["distribution"] != "ArachOS":
         raise RecoveryError("installer recovery manifest identity is invalid")
     scenarios = manifest["scenarios"]
     if not isinstance(scenarios, list) or len(scenarios) != len(SCENARIOS):
@@ -140,7 +140,7 @@ def audit(root: Path, manifest: dict[str, Any]) -> dict[str, int]:
         if scenario["id"] != expected_id or scenario["title"] != expected_title:
             raise RecoveryError(f"{base} differs from the canonical scenario order")
         status = scenario["status"]
-        if status not in STATUSES:
+        if not isinstance(status, str) or status not in STATUSES:
             raise RecoveryError(f"{base}.status is invalid")
         entries = validate_evidence(root, expected_id, scenario["evidence"])
         blocker = scenario["blocker"]

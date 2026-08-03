@@ -8,13 +8,13 @@ windowPlacement: center
 sidebar: widget
 navigation: widget
 strings:
-  productName: Arach OS
+  productName: ArachOS
   shortProductName: Arach
   version: Unstable
   shortVersion: Unstable
-  versionedName: Arach OS Unstable
-  shortVersionedName: Arach OS
-  bootloaderEntryName: Arach OS
+  versionedName: ArachOS Unstable
+  shortVersionedName: ArachOS
+  bootloaderEntryName: ArachOS
   productUrl: ""
   supportUrl: ""
   knownIssuesUrl: ""

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate the Arach OS production-readiness ledger."""
+"""Validate the ArachOS production-readiness ledger."""
 
 from __future__ import annotations
 
@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Any
 
 FORMAT = 1
-DISTRIBUTION = "Arach OS"
+DISTRIBUTION = "ArachOS"
 MANIFEST_PATH = "production/readiness.json"
 TRACKER_PATH = "docs/PRODUCTION_READINESS.md"
 STATUSES = {"blocked", "in_progress", "qualified"}
@@ -169,8 +169,8 @@ def validate_manifest(root: Path, manifest: dict[str, Any]) -> None:
         for field in ("title", "authority"):
             if not isinstance(gate[field], str) or not gate[field].strip():
                 fail(f"{base}.{field}", "must be non-empty")
-        if gate["authority"] != "Arach-OS":
-            fail(f"{base}.authority", "Arach-OS is the release authority")
+        if gate["authority"] != "ArachOS":
+            fail(f"{base}.authority", "ArachOS is the release authority")
         status = gate["status"]
         if not isinstance(status, str) or status not in STATUSES:
             fail(f"{base}.status", "unknown status")
@@ -275,7 +275,7 @@ def report(manifest: dict[str, Any]) -> str:
     for gate in manifest["gates"]:
         counts[gate["status"]] += 1
     lines = [
-        f"Arach OS production readiness: {counts['qualified']}/13 qualified, "
+        f"ArachOS production readiness: {counts['qualified']}/13 qualified, "
         f"{counts['in_progress']} in progress, {counts['blocked']} blocked"
     ]
     lines.extend(

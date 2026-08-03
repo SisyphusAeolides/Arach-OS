@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Bind measured workflow checkouts to the Arach OS component lock."""
+"""Bind measured workflow checkouts to the ArachOS component lock."""
 
 from __future__ import annotations
 

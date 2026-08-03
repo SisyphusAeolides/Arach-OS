@@ -224,7 +224,7 @@ def digest(path):
 
 record = {
     "schema": 1,
-    "distribution": "Arach OS",
+    "distribution": "ArachOS",
     "iso_sha256": digest(iso),
     "iso_size": iso.stat().st_size,
     "image_manifest_sha256": digest(image),

@@ -74,7 +74,7 @@ class ThreatModelTests(unittest.TestCase):
                     "sha256": "0" * 64,
                     "captured_at": "2026-08-03T13:00:00Z",
                     "revision": "a" * 40,
-                    "component": "Arach-OS",
+                    "component": "ArachOS",
                     "environment": "continuous-integration",
                 }
             ]
@@ -101,7 +101,7 @@ class ThreatModelTests(unittest.TestCase):
                     "sha256": digest,
                     "captured_at": "2026-08-03T13:00:00Z",
                     "revision": "a" * 40,
-                    "component": "Arach-OS",
+                    "component": "ArachOS",
                     "environment": "continuous-integration",
                 }
             ]

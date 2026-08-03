@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate the Arach OS structured threat model and retained evidence."""
+"""Validate the ArachOS structured threat model and retained evidence."""
 
 from __future__ import annotations
 
@@ -142,7 +142,7 @@ def validate_evidence(
         if not isinstance(entry, dict) or set(entry) != fields:
             raise ThreatModelError(f"{item} has unexpected or missing fields")
         kind = entry["kind"]
-        if kind not in EVIDENCE_KINDS:
+        if not isinstance(kind, str) or kind not in EVIDENCE_KINDS:
             raise ThreatModelError(f"{item}.kind is invalid")
         path_value = entry["path"]
         if not isinstance(path_value, str) or not safe_relative(path_value):
@@ -174,7 +174,7 @@ def validate_evidence(
         component = entry["component"]
         if not isinstance(component, str) or not component.strip():
             raise ThreatModelError(f"{item}.component must be non-empty")
-        if entry["environment"] not in ENVIRONMENTS:
+        if not isinstance(entry["environment"], str) or entry["environment"] not in ENVIRONMENTS:
             raise ThreatModelError(f"{item}.environment is invalid")
         kinds.add(kind)
     return kinds
@@ -190,7 +190,7 @@ def validate(root: Path, model: dict[str, Any]) -> dict[str, int]:
         "threats",
     }:
         raise ThreatModelError("threat model has unexpected or missing fields")
-    if model["format"] != 1 or model["distribution"] != "Arach OS":
+    if model["format"] != 1 or model["distribution"] != "ArachOS":
         raise ThreatModelError("threat model identity is invalid")
     if not isinstance(model["method"], str) or not model["method"].strip():
         raise ThreatModelError("threat model method is empty")
@@ -303,7 +303,7 @@ def validate(root: Path, model: dict[str, Any]) -> dict[str, int]:
         if not set(required) <= EVIDENCE_KINDS:
             raise ThreatModelError(f"{base}.required_evidence contains an invalid value")
         status = threat["status"]
-        if status not in STATUSES:
+        if not isinstance(status, str) or status not in STATUSES:
             raise ThreatModelError(f"{base}.status is invalid")
         blockers = threat["blockers"]
         if not isinstance(blockers, list) or not all(

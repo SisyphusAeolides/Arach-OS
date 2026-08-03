@@ -23,12 +23,12 @@ _ = gettext.translation(
 
 
 def pretty_name():
-    return _("Apply the Arach OS transaction")
+    return _("Apply the ArachOS transaction")
 
 
 def pretty_status_message():
     phase = libcalamares.job.configuration.get("phase", "unknown")
-    return _("Arach OS transaction: {}").format(phase)
+    return _("ArachOS transaction: {}").format(phase)
 
 
 def run():
@@ -205,5 +205,5 @@ def run():
                 )
                 raise
     except TransactionFailure as error:
-        return ("Arach OS transaction failed", str(error))
+        return ("ArachOS transaction failed", str(error))
     return None

@@ -18,7 +18,7 @@ SPEC.loader.exec_module(MODULE)
 def document(status: str = "pending") -> dict:
     return {
         "format": 1,
-        "distribution": "Arach OS",
+        "distribution": "ArachOS",
         "matrix": "test-matrix",
         "title": "Test matrix",
         "controls": [
@@ -26,7 +26,7 @@ def document(status: str = "pending") -> dict:
                 "id": "control",
                 "title": "Control",
                 "status": status,
-                "components": ["Arach-OS"],
+                "components": ["ArachOS"],
                 "required_evidence": ["test-report"],
                 "required_environments": ["qemu"],
                 "evidence": [],
@@ -47,7 +47,7 @@ def evidence(root: Path, digest_override: str | None = None, environment: str = 
         "sha256": digest_override or digest,
         "captured_at": "2026-08-03T13:00:00Z",
         "revision": "a" * 40,
-        "component": "Arach-OS",
+        "component": "ArachOS",
         "environment": environment,
     }
 

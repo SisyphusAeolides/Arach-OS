@@ -259,4 +259,4 @@ else
     set -e
     test "$iso_status" -eq 69
 fi
-printf '%s\n' 'Arach OS ISO tool gate verified'
+printf '%s\n' 'ArachOS ISO tool gate verified'

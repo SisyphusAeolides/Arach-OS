@@ -1,7 +1,7 @@
 format = 1
-distribution = "Arach OS"
+distribution = "ArachOS"
 artifact_layout = "corinth-v1"
-# COSMIC is the only Arach OS desktop. The compatibility-named `crest` file
+# COSMIC is the only ArachOS desktop. The compatibility-named `crest` file
 # belongs exclusively to the measured C0 boot bundle and is never a provider.
 
 [[provider]]

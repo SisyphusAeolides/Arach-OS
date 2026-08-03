@@ -9,7 +9,7 @@ use std::path::Path;
 
 pub const LOCK_FORMAT: u32 = 1;
 pub const PROFILE_FORMAT: u32 = 1;
-pub const DISTRIBUTION: &str = "Arach OS";
+pub const DISTRIBUTION: &str = "ArachOS";
 pub const INSTALLER_FORMAT: u32 = 1;
 pub const LIVE_IMAGE_FORMAT: u32 = 1;
 pub const CALAMARES_VERSION: &str = "3.4.2";
@@ -340,7 +340,7 @@ pub fn validate_lock(lock: &ComponentLock) -> Result<(), CompositionError> {
     if actual_names != expected_names {
         return Err(CompositionError::new(
             "component",
-            "component set differs from the Arach OS composition contract",
+            "component set differs from the ArachOS composition contract",
         ));
     }
     for (name, repository_name, role) in EXPECTED_COMPONENTS {

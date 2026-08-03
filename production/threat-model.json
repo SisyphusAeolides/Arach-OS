@@ -1,6 +1,6 @@
 {
   "format": 1,
-  "distribution": "Arach OS",
+  "distribution": "ArachOS",
   "method": "STRIDE with explicit trust boundaries and residual-risk admission",
   "assets": [
     {
@@ -30,25 +30,25 @@
     {
       "id": "installer-secrets",
       "title": "Installer credentials and encryption secrets",
-      "owner": "Arach-OS",
+      "owner": "ArachOS",
       "security_properties": ["confidentiality", "integrity", "bounded-lifetime"]
     },
     {
       "id": "user-data",
       "title": "User data and account state",
-      "owner": "Arach-OS",
+      "owner": "ArachOS",
       "security_properties": ["confidentiality", "integrity", "availability", "recoverability"]
     },
     {
       "id": "release-keys",
       "title": "Offline release signing keys",
-      "owner": "Arach-OS",
+      "owner": "ArachOS",
       "security_properties": ["confidentiality", "integrity", "revocability"]
     },
     {
       "id": "qualification-evidence",
       "title": "Production qualification evidence",
-      "owner": "Arach-OS",
+      "owner": "ArachOS",
       "security_properties": ["integrity", "traceability", "revision-binding"]
     }
   ],
@@ -92,7 +92,7 @@
     {
       "id": "repository-to-client",
       "from": "Corinth repository service",
-      "to": "Arach OS client",
+      "to": "ArachOS client",
       "channel": "Signed catalogs and binary generations"
     },
     {

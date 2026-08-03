@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate Arach OS release channel policy and active release records."""
+"""Validate ArachOS release channel policy and active release records."""
 
 from __future__ import annotations
 
@@ -172,7 +172,7 @@ def validate(root: Path, policy: dict[str, Any]) -> Counter[str]:
         not isinstance(policy["format"], int)
         or isinstance(policy["format"], bool)
         or policy["format"] != 1
-        or policy["distribution"] != "Arach OS"
+        or policy["distribution"] != "ArachOS"
     ):
         raise ReleasePolicyError("release channel policy identity is invalid")
 

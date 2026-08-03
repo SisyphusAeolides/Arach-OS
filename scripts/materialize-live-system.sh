@@ -45,7 +45,7 @@ stage = pathlib.Path(sys.argv[3])
 with contract_path.open("rb") as stream:
     contract = tomllib.load(stream)
 
-if contract.get("format") != 1 or contract.get("distribution") != "Arach OS":
+if contract.get("format") != 1 or contract.get("distribution") != "ArachOS":
     raise SystemExit("unsupported live system contract")
 if contract.get("artifact_layout") != "corinth-v1":
     raise SystemExit("unsupported Corinth artifact layout")
@@ -259,7 +259,7 @@ ordered_entries = [entries[key] for key in sorted(entries)]
 canonical = json.dumps(ordered_entries, separators=(",", ":"), sort_keys=True).encode()
 manifest = {
     "schema": 1,
-    "distribution": "Arach OS",
+    "distribution": "ArachOS",
     "artifact_layout": "corinth-v1",
     "providers": provider_records,
     "entry_count": len(ordered_entries),

@@ -18,7 +18,7 @@ SPEC.loader.exec_module(MODULE)
 def pending_manifest() -> dict:
     return {
         "format": 1,
-        "distribution": "Arach OS",
+        "distribution": "ArachOS",
         "scenarios": [
             {
                 "id": scenario_id,

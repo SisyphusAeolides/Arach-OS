@@ -63,4 +63,4 @@ grep -Fq 'arachhardware/repository.py' "$root/live/system.toml"
 
 "$root/scripts/test-live-root.sh"
 
-printf '%s\n' 'Arach OS foundation verified'
+printf '%s\n' 'ArachOS foundation verified'

@@ -1,6 +1,6 @@
 # COSMIC live image and installer
 
-The Arach OS installation medium installs the complete pinned `cosmic-desktop`
+The ArachOS installation medium installs the complete pinned `cosmic-desktop`
 tree, the pinned `greetd` display manager, `seatd`, PipeWire, WirePlumber, and
 the upstream
 `/etc/greetd/cosmic-greeter.toml` session definition, `cosmic-term`, the signed
