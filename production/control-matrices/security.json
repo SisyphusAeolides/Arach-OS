@@ -1,0 +1,98 @@
+{
+  "format": 1,
+  "distribution": "Arach OS",
+  "matrix": "security",
+  "title": "Security qualification controls",
+  "controls": [
+    {
+      "id": "threat-models",
+      "title": "Threat models",
+      "status": "pending",
+      "components": ["Arach-OS", "Arach-Kernel", "Granite", "Push", "Corinth", "Arach-Packages", "Arach-HWD"],
+      "required_evidence": ["threat-model"],
+      "required_environments": ["design-review"],
+      "evidence": [],
+      "blockers": ["Installer, kernel, package-supply-chain, and runtime-service threat models are not complete and independently reviewed."]
+    },
+    {
+      "id": "continuous-fuzzing",
+      "title": "Continuous fuzzing",
+      "status": "pending",
+      "components": ["Arach-Kernel", "Corinth", "Arach-HWD", "Arach-OS"],
+      "required_evidence": ["fuzz-report", "test-report"],
+      "required_environments": ["continuous-integration"],
+      "evidence": [],
+      "blockers": ["Continuous fuzz targets, corpus retention, crash triage, and regression promotion are not established across exposed parsers and ABIs."]
+    },
+    {
+      "id": "hardening",
+      "title": "Platform hardening",
+      "status": "implemented",
+      "components": ["Arach-Kernel", "Granite", "Arach-OS"],
+      "required_evidence": ["hardening-report", "test-report", "hardware-report"],
+      "required_environments": ["qemu", "physical-hardware"],
+      "evidence": [],
+      "blockers": ["W^X and several measured boundaries exist, but complete ASLR, stack protection, SMEP, SMAP, and IOMMU enforcement evidence is incomplete."]
+    },
+    {
+      "id": "privilege-separation",
+      "title": "Privilege separation",
+      "status": "implemented",
+      "components": ["Arach-Kernel", "Push", "Arach-OS", "Corinth", "Arach-HWD"],
+      "required_evidence": ["security-report", "test-report"],
+      "required_environments": ["qemu", "physical-hardware"],
+      "evidence": [],
+      "blockers": ["Typed process and transaction boundaries exist, but complete role minimization and secret-lifetime evidence is missing."]
+    },
+    {
+      "id": "sandboxing",
+      "title": "Application and worker sandboxing",
+      "status": "implemented",
+      "components": ["Arach-Kernel", "Corinth", "Arach-OS", "Arach-Packages"],
+      "required_evidence": ["security-report", "test-report", "reproducibility-report"],
+      "required_environments": ["continuous-integration", "qemu"],
+      "evidence": [],
+      "blockers": ["Corinth worker and recipe boundaries are explicit, but production application sandboxing and escape testing remain incomplete."]
+    },
+    {
+      "id": "key-operations",
+      "title": "Offline keys, rotation, and revocation",
+      "status": "pending",
+      "components": ["Arach-OS", "Granite", "Corinth", "Arach-Packages", "Arach-HWD"],
+      "required_evidence": ["key-drill", "recovery-report"],
+      "required_environments": ["release-operations"],
+      "evidence": [],
+      "blockers": ["Offline release-key custody and completed rotation and revocation drills are not recorded."]
+    },
+    {
+      "id": "sbom-attestations",
+      "title": "SBOMs and attestations",
+      "status": "implemented",
+      "components": ["Arach-Packages", "Arach-OS", "Corinth"],
+      "required_evidence": ["sbom", "attestation"],
+      "required_environments": ["continuous-integration", "independent-builder"],
+      "evidence": [],
+      "blockers": ["A deterministic source SBOM generator exists, but complete artifact SBOMs and release attestations are not yet independently reproduced."]
+    },
+    {
+      "id": "reproducible-builds",
+      "title": "Independent reproducible builds",
+      "status": "implemented",
+      "components": ["Arach-OS", "Arach-Kernel", "Granite", "Arach-Packages", "Corinth"],
+      "required_evidence": ["reproducibility-report", "attestation"],
+      "required_environments": ["continuous-integration", "independent-builder"],
+      "evidence": [],
+      "blockers": ["Several boot and image artifacts are deterministic, but independent full-distribution replication is not complete."]
+    },
+    {
+      "id": "vulnerability-response",
+      "title": "Vulnerability intake and patch SLA",
+      "status": "pending",
+      "components": ["Arach-OS", "Arach-Kernel", "Granite", "Push", "Corinth", "Arach-Packages", "Arach-HWD"],
+      "required_evidence": ["vulnerability-drill", "release-report"],
+      "required_environments": ["release-operations"],
+      "evidence": [],
+      "blockers": ["Intake, severity triage, embargo handling, patch deadlines, rollout, advisory, and rollback drills are not operationally qualified."]
+    }
+  ]
+}
