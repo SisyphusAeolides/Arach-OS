@@ -22,13 +22,14 @@ EXPECTED = {
     "ccze-rs": ("ccze-rs", "log-presentation"),
 }
 REVISION = re.compile(r"[0-9a-f]{40}")
+STALE_PRODUCT = re.compile(r"\bArach(?:[ \t\r\n]+|-)OS\b")
 
 
 def load_lock(path: pathlib.Path) -> list[dict[str, str]]:
     data = tomllib.loads(path.read_text(encoding="utf-8"))
     if set(data) != {"format", "distribution", "component"}:
         raise ValueError("lock contains missing or unknown top-level fields")
-    if data["format"] != 1 or data["distribution"] != "Arach OS":
+    if data["format"] != 1 or data["distribution"] != "ArachOS":
         raise ValueError("lock format or distribution identity is invalid")
     components = data["component"]
     if not isinstance(components, list):
@@ -72,7 +73,7 @@ def validate_rust_pins(
     """Ensure host-side Rust integration uses the locked component objects.
 
     The live-image lock is the release authority, but arach-compose and
-    Corinth also import Arach-HWD at build time.  Allowing either manifest to
+    Corinth also import Arach-HWD at build time. Allowing either manifest to
     drift creates two Rust crate identities with the same package name and
     silently breaks the installer boundary.
     """
@@ -105,6 +106,14 @@ def show_remote_file(directory: str, path: str) -> str:
     if result.returncode != 0:
         raise ValueError(f"locked component is missing {path}: {result.stderr.strip()}")
     return result.stdout
+
+
+def validate_component_readme(component: dict[str, str], directory: str) -> None:
+    readme = show_remote_file(directory, "README.md")
+    if STALE_PRODUCT.search(readme):
+        raise ValueError(
+            f"locked {component['name']} README uses the retired product identity"
+        )
 
 
 def validate_nested_authority(
@@ -213,6 +222,7 @@ def verify_remote(component: dict[str, str], locked: dict[str, str]) -> str:
         ).stdout.strip()
         if fetched != component["revision"]:
             raise ValueError(f"{component['name']} fetched object differs from its pin")
+        validate_component_readme(component, directory)
         validate_nested_authority(component, directory, locked)
     return component["name"]
 
@@ -237,7 +247,7 @@ def main() -> None:
             ]
             for future in futures:
                 future.result()
-    print(f"verified {len(components)} exact Arach OS component pins")
+    print(f"verified {len(components)} exact ArachOS component pins")
 
 
 if __name__ == "__main__":
