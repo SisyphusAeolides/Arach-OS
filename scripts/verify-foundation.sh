@@ -59,6 +59,7 @@ grep -Fq '/etc/arach/hwd/driver-sources/modules.builtin.modinfo' \
     "$root/installer/calamares/modules/arachhardware.conf"
 grep -Fq 'target/release/arach-hwd-catalog-sync' "$root/live/system.toml"
 grep -Fq 'target/release/arach-hwd-qualify' "$root/live/system.toml"
+grep -Fq 'target/release/arach-hwd-record' "$root/live/system.toml"
 grep -Fq 'arachhardware/repository.py' "$root/live/system.toml"
 
 "$root/scripts/test-live-root.sh"

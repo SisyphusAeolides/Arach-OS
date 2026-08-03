@@ -43,6 +43,8 @@ printf '\177ELF test Arach HWD catalog sync\n' \
     > "$artifacts/arach-hwd-0.1.0-1/target/release/arach-hwd-catalog-sync"
 printf '\177ELF test Arach HWD qualification\n' \
     > "$artifacts/arach-hwd-0.1.0-1/target/release/arach-hwd-qualify"
+printf '\177ELF test Arach HWD evidence recorder\n' \
+    > "$artifacts/arach-hwd-0.1.0-1/target/release/arach-hwd-record"
 mkdir -p "$artifacts/arach-hardware-catalog-2026.1/etc/arach/hwd/profiles"
 mkdir -p "$artifacts/arach-hardware-catalog-2026.1/etc/arach/hwd/driver-sources"
 printf '[key]\n' > "$artifacts/arach-hardware-catalog-2026.1/etc/arach/hwd/keys.toml"
@@ -144,6 +146,7 @@ test -s "$output/system/greetd"
 test -s "$output/system/arach-hwd"
 test -s "$output/system/arach-hwd-catalog-sync"
 test -s "$output/system/arach-hwd-qualify"
+test -s "$output/system/arach-hwd-record"
 test -s "$output/etc/greetd/cosmic-greeter.toml"
 test -s "$output/etc/greetd/config.toml"
 test -s "$output/usr/bin/cosmic-greeter-start"
