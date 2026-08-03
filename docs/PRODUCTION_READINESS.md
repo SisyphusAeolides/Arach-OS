@@ -54,6 +54,7 @@ list into concrete acceptance checkpoints. It is the implementation target for t
   with declared capabilities, deterministic FS/network boundaries, and measured,
   reproducible outputs.
 - Current status: `in_progress`
+- Worker specification: [`DYNAMIC_COMPATIBILITY_WORKERS_GATE.md`](DYNAMIC_COMPATIBILITY_WORKERS_GATE.md)
 
 ## 7. Linux application compatibility tiers
 
