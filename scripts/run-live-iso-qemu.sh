@@ -67,12 +67,47 @@ fi
 }
 
 vars=$(mktemp /tmp/arach-live-vars.XXXXXX)
-cleanup() { rm -f -- "$vars"; }
+qmp_sock=$(mktemp -u /tmp/arach-live-qmp.XXXXXX)
+cleanup() { rm -f -- "$vars" "$qmp_sock"; }
 trap cleanup EXIT
 cp -- "$ovmf_vars" "$vars"
 
 mkdir -p -- "$(dirname -- "$log")"
 : >"$log"
+
+python3 -c '
+import socket, json, sys, time
+sock_path = sys.argv[1]
+for _ in range(50):
+    try:
+        sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        sock.connect(sock_path)
+        break
+    except Exception:
+        time.sleep(0.1)
+else:
+    sys.exit(1)
+f = sock.makefile("rw")
+f.readline()
+f.write(json.dumps({"execute": "qmp_capabilities"}) + "\n")
+f.flush()
+while True:
+    line = f.readline()
+    if not line: break
+    try:
+        msg = json.loads(line)
+        if msg.get("event") == "SUSPEND":
+            f.write(json.dumps({"execute": "system_wakeup"}) + "\n")
+            f.flush()
+        elif msg.get("event") == "SHUTDOWN":
+            f.write(json.dumps({"execute": "quit"}) + "\n")
+            f.flush()
+            break
+    except Exception:
+        pass
+' "$qmp_sock" &
+qmp_pid=$!
+
 timeout_seconds=${ARACH_LIVE_TIMEOUT_SECONDS:-120}
 set +e
 timeout --kill-after=5s "${timeout_seconds}s" "$qemu" \
@@ -83,12 +118,14 @@ timeout --kill-after=5s "${timeout_seconds}s" "$qemu" \
     -no-shutdown \
     -boot order=d,strict=on \
     -serial "file:$log" \
+    -qmp "unix:$qmp_sock,server=on,wait=off" \
     -drive "if=pflash,format=raw,readonly=on,file=$ovmf_code" \
     -drive "if=pflash,format=raw,file=$vars" \
     -drive "if=none,id=arach-cd,format=raw,readonly=on,file=$image" \
     -device ide-cd,drive=arach-cd
 status=$?
 set -e
+wait "$qmp_pid" 2>/dev/null || true
 if [[ "$status" -ne 0 && "$status" -ne 124 ]]; then
     echo "live ISO QEMU exited with status $status" >&2
     exit "$status"

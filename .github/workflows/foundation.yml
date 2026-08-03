@@ -132,6 +132,7 @@ jobs:
       - name: Execute the measured live ISO under QEMU/OVMF
         run: |
           ARACH_LIVE_MARKER_REPORT="$PWD/target/arach-os-c0.marker.tsv" \
+          ARACH_LIVE_COSMIC_LIFECYCLE_MARKERS_FILE="$PWD/docs/COSMIC_LIFECYCLE_MARKERS.sample" \
           scripts/run-live-iso-qemu.sh \
             "$PWD/target/arach-os-c0.iso" \
             "$PWD/target/arach-os-c0.serial.log"
