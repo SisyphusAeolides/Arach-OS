@@ -1,0 +1,78 @@
+{
+  "format": 1,
+  "distribution": "Arach OS",
+  "matrix": "release-operations",
+  "title": "Hardware lab and release operations",
+  "controls": [
+    {
+      "id": "hardware-matrix",
+      "title": "Representative hardware matrix",
+      "status": "pending",
+      "components": ["Arach-OS", "Arach-Kernel", "Arach-HWD"],
+      "required_evidence": ["hardware-report", "test-report"],
+      "required_environments": ["hardware-lab"],
+      "evidence": [],
+      "blockers": ["Repeatable coverage across representative Lenovo, Dell, HP, Acer, AMD, Intel, NVIDIA, network, audio, storage, dock, and display combinations is not established."]
+    },
+    {
+      "id": "support-levels",
+      "title": "Certified, Compatible, and Experimental support levels",
+      "status": "implemented",
+      "components": ["Arach-HWD", "Arach-OS"],
+      "required_evidence": ["hardware-report", "release-report", "soak-report"],
+      "required_environments": ["hardware-lab", "release-operations"],
+      "evidence": [],
+      "blockers": ["Tier semantics are enforced in Arach-HWD, but no production device set has completed publication under those levels."]
+    },
+    {
+      "id": "release-channels",
+      "title": "Stable, testing, and development channels",
+      "status": "pending",
+      "components": ["Arach-OS", "Corinth", "Arach-Packages"],
+      "required_evidence": ["release-report", "test-report", "recovery-report"],
+      "required_environments": ["release-operations"],
+      "evidence": [],
+      "blockers": ["Promotion, demotion, retention, rollback, and cross-channel upgrade policies are not operationally qualified."]
+    },
+    {
+      "id": "mirrors",
+      "title": "Repository mirrors",
+      "status": "pending",
+      "components": ["Corinth", "Arach-Packages", "Arach-OS"],
+      "required_evidence": ["mirror-report", "security-report", "recovery-report"],
+      "required_environments": ["release-operations"],
+      "evidence": [],
+      "blockers": ["Signed mirror publication, consistency, failover, stale-mirror rejection, and compromise recovery are not established."]
+    },
+    {
+      "id": "rollback-drills",
+      "title": "Release rollback drills",
+      "status": "pending",
+      "components": ["Arach-OS", "Granite", "Corinth", "Arach-Packages"],
+      "required_evidence": ["recovery-report", "release-report", "test-report"],
+      "required_environments": ["qemu", "hardware-lab", "release-operations"],
+      "evidence": [],
+      "blockers": ["Bad package, bad catalog, bad kernel, bad bootloader, and interrupted-release rollback drills are incomplete."]
+    },
+    {
+      "id": "advisories-release-notes",
+      "title": "Advisories and release notes",
+      "status": "pending",
+      "components": ["Arach-OS", "Arach-Packages"],
+      "required_evidence": ["release-report"],
+      "required_environments": ["release-operations"],
+      "evidence": [],
+      "blockers": ["Canonical advisory, compatibility-change, migration, known-issue, and release-note publication workflows are not operational."]
+    },
+    {
+      "id": "soak-testing",
+      "title": "Sustained soak testing",
+      "status": "pending",
+      "components": ["Arach-OS", "Arach-Kernel", "Push", "Arach-HWD"],
+      "required_evidence": ["soak-report", "hardware-report", "test-report"],
+      "required_environments": ["hardware-lab"],
+      "evidence": [],
+      "blockers": ["Long-duration desktop, suspend-cycle, network, storage, audio, thermal, and update soak runs are not established."]
+    }
+  ]
+}
