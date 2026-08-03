@@ -75,6 +75,7 @@ make_fake_elf() {
     local name="$2"
     if [[ -n "${ARACH_TEST_BOOT_ARTIFACT_ROOT:-}" ]]; then
         cp "$ARACH_TEST_BOOT_ARTIFACT_ROOT/crest" "$target"
+        chmod +x "$target"
     else
         printf '\177ELF test %s\n' "$name" > "$target"
     fi
