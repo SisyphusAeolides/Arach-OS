@@ -7,12 +7,12 @@
     {
       "id": "threat-models",
       "title": "Threat models",
-      "status": "pending",
+      "status": "implemented",
       "components": ["Arach-OS", "Arach-Kernel", "Granite", "Push", "Corinth", "Arach-Packages", "Arach-HWD"],
       "required_evidence": ["threat-model"],
       "required_environments": ["design-review"],
       "evidence": [],
-      "blockers": ["Installer, kernel, package-supply-chain, and runtime-service threat models are not complete and independently reviewed."]
+      "blockers": ["The structured cross-system threat model is enforced in CI, but independent design review and retained review evidence are not complete."]
     },
     {
       "id": "continuous-fuzzing",
