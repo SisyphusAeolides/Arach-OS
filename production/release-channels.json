@@ -1,0 +1,85 @@
+{
+  "format": 1,
+  "distribution": "Arach OS",
+  "channels": [
+    {
+      "name": "development",
+      "rank": 0,
+      "retained_generations": 10,
+      "minimum_soak_seconds": 0,
+      "required_readiness_gates": [],
+      "required_evidence": ["test-report"],
+      "allow_direct_publish": true,
+      "rollback_generations": 3
+    },
+    {
+      "name": "testing",
+      "rank": 1,
+      "retained_generations": 8,
+      "minimum_soak_seconds": 86400,
+      "required_readiness_gates": [
+        "linux-posix-compatibility",
+        "hardware-driver-coverage",
+        "package-semantics",
+        "security-qualification"
+      ],
+      "required_evidence": [
+        "test-report",
+        "security-report",
+        "hardware-report",
+        "reproducibility-report"
+      ],
+      "allow_direct_publish": false,
+      "rollback_generations": 4
+    },
+    {
+      "name": "stable",
+      "rank": 2,
+      "retained_generations": 6,
+      "minimum_soak_seconds": 604800,
+      "required_readiness_gates": [
+        "cosmic-lifecycle",
+        "linux-posix-compatibility",
+        "hardware-driver-coverage",
+        "corinth-repository-service",
+        "package-semantics",
+        "dynamic-compatibility-workers",
+        "application-compatibility-tiers",
+        "package-repository",
+        "installer-recovery",
+        "desktop-services",
+        "security-qualification",
+        "hardware-lab-release",
+        "universal-route"
+      ],
+      "required_evidence": [
+        "attestation",
+        "hardware-report",
+        "recovery-report",
+        "release-report",
+        "reproducibility-report",
+        "sbom",
+        "security-report",
+        "test-report"
+      ],
+      "allow_direct_publish": false,
+      "rollback_generations": 5
+    }
+  ],
+  "mirrors": {
+    "minimum_quorum": 2,
+    "maximum_staleness_seconds": 900,
+    "require_signed_root": true,
+    "require_consistent_snapshot": true,
+    "reject_sequence_downgrade": true
+  },
+  "promotion": {
+    "require_previous_channel": true,
+    "require_exact_component_lock": true,
+    "require_exact_package_generation": true,
+    "require_reproducible_image": true,
+    "require_rollback_drill": true,
+    "require_advisory": true
+  },
+  "active_releases": []
+}
