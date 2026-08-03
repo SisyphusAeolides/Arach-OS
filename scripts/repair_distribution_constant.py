@@ -51,6 +51,35 @@ for old, new in replacements.items():
     text = text.replace(old, new)
 recovery.write_text(text, encoding="utf-8")
 
+threat = Path("scripts/verify_threat_model.py")
+text = threat.read_text(encoding="utf-8")
+replacements = {
+'''        kind = entry["kind"]
+        if kind not in EVIDENCE_KINDS:
+            raise ThreatModelError(f"{item}.kind is invalid")
+''': '''        kind = entry["kind"]
+        if not isinstance(kind, str) or kind not in EVIDENCE_KINDS:
+            raise ThreatModelError(f"{item}.kind is invalid")
+''',
+'''        if entry["environment"] not in ENVIRONMENTS:
+            raise ThreatModelError(f"{item}.environment is invalid")
+''': '''        if not isinstance(entry["environment"], str) or entry["environment"] not in ENVIRONMENTS:
+            raise ThreatModelError(f"{item}.environment is invalid")
+''',
+'''        status = threat["status"]
+        if status not in STATUSES:
+            raise ThreatModelError(f"{base}.status is invalid")
+''': '''        status = threat["status"]
+        if not isinstance(status, str) or status not in STATUSES:
+            raise ThreatModelError(f"{base}.status is invalid")
+''',
+}
+for old, new in replacements.items():
+    if text.count(old) != 1:
+        raise SystemExit("threat model type guard differs")
+    text = text.replace(old, new)
+threat.write_text(text, encoding="utf-8")
+
 script = Path("scripts/repair_distribution_constant.py")
 result = subprocess.run(
     ["git", "grep", "-Il", "-e", "Arach OS", "-e", "Arach-OS", "--", "."],
