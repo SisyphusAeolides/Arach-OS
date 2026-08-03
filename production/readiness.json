@@ -1,0 +1,391 @@
+{
+  "format": 1,
+  "distribution": "Arach OS",
+  "policy": {
+    "fail_closed": true,
+    "evidence_root": "production/evidence",
+    "qualified_status": "qualified"
+  },
+  "routes": [
+    "native",
+    "rebuilt",
+    "compatibility-runtime",
+    "container",
+    "managed-vm"
+  ],
+  "gates": [
+    {
+      "number": 1,
+      "id": "cosmic-lifecycle",
+      "title": "Full COSMIC lifecycle",
+      "status": "in_progress",
+      "authority": "Arach-OS",
+      "components": [
+        "Arach-OS",
+        "Arach-Kernel",
+        "Push"
+      ],
+      "document": "docs/COSMIC_LIFECYCLE_GATE.md",
+      "depends_on": [
+        "linux-posix-compatibility",
+        "hardware-driver-coverage",
+        "installer-recovery",
+        "desktop-services",
+        "security-qualification"
+      ],
+      "required_evidence": [
+        "serial-log",
+        "test-report",
+        "hardware-report"
+      ],
+      "evidence": [],
+      "blockers": [
+        "Complete ordered installer-to-shutdown evidence is still missing under QEMU and physical hardware."
+      ],
+      "qualified_at": null,
+      "qualified_revision": null
+    },
+    {
+      "number": 2,
+      "id": "linux-posix-compatibility",
+      "title": "Complete Linux/POSIX compatibility",
+      "status": "in_progress",
+      "authority": "Arach-OS",
+      "components": [
+        "Arach-Kernel",
+        "Slope"
+      ],
+      "document": "docs/LINUX_COMPAT_GATE.md",
+      "depends_on": [],
+      "required_evidence": [
+        "test-report",
+        "attestation"
+      ],
+      "evidence": [],
+      "blockers": [
+        "The documented process, signal, threading, filesystem, networking, PTY, device, and ioctl slices are not yet complete."
+      ],
+      "qualified_at": null,
+      "qualified_revision": null
+    },
+    {
+      "number": 3,
+      "id": "hardware-driver-coverage",
+      "title": "Production hardware and driver coverage",
+      "status": "in_progress",
+      "authority": "Arach-OS",
+      "components": [
+        "Arach-Kernel",
+        "Arach-HWD",
+        "Arach-Packages"
+      ],
+      "document": "docs/HARDWARE_COVERAGE_GATE.md",
+      "depends_on": [
+        "linux-posix-compatibility",
+        "package-repository",
+        "security-qualification"
+      ],
+      "required_evidence": [
+        "hardware-report",
+        "test-report"
+      ],
+      "evidence": [],
+      "blockers": [
+        "Native and qualified compatibility-driver runtime evidence is incomplete across the target hardware matrix."
+      ],
+      "qualified_at": null,
+      "qualified_revision": null
+    },
+    {
+      "number": 4,
+      "id": "corinth-repository-service",
+      "title": "Automatic Corinth repository service",
+      "status": "in_progress",
+      "authority": "Arach-OS",
+      "components": [
+        "Corinth",
+        "Arach-Packages"
+      ],
+      "document": "docs/CORINTH_AUTO_INDEXER_GATE.md",
+      "depends_on": [
+        "package-semantics",
+        "security-qualification"
+      ],
+      "required_evidence": [
+        "catalog",
+        "reproducibility-report",
+        "attestation"
+      ],
+      "evidence": [],
+      "blockers": [
+        "Continuous upstream indexing, immutable resolution, signing, publication, and compromise handling are not yet qualified end to end."
+      ],
+      "qualified_at": null,
+      "qualified_revision": null
+    },
+    {
+      "number": 5,
+      "id": "package-semantics",
+      "title": "Broader package semantics",
+      "status": "in_progress",
+      "authority": "Arach-OS",
+      "components": [
+        "Corinth",
+        "Arach-Packages",
+        "Push"
+      ],
+      "document": "docs/PACKAGE_SEMANTICS_GATE.md",
+      "depends_on": [
+        "security-qualification"
+      ],
+      "required_evidence": [
+        "package-report",
+        "test-report"
+      ],
+      "evidence": [],
+      "blockers": [
+        "The complete replacements, split-output, multilib, metadata, service, registration, and trigger semantics are not yet implemented and tested."
+      ],
+      "qualified_at": null,
+      "qualified_revision": null
+    },
+    {
+      "number": 6,
+      "id": "dynamic-compatibility-workers",
+      "title": "Dynamic compatibility workers",
+      "status": "in_progress",
+      "authority": "Arach-OS",
+      "components": [
+        "Corinth",
+        "Arach-Packages"
+      ],
+      "document": "docs/DYNAMIC_COMPATIBILITY_WORKERS_GATE.md",
+      "depends_on": [
+        "corinth-repository-service",
+        "package-semantics",
+        "security-qualification"
+      ],
+      "required_evidence": [
+        "security-report",
+        "reproducibility-report",
+        "test-report"
+      ],
+      "evidence": [],
+      "blockers": [
+        "Capability-bounded deterministic workers and reproducibility checks are not yet qualified."
+      ],
+      "qualified_at": null,
+      "qualified_revision": null
+    },
+    {
+      "number": 7,
+      "id": "application-compatibility-tiers",
+      "title": "Linux application compatibility tiers",
+      "status": "in_progress",
+      "authority": "Arach-OS",
+      "components": [
+        "Arach-OS",
+        "Arach-Kernel",
+        "Slope",
+        "Corinth"
+      ],
+      "document": "docs/APPLICATION_COMPATIBILITY_GATE.md",
+      "depends_on": [
+        "linux-posix-compatibility",
+        "package-semantics",
+        "dynamic-compatibility-workers",
+        "security-qualification"
+      ],
+      "required_evidence": [
+        "route-matrix",
+        "test-report"
+      ],
+      "evidence": [],
+      "blockers": [
+        "The native, rebuilt, runtime, container, and managed-VM routes do not yet have complete representative workload evidence."
+      ],
+      "qualified_at": null,
+      "qualified_revision": null
+    },
+    {
+      "number": 8,
+      "id": "package-repository",
+      "title": "Complete the package repository",
+      "status": "in_progress",
+      "authority": "Arach-OS",
+      "components": [
+        "Arach-Packages",
+        "Corinth"
+      ],
+      "document": "docs/REPO_COMPLETENESS_GATE.md",
+      "depends_on": [
+        "corinth-repository-service",
+        "package-semantics",
+        "dynamic-compatibility-workers",
+        "application-compatibility-tiers",
+        "security-qualification"
+      ],
+      "required_evidence": [
+        "package-report",
+        "reproducibility-report",
+        "test-report"
+      ],
+      "evidence": [],
+      "blockers": [
+        "The required first-party package breadth and full lifecycle test matrix remain incomplete."
+      ],
+      "qualified_at": null,
+      "qualified_revision": null
+    },
+    {
+      "number": 9,
+      "id": "installer-recovery",
+      "title": "Installer and recovery certification",
+      "status": "in_progress",
+      "authority": "Arach-OS",
+      "components": [
+        "Arach-OS",
+        "Granite",
+        "Corinth",
+        "Arach-HWD"
+      ],
+      "document": "docs/INSTALLER_RECOVERY_GATE.md",
+      "depends_on": [
+        "hardware-driver-coverage",
+        "package-repository",
+        "security-qualification"
+      ],
+      "required_evidence": [
+        "test-report",
+        "hardware-report",
+        "recovery-report"
+      ],
+      "evidence": [],
+      "blockers": [
+        "Failure injection, recovery, dual-boot, encryption, Secure Boot, upgrade, and physical-hardware certification remain incomplete."
+      ],
+      "qualified_at": null,
+      "qualified_revision": null
+    },
+    {
+      "number": 10,
+      "id": "desktop-services",
+      "title": "Desktop services",
+      "status": "in_progress",
+      "authority": "Arach-OS",
+      "components": [
+        "Arach-OS",
+        "Push",
+        "Arach-Kernel",
+        "Arach-Packages"
+      ],
+      "document": "docs/DESKTOP_SERVICES_GATE.md",
+      "depends_on": [
+        "linux-posix-compatibility",
+        "hardware-driver-coverage",
+        "package-repository",
+        "security-qualification"
+      ],
+      "required_evidence": [
+        "test-report",
+        "hardware-report"
+      ],
+      "evidence": [],
+      "blockers": [
+        "The complete networking, audio, portal, device, accessibility, update, and power service matrix is not yet qualified."
+      ],
+      "qualified_at": null,
+      "qualified_revision": null
+    },
+    {
+      "number": 11,
+      "id": "security-qualification",
+      "title": "Security qualification",
+      "status": "in_progress",
+      "authority": "Arach-OS",
+      "components": [
+        "Arach-OS",
+        "Arach-Kernel",
+        "Granite",
+        "Push",
+        "Corinth",
+        "Arach-Packages",
+        "Arach-HWD"
+      ],
+      "document": "docs/SECURITY_GATE.md",
+      "depends_on": [],
+      "required_evidence": [
+        "threat-model",
+        "security-report",
+        "sbom",
+        "attestation",
+        "reproducibility-report"
+      ],
+      "evidence": [],
+      "blockers": [
+        "Formal threat models, continuous fuzzing, complete hardening evidence, key drills, SBOMs, attestations, and patch operations remain incomplete."
+      ],
+      "qualified_at": null,
+      "qualified_revision": null
+    },
+    {
+      "number": 12,
+      "id": "hardware-lab-release",
+      "title": "Hardware lab and release operations",
+      "status": "in_progress",
+      "authority": "Arach-OS",
+      "components": [
+        "Arach-OS",
+        "Arach-HWD",
+        "Arach-Kernel"
+      ],
+      "document": "docs/HARDWARE_LAB_GATE.md",
+      "depends_on": [
+        "cosmic-lifecycle",
+        "hardware-driver-coverage",
+        "installer-recovery",
+        "security-qualification"
+      ],
+      "required_evidence": [
+        "hardware-report",
+        "release-report",
+        "test-report"
+      ],
+      "evidence": [],
+      "blockers": [
+        "Representative hardware qualification, support tiers, release channels, rollback drills, advisories, and soak testing are not yet operationally complete."
+      ],
+      "qualified_at": null,
+      "qualified_revision": null
+    },
+    {
+      "number": 13,
+      "id": "universal-route",
+      "title": "Universal route statement",
+      "status": "in_progress",
+      "authority": "Arach-OS",
+      "components": [
+        "Arach-OS",
+        "Corinth",
+        "Arach-Packages",
+        "Arach-Kernel"
+      ],
+      "document": "docs/UNIVERSAL_ROUTE_GATE.md",
+      "depends_on": [
+        "application-compatibility-tiers",
+        "package-repository",
+        "hardware-lab-release"
+      ],
+      "required_evidence": [
+        "route-matrix",
+        "test-report"
+      ],
+      "evidence": [],
+      "blockers": [
+        "Every supported workload does not yet have a tested and published execution route."
+      ],
+      "qualified_at": null,
+      "qualified_revision": null
+    }
+  ]
+}
