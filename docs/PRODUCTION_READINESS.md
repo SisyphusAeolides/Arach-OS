@@ -23,6 +23,7 @@ list into concrete acceptance checkpoints. It is the implementation target for t
   `/sys`, `/dev`, uevents, mmap pressure handling, credentials, capabilities,
   and broad ioctl compatibility.
 - Current status: `in_progress`
+- Compatibility domain checklist: [`LINUX_COMPAT_GATE.md`](LINUX_COMPAT_GATE.md)
 
 ## 3. Production hardware and driver coverage
 
