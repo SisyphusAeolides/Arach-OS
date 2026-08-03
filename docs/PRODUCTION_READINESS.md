@@ -9,6 +9,7 @@ list into concrete acceptance checkpoints. It is the implementation target for t
 - Target: prove installer → reboot → greeter → login → usable desktop → suspend/resume
   → logout → shutdown end-to-end on QEMU and hardware.
 - Current status: `in_progress`
+- Detailed path and marker plan: [`COSMIC_LIFECYCLE_GATE.md`](COSMIC_LIFECYCLE_GATE.md)
 - Next evidence to collect:
   - QEMU serial markers for greeter session launch
   - evidence of reachable desktop shell session
