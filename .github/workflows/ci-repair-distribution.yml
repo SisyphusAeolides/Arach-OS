@@ -21,15 +21,21 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt
-      - name: Apply distribution repair
+      - name: Apply distribution and validator repair
         run: |
           python3 scripts/repair_distribution_constant.py
           cargo fmt --all
           rm scripts/repair_distribution_constant.py
           git diff --check
-      - name: Validate composition contract
+      - name: Validate composition and fuzz boundaries
         run: |
           cargo test --locked repository_composition_is_valid
+          python3 scripts/fuzz_control_documents.py \
+            --root . \
+            --cases 5000 \
+            --seed 0xA2AC0DE2026 \
+            --report target/control-fuzz.json
+          python3 -m unittest tests/test_control_fuzzer.py
           if git grep -In -e 'Arach OS' -e 'Arach-OS' -- .; then
             echo 'retired ArachOS identity remains' >&2
             exit 1
