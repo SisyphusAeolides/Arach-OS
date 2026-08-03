@@ -125,7 +125,7 @@ else
     printf '\177ELF test Crest\n' > "$bundle_inputs/crest"
 fi
 for artifact in seatd dbus-broker pipewire wireplumber cosmic-comp cosmic-greeter cosmic-session xdg-desktop-portal-cosmic; do
-    printf '\177ELF test %s\n' "$artifact" > "$bundle_inputs/$artifact"
+    make_fake_elf "$bundle_inputs/$artifact" "$artifact"
 done
 "$root/scripts/assemble-boot-bundle.sh" "$bundle_inputs" "$bundle"
 printf 'generation test\n' > "$generation"
