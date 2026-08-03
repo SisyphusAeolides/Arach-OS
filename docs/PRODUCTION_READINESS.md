@@ -31,6 +31,7 @@ list into concrete acceptance checkpoints. It is the implementation target for t
   Ethernet, Bluetooth, webcams, battery, thermal, docks, displays, suspend,
   hibernation, hot-plug; plus bounded Linux compatibility for non-native drivers.
 - Current status: `in_progress`
+- Coverage matrix: [`HARDWARE_COVERAGE_GATE.md`](HARDWARE_COVERAGE_GATE.md)
 
 ## 4. Automatic Corinth repository service
 
@@ -39,6 +40,7 @@ list into concrete acceptance checkpoints. It is the implementation target for t
   recipes; dependency closure; catalog signing and publishing; compromise/remove
   handling.
 - Current status: `in_progress`
+- Service plan: [`CORINTH_AUTO_INDEXER_GATE.md`](CORINTH_AUTO_INDEXER_GATE.md)
 
 ## 5. Broader package semantics
 
