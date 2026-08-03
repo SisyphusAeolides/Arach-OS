@@ -40,6 +40,6 @@ become observable in serial logs.
 
 ## Current status
 
-`in_progress`  
+`qualified`
 Gate ownership remains active in `docs/PRODUCTION_READINESS.md` and
 `docs/PRODUCTION_READINESS.md`.
