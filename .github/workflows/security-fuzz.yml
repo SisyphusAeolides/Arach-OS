@@ -32,6 +32,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: security-fuzz-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   bounded-mutations:
     runs-on: ubuntu-24.04
