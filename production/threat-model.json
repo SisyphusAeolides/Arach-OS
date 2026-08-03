@@ -1,0 +1,275 @@
+{
+  "format": 1,
+  "distribution": "Arach OS",
+  "method": "STRIDE with explicit trust boundaries and residual-risk admission",
+  "assets": [
+    {
+      "id": "boot-authority",
+      "title": "Measured boot authority",
+      "owner": "Granite",
+      "security_properties": ["integrity", "authenticity", "rollback-resistance"]
+    },
+    {
+      "id": "kernel-authority",
+      "title": "Kernel execution authority",
+      "owner": "Arach-Kernel",
+      "security_properties": ["integrity", "isolation", "availability"]
+    },
+    {
+      "id": "package-authority",
+      "title": "Signed package and generation authority",
+      "owner": "Corinth",
+      "security_properties": ["integrity", "authenticity", "freshness", "reproducibility"]
+    },
+    {
+      "id": "hardware-authority",
+      "title": "Signed hardware catalog and qualification authority",
+      "owner": "Arach-HWD",
+      "security_properties": ["integrity", "authenticity", "device-binding"]
+    },
+    {
+      "id": "installer-secrets",
+      "title": "Installer credentials and encryption secrets",
+      "owner": "Arach-OS",
+      "security_properties": ["confidentiality", "integrity", "bounded-lifetime"]
+    },
+    {
+      "id": "user-data",
+      "title": "User data and account state",
+      "owner": "Arach-OS",
+      "security_properties": ["confidentiality", "integrity", "availability", "recoverability"]
+    },
+    {
+      "id": "release-keys",
+      "title": "Offline release signing keys",
+      "owner": "Arach-OS",
+      "security_properties": ["confidentiality", "integrity", "revocability"]
+    },
+    {
+      "id": "qualification-evidence",
+      "title": "Production qualification evidence",
+      "owner": "Arach-OS",
+      "security_properties": ["integrity", "traceability", "revision-binding"]
+    }
+  ],
+  "boundaries": [
+    {
+      "id": "firmware-to-granite",
+      "from": "Platform firmware",
+      "to": "Granite",
+      "channel": "UEFI image and variables"
+    },
+    {
+      "id": "granite-to-kernel",
+      "from": "Granite",
+      "to": "Arach-Kernel",
+      "channel": "Measured boot bundle"
+    },
+    {
+      "id": "kernel-to-userspace",
+      "from": "Arach-Kernel",
+      "to": "Push and applications",
+      "channel": "System calls, ioctls, mappings, and devices"
+    },
+    {
+      "id": "installer-to-target",
+      "from": "Live installer",
+      "to": "Target filesystem and boot authority",
+      "channel": "Journaled package and boot transaction"
+    },
+    {
+      "id": "upstream-to-indexer",
+      "from": "External upstreams",
+      "to": "Corinth indexers",
+      "channel": "Immutable source and metadata ingestion"
+    },
+    {
+      "id": "worker-to-build-root",
+      "from": "Dynamic compatibility worker",
+      "to": "Measured build root",
+      "channel": "Declared inputs, tools, network resources, and outputs"
+    },
+    {
+      "id": "repository-to-client",
+      "from": "Corinth repository service",
+      "to": "Arach OS client",
+      "channel": "Signed catalogs and binary generations"
+    },
+    {
+      "id": "hardware-to-kernel",
+      "from": "Physical devices and firmware",
+      "to": "Arach-Kernel",
+      "channel": "DMA, interrupts, MMIO, firmware, and modules"
+    },
+    {
+      "id": "application-to-desktop",
+      "from": "Applications",
+      "to": "COSMIC services",
+      "channel": "D-Bus, portals, Wayland, PipeWire, and notifications"
+    },
+    {
+      "id": "operator-to-release",
+      "from": "Release operator",
+      "to": "Published release authority",
+      "channel": "Offline signing, promotion, mirrors, and advisories"
+    }
+  ],
+  "threats": [
+    {
+      "id": "T01",
+      "title": "Boot artifact substitution",
+      "categories": ["spoofing", "tampering", "elevation-of-privilege"],
+      "assets": ["boot-authority", "kernel-authority"],
+      "boundaries": ["firmware-to-granite", "granite-to-kernel"],
+      "status": "partially-mitigated",
+      "controls": ["components.lock.toml", "scripts/assemble-boot-bundle.sh", "scripts/build-live-iso.sh"],
+      "required_evidence": ["attestation", "reproducibility-report", "hardware-report"],
+      "evidence": [],
+      "residual_risk": "Secure Boot enrollment, physical firmware behavior, and key-revocation drills are not yet qualified.",
+      "blockers": ["Complete Secure Boot and physical-hardware evidence is missing."]
+    },
+    {
+      "id": "T02",
+      "title": "Generation or component rollback",
+      "categories": ["tampering", "repudiation"],
+      "assets": ["boot-authority", "package-authority"],
+      "boundaries": ["repository-to-client", "installer-to-target"],
+      "status": "partially-mitigated",
+      "controls": ["src/installer.rs", "production/installer-recovery.json", "scripts/verify-components.py"],
+      "required_evidence": ["recovery-report", "test-report"],
+      "evidence": [],
+      "residual_risk": "Interrupted activation and failed-kernel rollback are not certified across QEMU and hardware.",
+      "blockers": ["Rollback drills remain pending."]
+    },
+    {
+      "id": "T03",
+      "title": "Malicious or compromised package publication",
+      "categories": ["spoofing", "tampering", "elevation-of-privilege"],
+      "assets": ["package-authority", "user-data"],
+      "boundaries": ["upstream-to-indexer", "repository-to-client"],
+      "status": "partially-mitigated",
+      "controls": ["components.lock.toml", "production/control-matrices/security.json"],
+      "required_evidence": ["sbom", "attestation", "reproducibility-report", "vulnerability-drill"],
+      "evidence": [],
+      "residual_risk": "Independent full-repository rebuilds and vulnerability-response operations are incomplete.",
+      "blockers": ["Independent rebuild and vulnerability-drill evidence is missing."]
+    },
+    {
+      "id": "T04",
+      "title": "Upstream index compromise or disappearance",
+      "categories": ["spoofing", "tampering", "denial-of-service"],
+      "assets": ["package-authority"],
+      "boundaries": ["upstream-to-indexer"],
+      "status": "partially-mitigated",
+      "controls": ["components.lock.toml", "docs/CORINTH_AUTO_INDEXER_GATE.md"],
+      "required_evidence": ["test-report", "security-report", "recovery-report"],
+      "evidence": [],
+      "residual_risk": "The canonical snapshot and tombstone contract exists in Corinth, but continuous service operations are not deployed.",
+      "blockers": ["Continuous indexer and compromise-drill evidence is missing."]
+    },
+    {
+      "id": "T05",
+      "title": "Dynamic packaging worker escape or nondeterminism",
+      "categories": ["tampering", "information-disclosure", "elevation-of-privilege"],
+      "assets": ["package-authority", "release-keys"],
+      "boundaries": ["worker-to-build-root"],
+      "status": "partially-mitigated",
+      "controls": ["docs/DYNAMIC_COMPATIBILITY_WORKERS_GATE.md", "production/control-matrices/security.json"],
+      "required_evidence": ["security-report", "reproducibility-report", "fuzz-report"],
+      "evidence": [],
+      "residual_risk": "The Corinth worker contract is fail-closed, but no production executor or escape-test corpus is qualified.",
+      "blockers": ["Worker executor and sandbox-escape evidence is missing."]
+    },
+    {
+      "id": "T06",
+      "title": "Installer secret disclosure or cross-transaction reuse",
+      "categories": ["information-disclosure", "spoofing"],
+      "assets": ["installer-secrets", "user-data"],
+      "boundaries": ["installer-to-target"],
+      "status": "partially-mitigated",
+      "controls": ["installer/contract.toml", "src/installer.rs", "installer/calamares/modules/arachtransaction/protocol.py"],
+      "required_evidence": ["security-report", "test-report"],
+      "evidence": [],
+      "residual_risk": "Secret lifetime, crash residue, and recovery behavior are not independently audited.",
+      "blockers": ["Secret-lifetime and crash-residue evidence is missing."]
+    },
+    {
+      "id": "T07",
+      "title": "Malicious device, firmware, or driver gains kernel authority",
+      "categories": ["tampering", "denial-of-service", "elevation-of-privilege"],
+      "assets": ["kernel-authority", "hardware-authority", "user-data"],
+      "boundaries": ["hardware-to-kernel"],
+      "status": "partially-mitigated",
+      "controls": ["live/profile.toml", "docs/HARDWARE_COVERAGE_GATE.md", "production/control-matrices/release-operations.json"],
+      "required_evidence": ["hardware-report", "hardening-report", "security-report"],
+      "evidence": [],
+      "residual_risk": "IOMMU enforcement and broad device lifecycle behavior are not qualified on representative hardware.",
+      "blockers": ["IOMMU and device-lifecycle evidence is incomplete."]
+    },
+    {
+      "id": "T08",
+      "title": "Desktop IPC spoofing or confused-deputy access",
+      "categories": ["spoofing", "information-disclosure", "elevation-of-privilege"],
+      "assets": ["user-data", "installer-secrets"],
+      "boundaries": ["application-to-desktop", "kernel-to-userspace"],
+      "status": "open",
+      "controls": ["production/control-matrices/desktop-services.json", "production/control-matrices/security.json"],
+      "required_evidence": ["security-report", "test-report"],
+      "evidence": [],
+      "residual_risk": "Portal authorization, credential services, camera, audio, notification, and removable-media policies remain incomplete.",
+      "blockers": ["Desktop authorization and IPC abuse tests are missing."]
+    },
+    {
+      "id": "T09",
+      "title": "Power loss or resource exhaustion corrupts activation",
+      "categories": ["tampering", "denial-of-service"],
+      "assets": ["boot-authority", "package-authority", "user-data"],
+      "boundaries": ["installer-to-target", "repository-to-client"],
+      "status": "partially-mitigated",
+      "controls": ["src/installer.rs", "production/installer-recovery.json"],
+      "required_evidence": ["recovery-report", "test-report"],
+      "evidence": [],
+      "residual_risk": "The transaction is journaled, but disk-full and machine-loss injection are not fully certified.",
+      "blockers": ["Disk-full and power-loss scenario evidence is pending."]
+    },
+    {
+      "id": "T10",
+      "title": "Release signing key compromise",
+      "categories": ["spoofing", "tampering", "repudiation"],
+      "assets": ["release-keys", "package-authority", "boot-authority"],
+      "boundaries": ["operator-to-release"],
+      "status": "open",
+      "controls": ["production/control-matrices/security.json", "production/control-matrices/release-operations.json"],
+      "required_evidence": ["key-drill", "recovery-report", "release-report"],
+      "evidence": [],
+      "residual_risk": "Offline custody, rotation, revocation, emergency publication, and client recovery are not operationally qualified.",
+      "blockers": ["Key rotation and revocation drills are missing."]
+    },
+    {
+      "id": "T11",
+      "title": "Forged or stale qualification evidence closes a gate",
+      "categories": ["spoofing", "tampering", "repudiation"],
+      "assets": ["qualification-evidence"],
+      "boundaries": ["operator-to-release"],
+      "status": "partially-mitigated",
+      "controls": ["production/readiness.json", "scripts/verify_production_readiness.py", "scripts/verify_control_matrices.py", "scripts/verify_installer_recovery.py"],
+      "required_evidence": ["test-report", "attestation"],
+      "evidence": [],
+      "residual_risk": "Evidence is hash- and revision-bound, but independent signing and transparency publication are not implemented.",
+      "blockers": ["Independent evidence signing and transparency publication are missing."]
+    },
+    {
+      "id": "T12",
+      "title": "Unbounded input causes resource exhaustion",
+      "categories": ["denial-of-service"],
+      "assets": ["kernel-authority", "package-authority", "hardware-authority"],
+      "boundaries": ["kernel-to-userspace", "upstream-to-indexer", "worker-to-build-root"],
+      "status": "partially-mitigated",
+      "controls": ["src/lib.rs", "production/control-matrices/security.json"],
+      "required_evidence": ["fuzz-report", "test-report", "soak-report"],
+      "evidence": [],
+      "residual_risk": "Many parsers and tables are bounded, but continuous fuzzing and sustained pressure tests are incomplete.",
+      "blockers": ["Continuous fuzzing and pressure-test evidence is missing."]
+    }
+  ]
+}
