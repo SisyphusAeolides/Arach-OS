@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - scripts/repair_distribution_constant.py
+      - tests/test_control_fuzzer.py
       - .github/workflows/ci-repair-distribution.yml
 
 permissions:
