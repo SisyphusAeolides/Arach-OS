@@ -89,7 +89,7 @@ def validate_evidence(root: Path, gate: dict[str, Any], index: int) -> set[str]:
         digest = item["sha256"]
         revision = item["revision"]
         component = item["component"]
-        if kind not in EVIDENCE_KINDS:
+        if not isinstance(kind, str) or kind not in EVIDENCE_KINDS:
             fail(f"{base}.kind", "unknown evidence kind")
         if not isinstance(path, str) or not safe_relative(path):
             fail(f"{base}.path", "must be a safe relative path")
@@ -111,8 +111,8 @@ def validate_evidence(root: Path, gate: dict[str, Any], index: int) -> set[str]:
         if not isinstance(item["captured_at"], str):
             fail(f"{base}.captured_at", "must be a timestamp")
         parse_timestamp(item["captured_at"], f"{base}.captured_at")
-        if not resolved.is_file():
-            fail(f"{base}.path", "evidence file is missing")
+        if resolved.is_symlink() or not resolved.is_file():
+            fail(f"{base}.path", "evidence file is missing or not regular")
         actual = hashlib.sha256(resolved.read_bytes()).hexdigest()
         if actual != digest:
             fail(f"{base}.sha256", "does not match the evidence file")
@@ -154,7 +154,13 @@ def validate_manifest(root: Path, manifest: dict[str, Any]) -> None:
             fail(base, f"fields must be exactly {sorted(expected)}")
         number = gate["number"]
         gate_id = gate["id"]
-        if not isinstance(number, int) or number < 1 or number > 13 or number in numbers:
+        if (
+            not isinstance(number, int)
+            or isinstance(number, bool)
+            or number < 1
+            or number > 13
+            or number in numbers
+        ):
             fail(f"{base}.number", "must be unique in the range 1..13")
         numbers.add(number)
         if not isinstance(gate_id, str) or not GATE_ID_RE.fullmatch(gate_id) or gate_id in ids:
@@ -166,25 +172,38 @@ def validate_manifest(root: Path, manifest: dict[str, Any]) -> None:
         if gate["authority"] != "Arach-OS":
             fail(f"{base}.authority", "Arach-OS is the release authority")
         status = gate["status"]
-        if status not in STATUSES:
+        if not isinstance(status, str) or status not in STATUSES:
             fail(f"{base}.status", "unknown status")
         components = gate["components"]
-        if not isinstance(components, list) or not components or len(components) != len(set(components)):
-            fail(f"{base}.components", "must be a non-empty unique array")
-        if not all(isinstance(value, str) and value.strip() for value in components):
-            fail(f"{base}.components", "component names must be non-empty strings")
+        if (
+            not isinstance(components, list)
+            or not components
+            or not all(isinstance(value, str) and value.strip() for value in components)
+            or len(components) != len(set(components))
+        ):
+            fail(f"{base}.components", "must be a non-empty unique string array")
         document = gate["document"]
         if not isinstance(document, str) or not safe_relative(document) or document in documents:
             fail(f"{base}.document", "must be a unique safe relative path")
         documents.add(document)
-        if not (root / document).is_file():
-            fail(f"{base}.document", "gate document is missing")
+        document_path = root / document
+        if document_path.is_symlink() or not document_path.is_file():
+            fail(f"{base}.document", "gate document is missing or not regular")
         dependencies = gate["depends_on"]
-        if not isinstance(dependencies, list) or len(dependencies) != len(set(dependencies)):
-            fail(f"{base}.depends_on", "must be a unique array")
+        if (
+            not isinstance(dependencies, list)
+            or not all(isinstance(value, str) and value for value in dependencies)
+            or len(dependencies) != len(set(dependencies))
+        ):
+            fail(f"{base}.depends_on", "must be a unique string array")
         required = gate["required_evidence"]
-        if not isinstance(required, list) or not required or len(required) != len(set(required)):
-            fail(f"{base}.required_evidence", "must be a non-empty unique array")
+        if (
+            not isinstance(required, list)
+            or not required
+            or not all(isinstance(value, str) for value in required)
+            or len(required) != len(set(required))
+        ):
+            fail(f"{base}.required_evidence", "must be a non-empty unique string array")
         if not set(required) <= EVIDENCE_KINDS:
             fail(f"{base}.required_evidence", "contains an unknown evidence kind")
         blockers = gate["blockers"]
@@ -220,7 +239,10 @@ def validate_manifest(root: Path, manifest: dict[str, Any]) -> None:
             unqualified = [dep for dep in gate["depends_on"] if by_id[dep]["status"] != "qualified"]
             if unqualified:
                 fail(f"gates[{index}].depends_on", f"qualified gate depends on unqualified gates: {unqualified}")
-    tracker = (root / TRACKER_PATH).read_text(encoding="utf-8")
+    tracker_path = root / TRACKER_PATH
+    if tracker_path.is_symlink() or not tracker_path.is_file():
+        fail(TRACKER_PATH, "tracker is missing or not regular")
+    tracker = tracker_path.read_text(encoding="utf-8")
     for gate in gates:
         if f"## {gate['number']}. {gate['title']}" not in tracker:
             fail(TRACKER_PATH, f"missing gate heading {gate['number']}. {gate['title']}")
@@ -272,7 +294,7 @@ def main() -> int:
     try:
         manifest = load_json(root / MANIFEST_PATH)
         validate_manifest(root, manifest)
-    except ReadinessError as error:
+    except (OSError, ReadinessError) as error:
         print(error, file=sys.stderr)
         return 1
     if args.report:
