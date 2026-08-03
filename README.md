@@ -89,6 +89,9 @@ revision-bound, SHA-256-verified evidence. Current status is intentionally
 reported by the ledgers and validators rather than by prose claims in this
 README.
 
+Qualified readiness evidence must use real immutable revisions and retained
+artifacts; placeholder revisions and mock artifacts are rejected by CI.
+
 ## Validation
 
 ```sh

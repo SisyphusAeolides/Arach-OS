@@ -72,6 +72,12 @@ class ProductionReadinessTests(unittest.TestCase):
             with self.assertRaisesRegex(MODULE.ReadinessError, "does not match"):
                 MODULE.validate_manifest(root, manifest)
 
+    def test_placeholder_provenance_is_detected(self) -> None:
+        self.assertTrue(MODULE.is_placeholder_revision("d" * 40))
+        self.assertFalse(MODULE.is_placeholder_revision("0123456789abcdef0123456789abcdef01234567"))
+        self.assertTrue(MODULE.is_mock_evidence("production/evidence/security/mock_report.txt"))
+        self.assertFalse(MODULE.is_mock_evidence("production/evidence/security/report.txt"))
+
 
 if __name__ == "__main__":
     unittest.main()

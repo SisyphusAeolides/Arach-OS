@@ -71,6 +71,14 @@ def parse_timestamp(value: str, path: str) -> None:
         fail(path, "timestamp must be RFC 3339 compatible")
 
 
+def is_placeholder_revision(value: str) -> bool:
+    return len(set(value)) == 1
+
+
+def is_mock_evidence(path: str) -> bool:
+    return Path(path).name.startswith("mock_")
+
+
 def validate_evidence(root: Path, gate: dict[str, Any], index: int) -> set[str]:
     evidence = gate.get("evidence")
     if not isinstance(evidence, list):
@@ -211,6 +219,10 @@ def validate_manifest(root: Path, manifest: dict[str, Any]) -> None:
             fail(f"{base}.blockers", "must contain non-empty strings")
         evidence_kinds = validate_evidence(root, gate, index)
         if status == "qualified":
+            if any(is_placeholder_revision(item["revision"]) for item in gate["evidence"]):
+                fail(f"{base}.evidence", "contains a placeholder revision and cannot qualify")
+            if any(is_mock_evidence(item["path"]) for item in gate["evidence"]):
+                fail(f"{base}.evidence", "contains mock artifacts and cannot qualify")
             if blockers:
                 fail(f"{base}.blockers", "qualified gates cannot retain blockers")
             missing = set(required) - evidence_kinds
@@ -221,6 +233,8 @@ def validate_manifest(root: Path, manifest: dict[str, Any]) -> None:
             parse_timestamp(gate["qualified_at"], f"{base}.qualified_at")
             if not isinstance(gate["qualified_revision"], str) or not REVISION_RE.fullmatch(gate["qualified_revision"]):
                 fail(f"{base}.qualified_revision", "qualified gate requires a full Git object ID")
+            if is_placeholder_revision(gate["qualified_revision"]):
+                fail(f"{base}.qualified_revision", "placeholder revisions cannot qualify a gate")
         else:
             if not blockers:
                 fail(f"{base}.blockers", "unqualified gates must state at least one blocker")

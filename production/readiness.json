@@ -241,7 +241,7 @@
       "number": 9,
       "id": "installer-recovery",
       "title": "Installer and recovery certification",
-      "status": "qualified",
+      "status": "in_progress",
       "authority": "ArachOS",
       "components": [
         "ArachOS",
@@ -256,35 +256,12 @@
         "hardware-report",
         "recovery-report"
       ],
-      "evidence": [
-        {
-          "kind": "test-report",
-          "path": "production/evidence/installer-recovery/test-report.json",
-          "sha256": "315eca10e4ec17eabdecd6de60f0358f298e99ca03b1f7522c8ef9c90655eed6",
-          "captured_at": "2026-08-03T15:56:26Z",
-          "component": "ArachOS",
-          "revision": "dddddddddddddddddddddddddddddddddddddddd"
-        },
-        {
-          "kind": "hardware-report",
-          "path": "production/evidence/installer-recovery/hardware-report.json",
-          "sha256": "315eca10e4ec17eabdecd6de60f0358f298e99ca03b1f7522c8ef9c90655eed6",
-          "captured_at": "2026-08-03T15:56:26Z",
-          "component": "ArachOS",
-          "revision": "dddddddddddddddddddddddddddddddddddddddd"
-        },
-        {
-          "kind": "recovery-report",
-          "path": "production/evidence/installer-recovery/recovery-report.json",
-          "sha256": "315eca10e4ec17eabdecd6de60f0358f298e99ca03b1f7522c8ef9c90655eed6",
-          "captured_at": "2026-08-03T15:56:26Z",
-          "component": "ArachOS",
-          "revision": "dddddddddddddddddddddddddddddddddddddddd"
-        }
+      "evidence": [],
+      "blockers": [
+        "Replace placeholder installer and recovery reports with revision-bound evidence from actual clean-install, upgrade, recovery, and rollback exercises."
       ],
-      "blockers": [],
-      "qualified_at": "2026-08-03T15:56:26Z",
-      "qualified_revision": "dddddddddddddddddddddddddddddddddddddddd"
+      "qualified_at": null,
+      "qualified_revision": null
     },
     {
       "number": 10,
@@ -320,7 +297,7 @@
       "number": 11,
       "id": "security-qualification",
       "title": "Security qualification",
-      "status": "qualified",
+      "status": "in_progress",
       "authority": "ArachOS",
       "components": [
         "ArachOS",
@@ -340,51 +317,12 @@
         "attestation",
         "reproducibility-report"
       ],
-      "evidence": [
-        {
-          "kind": "threat-model",
-          "path": "production/evidence/security/mock_gate_threat-model.txt",
-          "sha256": "e795e2e5f4b526b66a1d9b8424100cb33c939a38bce6fc5313fd72d937f8911a",
-          "captured_at": "2026-08-03T21:00:03Z",
-          "component": "ArachOS",
-          "revision": "9378db1cb36d2108e35542e0c3d7f1667b7befca00000000000000000000"
-        },
-        {
-          "kind": "security-report",
-          "path": "production/evidence/security/mock_gate_security-report.txt",
-          "sha256": "79f09ee0fa5b581f2a84f62780ac2b6d37d7536e745f87c17fa6820e85e5249f",
-          "captured_at": "2026-08-03T21:00:03Z",
-          "component": "ArachOS",
-          "revision": "b62ee55aaa45528d3ea9a615ec3a34b3856244c300000000000000000000"
-        },
-        {
-          "kind": "sbom",
-          "path": "production/evidence/security/mock_gate_sbom.txt",
-          "sha256": "ebe1e028da25e371941672dd966ea1de5ea3d1bd1ee471858638645925631305",
-          "captured_at": "2026-08-03T21:00:03Z",
-          "component": "ArachOS",
-          "revision": "513e53d9652983e723b321305ede7df8bc36cdc300000000000000000000"
-        },
-        {
-          "kind": "attestation",
-          "path": "production/evidence/security/mock_gate_attestation.txt",
-          "sha256": "701150950a6f16daed54283428e3e7095c5bf12cbf69cd23c46ccefb06104102",
-          "captured_at": "2026-08-03T21:00:03Z",
-          "component": "ArachOS",
-          "revision": "e095800f272fe854d8881be206aa4190c3ae28d300000000000000000000"
-        },
-        {
-          "kind": "reproducibility-report",
-          "path": "production/evidence/security/mock_gate_reproducibility-report.txt",
-          "sha256": "ca6c1d7abe809c6a1b5ed107f5b4aedaad9c52e8a87f546017624eb466c8f6fc",
-          "captured_at": "2026-08-03T21:00:03Z",
-          "component": "ArachOS",
-          "revision": "97e5b9739a67619857b62bdbcc1bc27e8740f98100000000000000000000"
-        }
+      "evidence": [],
+      "blockers": [
+        "Replace mock security artifacts with independently reviewed threat-model, hardening, SBOM, attestation, and reproducibility evidence."
       ],
-      "blockers": [],
-      "qualified_at": "2026-08-03T21:00:03Z",
-      "qualified_revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      "qualified_at": null,
+      "qualified_revision": null
     },
     {
       "number": 12,
