@@ -77,7 +77,7 @@ def targets(root: Path) -> list[Target]:
         Target(
             name="readiness",
             document=load_json(root / "production/readiness.json"),
-            validate=lambda document: readiness.validate_document(root, document),
+            validate=lambda document: readiness.validate_manifest(root, document),
             expected_error=readiness.ReadinessError,
         ),
         Target(
