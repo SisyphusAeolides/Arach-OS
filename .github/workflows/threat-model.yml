@@ -1,0 +1,32 @@
+name: Threat model
+
+on:
+  push:
+    paths:
+      - production/threat-model.json
+      - production/evidence/security/**
+      - scripts/verify_threat_model.py
+      - tests/test_threat_model.py
+      - .github/workflows/threat-model.yml
+  pull_request:
+    paths:
+      - production/threat-model.json
+      - production/evidence/security/**
+      - scripts/verify_threat_model.py
+      - tests/test_threat_model.py
+      - .github/workflows/threat-model.yml
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - name: Validate structured threat model
+        run: python3 scripts/verify_threat_model.py --root .
+      - name: Test threat model invariants
+        run: python3 -m unittest tests/test_threat_model.py
+      - name: Check repository whitespace
+        run: git diff --check
