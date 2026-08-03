@@ -49,6 +49,28 @@ class ComponentLockTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "arach-hwd revision differs"):
             VERIFY.validate_rust_pins(components, ROOT / "Cargo.toml")
 
+    def test_current_readme_uses_canonical_product_name(self) -> None:
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        self.assertIn("ArachOS", readme)
+        self.assertIsNone(VERIFY.STALE_PRODUCT.search(readme))
+
+    def test_line_wrapped_retired_product_name_is_rejected(self) -> None:
+        with mock.patch.object(
+            VERIFY,
+            "show_remote_file",
+            return_value="Runtime for Arach\nOS.\n",
+        ):
+            with self.assertRaisesRegex(ValueError, "retired product identity"):
+                VERIFY.validate_component_readme({"name": "example"}, "/unused")
+
+    def test_canonical_component_readme_is_accepted(self) -> None:
+        with mock.patch.object(
+            VERIFY,
+            "show_remote_file",
+            return_value="Runtime for ArachOS.\n",
+        ):
+            VERIFY.validate_component_readme({"name": "example"}, "/unused")
+
     def test_corinth_nested_hwd_drift_is_rejected(self) -> None:
         locked = {
             component["name"]: component["revision"] for component in self.components
