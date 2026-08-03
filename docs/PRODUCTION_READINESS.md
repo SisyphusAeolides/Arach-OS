@@ -49,6 +49,7 @@ list into concrete acceptance checkpoints. It is the implementation target for t
   symlinks/hardlinks, xattrs, ACLs, file capabilities, users/groups,
   service declarations, desktop registration, triggers.
 - Current status: `in_progress`
+- Semantic matrix: [`PACKAGE_SEMANTICS_GATE.md`](PACKAGE_SEMANTICS_GATE.md)
 
 ## 6. Dynamic compatibility workers
 
@@ -64,6 +65,7 @@ list into concrete acceptance checkpoints. It is the implementation target for t
   managed Flatpak/OCI/AppImage routes, and lightweight VM fallback for legacy
   proprietary packages.
 - Current status: `in_progress`
+- Route matrix: [`APPLICATION_COMPATIBILITY_GATE.md`](APPLICATION_COMPATIBILITY_GATE.md)
 
 ## 8. Complete the package repository
 
@@ -71,6 +73,7 @@ list into concrete acceptance checkpoints. It is the implementation target for t
   and runtime tests, including toolchains, libc/OpenSSL/networking, office,
   browsers, media, drivers, firmware, and diagnostics.
 - Current status: `in_progress`
+- Completeness matrix: [`REPO_COMPLETENESS_GATE.md`](REPO_COMPLETENESS_GATE.md)
 
 ## 9. Installer and recovery certification
 
@@ -108,3 +111,4 @@ list into concrete acceptance checkpoints. It is the implementation target for t
 - The target is that every workload has a clearly tested route:
   native, rebuilt, compatibility runtime, container, or managed VM.
 - Current status: `in_progress`
+- Route enforcement: [`UNIVERSAL_ROUTE_GATE.md`](UNIVERSAL_ROUTE_GATE.md)
