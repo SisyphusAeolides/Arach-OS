@@ -5,6 +5,28 @@ import subprocess
 matrix = Path("scripts/verify_control_matrices.py")
 text = matrix.read_text(encoding="utf-8")
 replacements = {
+'''        if kind not in EVIDENCE_KINDS:
+            raise ControlMatrixError(f"{item_base}.kind is invalid")
+''': '''        if not isinstance(kind, str) or kind not in EVIDENCE_KINDS:
+            raise ControlMatrixError(f"{item_base}.kind is invalid")
+''',
+'''        if environment not in ENVIRONMENTS:
+            raise ControlMatrixError(f"{item_base}.environment is invalid")
+''': '''        if not isinstance(environment, str) or environment not in ENVIRONMENTS:
+            raise ControlMatrixError(f"{item_base}.environment is invalid")
+''',
+'''        if component not in control["components"]:
+            raise ControlMatrixError(f"{item_base}.component is outside the control boundary")
+''': '''        if not isinstance(component, str) or component not in control["components"]:
+            raise ControlMatrixError(f"{item_base}.component is outside the control boundary")
+''',
+'''        status = control["status"]
+        if status not in STATUSES:
+            raise ControlMatrixError(f"{base}.status is invalid")
+''': '''        status = control["status"]
+        if not isinstance(status, str) or status not in STATUSES:
+            raise ControlMatrixError(f"{base}.status is invalid")
+''',
 '''            or len(components) != len(set(components))
             or not all(isinstance(component, str) and component.strip() for component in components)
 ''': '''            or not all(isinstance(component, str) and component.strip() for component in components)
