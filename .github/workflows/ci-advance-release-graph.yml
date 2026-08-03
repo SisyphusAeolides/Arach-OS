@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - scripts/advance_release_graph.py
+      - scripts/repair_component_verifier.py
       - .github/workflows/ci-advance-release-graph.yml
 
 permissions:
@@ -19,14 +20,16 @@ jobs:
         with:
           fetch-depth: 0
       - uses: dtolnay/rust-toolchain@stable
-      - name: Apply exact component revisions
+      - name: Apply verifier and component revisions
         run: |
+          python3 scripts/repair_component_verifier.py
           python3 scripts/advance_release_graph.py
           cargo generate-lockfile
-          rm scripts/advance_release_graph.py
+          rm scripts/repair_component_verifier.py scripts/advance_release_graph.py
           git diff --check
       - name: Validate release graph
         run: |
+          python3 -m unittest scripts/test_verify_components.py
           cargo check --locked
           python3 scripts/verify-components.py \
             --lock components.lock.toml \
@@ -36,7 +39,9 @@ jobs:
         run: |
           git config user.name 'SisyphusAeolides'
           git config user.email '37166405+SisyphusAeolides@users.noreply.github.com'
-          git add Cargo.toml Cargo.lock components.lock.toml scripts/advance_release_graph.py
+          git add Cargo.toml Cargo.lock components.lock.toml \
+            scripts/verify-components.py scripts/test_verify_components.py \
+            scripts/repair_component_verifier.py scripts/advance_release_graph.py
           git commit -m 'build: advance release graph'
           git pull --rebase origin main
           git push origin HEAD:main
