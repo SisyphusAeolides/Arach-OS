@@ -1,0 +1,32 @@
+name: Installer recovery certification
+
+on:
+  push:
+    paths:
+      - production/installer-recovery.json
+      - production/evidence/installer-recovery/**
+      - scripts/verify_installer_recovery.py
+      - tests/test_installer_recovery.py
+      - .github/workflows/installer-recovery.yml
+  pull_request:
+    paths:
+      - production/installer-recovery.json
+      - production/evidence/installer-recovery/**
+      - scripts/verify_installer_recovery.py
+      - tests/test_installer_recovery.py
+      - .github/workflows/installer-recovery.yml
+
+permissions:
+  contents: read
+
+jobs:
+  certify:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - name: Validate installer recovery matrix
+        run: python3 scripts/verify_installer_recovery.py --root .
+      - name: Test recovery evidence invariants
+        run: python3 -m unittest tests/test_installer_recovery.py
+      - name: Check repository whitespace
+        run: git diff --check
