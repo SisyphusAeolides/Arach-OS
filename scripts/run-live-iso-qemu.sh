@@ -114,6 +114,30 @@ collect_markers() {
     done < <(printf '%s\n' "$src")
 }
 
+collect_markers_file() {
+    local path=$1
+    local -n out=$2
+    local -n seen=$3
+
+    if [[ ! -f "$path" ]]; then
+        echo "Marker source file not found: $path" >&2
+        exit 1
+    fi
+
+    while IFS= read -r marker; do
+        marker=${marker//$'\r'/}
+        marker=${marker#"${marker%%[![:space:]]*}"}
+        marker=${marker%"${marker##*[![:space:]]}"}
+        if [[ -z "$marker" ]] || [[ "$marker" == \#* ]]; then
+            continue
+        fi
+        if [[ -z "${seen[$marker]:-}" ]]; then
+            seen[$marker]=1
+            out+=("$marker")
+        fi
+    done < "$path"
+}
+
 require_marker "Granite: bounded Arach/Push/Crest preflight passed"
 require_marker "\\[PID 1\\] Kairos-dispatched workload complete"
 
@@ -136,26 +160,21 @@ require_marker "ARACH_C0_RING3_SYSCALL_PASS"
 session_markers=()
 declare -A session_markers_seen
 if [[ -n "${ARACH_LIVE_SESSION_MARKERS_FILE:-}" ]]; then
-    if [[ ! -f "$ARACH_LIVE_SESSION_MARKERS_FILE" ]]; then
-        echo "ARACH_LIVE_SESSION_MARKERS_FILE must point to an existing file" >&2
-        exit 1
-    fi
-    while IFS= read -r marker; do
-        marker=${marker//$'\r'/}
-        marker=${marker#"${marker%%[![:space:]]*}"}
-        marker=${marker%"${marker##*[![:space:]]}"}
-        if [[ -z "$marker" ]] || [[ "$marker" == \#* ]]; then
-            continue
-        fi
-        if [[ -z "${session_markers_seen[$marker]:-}" ]]; then
-            session_markers_seen[$marker]=1
-            session_markers+=("$marker")
-        fi
-    done < "$ARACH_LIVE_SESSION_MARKERS_FILE"
+    collect_markers_file "$ARACH_LIVE_SESSION_MARKERS_FILE" session_markers session_markers_seen
 fi
 
 if [[ -n "${ARACH_LIVE_SESSION_MARKERS:-}" ]]; then
     collect_markers "$ARACH_LIVE_SESSION_MARKERS" session_markers session_markers_seen
+fi
+
+cosmic_lifecycle_markers=()
+declare -A cosmic_lifecycle_markers_seen
+if [[ -n "${ARACH_LIVE_COSMIC_LIFECYCLE_MARKERS_FILE:-}" ]]; then
+    collect_markers_file "$ARACH_LIVE_COSMIC_LIFECYCLE_MARKERS_FILE" cosmic_lifecycle_markers cosmic_lifecycle_markers_seen
+fi
+
+if [[ -n "${ARACH_LIVE_COSMIC_LIFECYCLE_MARKERS:-}" ]]; then
+    collect_markers "$ARACH_LIVE_COSMIC_LIFECYCLE_MARKERS" cosmic_lifecycle_markers cosmic_lifecycle_markers_seen
 fi
 
 previous_line=0
@@ -165,7 +184,8 @@ for marker in \
     "$service_request_marker" \
     "$service_spawn_marker" \
     "ARACH_C0_RING3_SYSCALL_PASS" \
-    "${session_markers[@]}"; do
+    "${session_markers[@]}" \
+    "${cosmic_lifecycle_markers[@]}"; do
     if [[ -z "$marker" ]]; then
         continue
     fi

@@ -255,6 +255,13 @@ ARACH_LIVE_SESSION_MARKERS=$'cosmic-greeter|COSGREET\nCosmic desktop session rea
   scripts/run-live-iso-qemu.sh /absolute/path/to/arach-os.iso
 ```
 
+For lifecycle stage-by-stage checkpoints, use dedicated COSMIC marker inputs:
+
+```sh
+ARACH_LIVE_COSMIC_LIFECYCLE_MARKERS_FILE="$PWD/docs/COSMIC_LIFECYCLE_MARKERS.sample" \
+  scripts/run-live-iso-qemu.sh /absolute/path/to/arach-os.iso
+```
+
 Or place the newline-separated patterns in a file and pass it with
 `ARACH_LIVE_SESSION_MARKERS_FILE`.
 Lines starting with `#` are ignored.

@@ -27,6 +27,21 @@ It can be extended incrementally with optional session markers:
 - set `ARACH_LIVE_SESSION_MARKERS_FILE` with comment-capable newline-separated
   regexes.
 
+For lifecycle sequencing beyond initial login, use a dedicated file:
+
+- set `ARACH_LIVE_COSMIC_LIFECYCLE_MARKERS` (newline-separated regexes), or
+- set `ARACH_LIVE_COSMIC_LIFECYCLE_MARKERS_FILE`.
+
+Example:
+
+```sh
+ARACH_LIVE_COSMIC_LIFECYCLE_MARKERS_FILE="$PWD/docs/COSMIC_LIFECYCLE_MARKERS.sample" \
+  scripts/run-live-iso-qemu.sh /absolute/path/to/arach-os-c0.iso /tmp/arach-os-c0.serial.log
+```
+
+See [`docs/COSMIC_LIFECYCLE_MARKERS.sample`](COSMIC_LIFECYCLE_MARKERS.sample)
+for marker starter patterns.
+
 Example marker file:
 
 ```text

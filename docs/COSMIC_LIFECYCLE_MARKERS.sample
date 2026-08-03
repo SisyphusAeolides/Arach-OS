@@ -1,0 +1,13 @@
+# COSMIC lifecycle gate evidence markers for QEMU serial logs.
+#
+# Replace these with exact patterns from your build and hardware traces.
+# Empty lines and lines starting with # are ignored.
+
+greetd.*requesting "cosmic-greeter"
+cosmic-greeter.*session ready
+cosmic-session.*session started
+arachd.*login handoff complete
+ARACH_LIVE: suspend requested
+ARACH_LIVE: suspend-resume complete
+ARACH_LIVE: user logout
+ARACH_LIVE: request poweroff
