@@ -6,6 +6,8 @@ if [[ $# -lt 1 || $# -gt 2 ]]; then
     exit 64
 fi
 
+script_dir=$(cd -- "$(dirname -- "$0")" && pwd -P)
+marker_verifier="$script_dir/verify_marker_sequence.py"
 image=$1
 log=${2:-${image}.serial.log}
 qemu=${QEMU:-qemu-system-x86_64}
@@ -17,8 +19,16 @@ done
     echo "live ISO is not a regular file" >&2
     exit 1
 }
+[[ -f "$marker_verifier" && ! -L "$marker_verifier" ]] || {
+    echo "ordered marker verifier is missing" >&2
+    exit 1
+}
 command -v "$qemu" >/dev/null || {
     echo "QEMU is required for live ISO execution" >&2
+    exit 69
+}
+command -v python3 >/dev/null || {
+    echo "Python 3 is required for ordered marker verification" >&2
     exit 69
 }
 
@@ -84,23 +94,6 @@ if [[ "$status" -ne 0 && "$status" -ne 124 ]]; then
     exit "$status"
 fi
 
-require_marker() {
-    local marker=$1
-    if ! grep -Eq -- "$marker" "$log" >/dev/null; then
-        echo "live ISO serial evidence missing: $marker" >&2
-        exit 1
-    fi
-}
-
-first_line() {
-    grep -nE -m1 -- "$1" "$log" | cut -d: -f1
-}
-
-tsv_escape() {
-    local value=$1
-    printf '%s' "$value" | sed -e 's/\\/\\\\/g' -e 's/\t/\\t/g' -e 's/\r/\\r/g'
-}
-
 collect_markers() {
     local src=$1
     local -n out=$2
@@ -124,8 +117,8 @@ collect_markers_file() {
     local -n out=$2
     local -n seen=$3
 
-    if [[ ! -f "$path" ]]; then
-        echo "Marker source file not found: $path" >&2
+    if [[ ! -f "$path" || -L "$path" ]]; then
+        echo "marker source is not a regular file: $path" >&2
         exit 1
     fi
 
@@ -143,9 +136,6 @@ collect_markers_file() {
     done < "$path"
 }
 
-require_marker "Granite: bounded Arach/Push/Crest preflight passed"
-require_marker "\\[PID 1\\] Kairos-dispatched workload complete"
-
 if grep -Eq "\\[PID 1\\] requesting 'seatd'" "$log"; then
     service_request_marker="\\[PID 1\\] requesting 'seatd'"
     service_spawn_marker="\\[PID 1\\] spawned service (Seatd|[0-9]+) as PID"
@@ -157,10 +147,6 @@ else
     service_request_marker="\\[PID 1\\] requesting 'crest'"
     service_spawn_marker="\\[PID 1\\] spawned service (Crest|[0-9]+) as PID"
 fi
-
-require_marker "$service_request_marker"
-require_marker "$service_spawn_marker"
-require_marker "ARACH_C0_RING3_SYSCALL_PASS"
 
 session_markers=()
 declare -A session_markers_seen
@@ -182,39 +168,32 @@ if [[ -n "${ARACH_LIVE_COSMIC_LIFECYCLE_MARKERS:-}" ]]; then
     collect_markers "$ARACH_LIVE_COSMIC_LIFECYCLE_MARKERS" cosmic_lifecycle_markers cosmic_lifecycle_markers_seen
 fi
 
-previous_line=0
-checked_marker_lines=()
-checked_markers=()
-for marker in \
-    "Granite: bounded Arach/Push/Crest preflight passed" \
-    "\\[PID 1\\] Kairos-dispatched workload complete" \
-    "$service_request_marker" \
-    "$service_spawn_marker" \
-    "ARACH_C0_RING3_SYSCALL_PASS" \
-    "${session_markers[@]}" \
-    "${cosmic_lifecycle_markers[@]}"; do
-    if [[ -z "$marker" ]]; then
-        continue
+ordered_markers=(
+    "Granite: bounded Arach/Push/Crest preflight passed"
+    "\\[PID 1\\] Kairos-dispatched workload complete"
+    "$service_request_marker"
+    "$service_spawn_marker"
+    "ARACH_C0_RING3_SYSCALL_PASS"
+    "${session_markers[@]}"
+    "${cosmic_lifecycle_markers[@]}"
+)
+
+marker_arguments=()
+for marker in "${ordered_markers[@]}"; do
+    if [[ -n "$marker" ]]; then
+        marker_arguments+=(--marker "$marker")
     fi
-    require_marker "$marker"
-    line=$(first_line "$marker")
-    if [[ "$line" -le "$previous_line" ]]; then
-        echo "live ISO serial evidence is out of order: $marker" >&2
-        exit 1
-    fi
-    previous_line=$line
-    checked_markers+=("$marker")
-    checked_marker_lines+=("$line")
 done
 
+report_arguments=()
 if [[ -n "${ARACH_LIVE_MARKER_REPORT:-}" ]]; then
-    {
-        echo -e "marker\tline_number"
-        for i in "${!checked_markers[@]}"; do
-            echo -e "$(tsv_escape "${checked_markers[$i]}")\t${checked_marker_lines[$i]}"
-        done
-    } >"${ARACH_LIVE_MARKER_REPORT}"
+    report_arguments+=(--report "$ARACH_LIVE_MARKER_REPORT")
 fi
+
+python3 "$marker_verifier" \
+    --log "$log" \
+    "${report_arguments[@]}" \
+    "${marker_arguments[@]}"
 
 if [[ "$status" -eq 124 ]]; then
     echo "live ISO execution gate passed before bounded QEMU timeout: $log"
