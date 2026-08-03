@@ -13,6 +13,10 @@ test -x "$root/scripts/materialize-live-system.sh"
 test -x "$root/scripts/build-live-iso.sh"
 test -x "$root/scripts/run-live-iso-qemu.sh"
 test -x "$root/scripts/test-live-root.sh"
+test -f "$root/scripts/verify-components.py"
+test -f "$root/scripts/verify-workflow-pins.py"
+test -f "$root/scripts/test_verify_components.py"
+test -f "$root/scripts/test_verify_workflow_pins.py"
 test -f "$root/branding/arach-logo.png"
 test -f "$root/branding/source/arach-original.png"
 test -f "$root/installer/contract.toml"
@@ -31,7 +35,11 @@ grep -Fq 'repository = "https://github.com/SisyphusAeolides/Arach-HWD.git"' \
 python3 "$root/scripts/verify-components.py" \
     --lock "$root/components.lock.toml" \
     --manifest "$root/Cargo.toml"
+python3 "$root/scripts/verify-workflow-pins.py" \
+    --lock "$root/components.lock.toml" \
+    --workflow "$root/.github/workflows/foundation.yml"
 python3 "$root/scripts/test_verify_components.py"
+python3 "$root/scripts/test_verify_workflow_pins.py"
 python3 "$root/installer/calamares/modules/arachhardware/test_repository.py"
 python3 "$root/installer/calamares/modules/arachtransaction/test_protocol.py"
 grep -Fxq 'session = "cosmic-session"' "$root/live/profile.toml"
