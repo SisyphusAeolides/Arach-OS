@@ -213,6 +213,8 @@ The remaining qualification boundary is explicit:
   remain incomplete;
 - native graphics, audio, networking, suspend/resume, and broad physical
   hardware operation still require end-to-end runtime evidence.
+- The full COSMIC login/session lifecycle is now tracked in
+  [`PRODUCTION_READINESS.md`](docs/PRODUCTION_READINESS.md).
 
 Rust validates the executable image and installer contracts. Fortran schedules
 only trust-admitted build stages and rejects an installer missing a transaction
@@ -244,6 +246,17 @@ dependency-first initialization, and final process-lifecycle evidence with:
 ```sh
 scripts/run-live-iso-qemu.sh /absolute/path/to/arach-os.iso
 ```
+
+You can pass additional serial markers to that execution gate without changing its
+default requirements. This is useful while enabling stricter lifecycle coverage:
+
+```sh
+ARACH_LIVE_SESSION_MARKERS=$'cosmic-greeter|COSGREET\nCosmic desktop session ready'
+  scripts/run-live-iso-qemu.sh /absolute/path/to/arach-os.iso
+```
+
+Or place the newline-separated patterns in a file and pass it with
+`ARACH_LIVE_SESSION_MARKERS_FILE`.
 
 The image-construction test accepts `ARACH_TEST_BOOT_ARTIFACT_ROOT` to replace
 its four header fixtures with a directory containing `granite.efi`, `arach`,
