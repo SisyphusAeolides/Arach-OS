@@ -1,5 +1,5 @@
 format = 1
-distribution = "Arach OS"
+distribution = "ArachOS"
 root_layout = "posix"
 boot_bundle_source = "/run/arach-live/boot-bundle"
 repository_generation = "/run/arach-live/repository/system.gen"
