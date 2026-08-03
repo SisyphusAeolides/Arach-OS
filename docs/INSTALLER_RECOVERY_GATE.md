@@ -40,6 +40,6 @@ become observable in serial logs.
 
 ## Current status
 
-`qualified`
-Gate ownership remains active in `docs/PRODUCTION_READINESS.md` and
-`docs/PRODUCTION_READINESS.md`.
+`in_progress`
+The scenarios and validation contract are defined, but each scenario still
+needs real revision-bound installer and recovery evidence before qualification.

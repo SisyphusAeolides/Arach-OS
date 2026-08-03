@@ -8,6 +8,7 @@ import hashlib
 import json
 import re
 import sys
+import tomllib
 from collections import Counter, defaultdict
 from datetime import datetime
 from pathlib import Path
@@ -31,6 +32,26 @@ EVIDENCE_KINDS = {
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 REVISION_RE = re.compile(r"^[0-9a-f]{40,64}$")
 VERSION_RE = re.compile(r"^[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?$")
+PLACEHOLDER_EVIDENCE_RE = re.compile(
+    rb"\b(?:mock|placeholder|synthetic|sample|example[ -]only)\b", re.IGNORECASE
+)
+IMMUTABLE_PROMOTION_FIELDS = (
+    "revision",
+    "components_lock_sha256",
+    "package_generation_sha256",
+    "image_sha256",
+    "signature_sha256",
+)
+RELEASE_REPORT_FIELDS = {
+    "format",
+    "distribution",
+    "revision",
+    "components_lock",
+    "components_lock_sha256",
+    "package_generation_sha256",
+    "image_sha256",
+    "signature_sha256",
+}
 
 
 class ReleasePolicyError(ValueError):
@@ -49,11 +70,11 @@ def load_json(path: Path) -> dict[str, Any]:
     return value
 
 
-def parse_timestamp(value: str, path: str) -> None:
+def parse_timestamp(value: str, path: str) -> datetime:
     if not value.endswith("Z"):
         raise ReleasePolicyError(f"{path} must use UTC Z form")
     try:
-        datetime.fromisoformat(value[:-1] + "+00:00")
+        return datetime.fromisoformat(value[:-1] + "+00:00")
     except ValueError as error:
         raise ReleasePolicyError(f"{path} is not RFC 3339 compatible") from error
 
@@ -66,6 +87,35 @@ def safe_relative(value: str) -> bool:
         and ".." not in candidate.parts
         and all(part not in {"", "."} for part in candidate.parts)
     )
+
+
+def is_placeholder(value: str) -> bool:
+    return len(set(value)) == 1
+
+
+def is_placeholder_evidence(path: Path, content: bytes) -> bool:
+    return (
+        any(part.lower().startswith(("mock", "placeholder", "synthetic", "sample")) for part in path.parts)
+        or bool(PLACEHOLDER_EVIDENCE_RE.search(content))
+    )
+
+
+def retained_file(root: Path, value: str, base: str) -> Path:
+    path = root / value
+    boundary = root / EVIDENCE_ROOT
+    try:
+        relative = path.relative_to(root)
+        path.relative_to(boundary)
+    except ValueError as error:
+        raise ReleasePolicyError(f"{base}.path must be beneath {EVIDENCE_ROOT}") from error
+    current = root
+    for part in relative.parts:
+        current /= part
+        if current.is_symlink():
+            raise ReleasePolicyError(f"{base}.path cannot traverse a symlink")
+    if not path.is_file():
+        raise ReleasePolicyError(f"{base}.path is missing or not regular")
+    return path
 
 
 def unique_strings(value: Any, path: str, allow_empty: bool = False) -> list[str]:
@@ -103,7 +153,7 @@ def validate_evidence(
     root: Path,
     release: dict[str, Any],
     base: str,
-) -> set[str]:
+) -> tuple[set[str], list[datetime]]:
     entries = release["evidence"]
     if not isinstance(entries, list):
         raise ReleasePolicyError(f"{base}.evidence must be an array")
@@ -116,6 +166,7 @@ def validate_evidence(
         "environment",
     }
     kinds: set[str] = set()
+    timestamps: list[datetime] = []
     paths: set[str] = set()
     for index, entry in enumerate(entries):
         item = f"{base}.evidence[{index}]"
@@ -130,32 +181,77 @@ def validate_evidence(
         if path_value in paths:
             raise ReleasePolicyError(f"{item}.path is duplicated")
         paths.add(path_value)
-        artifact = root / path_value
-        try:
-            artifact.relative_to(root / EVIDENCE_ROOT)
-        except ValueError as error:
-            raise ReleasePolicyError(
-                f"{item}.path must be beneath {EVIDENCE_ROOT}"
-            ) from error
-        if artifact.is_symlink() or not artifact.is_file():
-            raise ReleasePolicyError(f"{item}.path is missing or not regular")
+        artifact = retained_file(root, path_value, item)
         digest = entry["sha256"]
         if not isinstance(digest, str) or not SHA256_RE.fullmatch(digest):
             raise ReleasePolicyError(f"{item}.sha256 must be a lowercase SHA-256 digest")
-        if hashlib.sha256(artifact.read_bytes()).hexdigest() != digest:
+        content = artifact.read_bytes()
+        if hashlib.sha256(content).hexdigest() != digest:
             raise ReleasePolicyError(f"{item}.sha256 does not match the artifact")
+        if is_placeholder_evidence(Path(path_value), content):
+            raise ReleasePolicyError(f"{item}.path is placeholder evidence")
         captured_at = entry["captured_at"]
         if not isinstance(captured_at, str):
             raise ReleasePolicyError(f"{item}.captured_at must be a timestamp")
-        parse_timestamp(captured_at, f"{item}.captured_at")
+        timestamps.append(parse_timestamp(captured_at, f"{item}.captured_at"))
         revision = entry["revision"]
         if not isinstance(revision, str) or not REVISION_RE.fullmatch(revision):
             raise ReleasePolicyError(f"{item}.revision must be a full Git object ID")
+        if is_placeholder(revision):
+            raise ReleasePolicyError(f"{item}.revision cannot be a placeholder")
+        if revision != release["revision"]:
+            raise ReleasePolicyError(f"{item}.revision must match the release revision")
         environment = entry["environment"]
         if environment not in {"continuous-integration", "hardware-lab", "independent-builder", "release-operations"}:
             raise ReleasePolicyError(f"{item}.environment is invalid")
         kinds.add(kind)
-    return kinds
+    return kinds, timestamps
+
+
+def validate_release_report(root: Path, release: dict[str, Any], base: str) -> None:
+    reports = [entry for entry in release["evidence"] if entry.get("kind") == "release-report"]
+    if len(reports) != 1:
+        raise ReleasePolicyError(f"{base}.evidence must retain exactly one release-report")
+    report_entry = reports[0]
+    report_path = root / report_entry["path"]
+    report = load_json(report_path)
+    if set(report) != RELEASE_REPORT_FIELDS:
+        raise ReleasePolicyError(f"{base}.release-report has unexpected or missing fields")
+    if report["format"] != 1 or report["distribution"] != "ArachOS":
+        raise ReleasePolicyError(f"{base}.release-report has an invalid identity")
+    for field in IMMUTABLE_PROMOTION_FIELDS:
+        if report[field] != release[field]:
+            raise ReleasePolicyError(f"{base}.release-report.{field} differs from the release record")
+    lock_value = report["components_lock"]
+    if not isinstance(lock_value, str) or not safe_relative(lock_value):
+        raise ReleasePolicyError(f"{base}.release-report.components_lock must be a safe relative path")
+    lock_path = retained_file(root, lock_value, f"{base}.release-report.components_lock")
+    if lock_path == report_path:
+        raise ReleasePolicyError(f"{base}.release-report.components_lock is missing or not regular")
+    lock_content = lock_path.read_bytes()
+    if hashlib.sha256(lock_content).hexdigest() != release["components_lock_sha256"]:
+        raise ReleasePolicyError(f"{base}.release-report component lock digest differs from the release record")
+    try:
+        lock = tomllib.loads(lock_content.decode("utf-8"))
+    except (UnicodeDecodeError, tomllib.TOMLDecodeError) as error:
+        raise ReleasePolicyError(f"{base}.release-report component lock is invalid: {error}") from error
+    if set(lock) != {"format", "distribution", "component"} or lock.get("format") != 1 or lock.get("distribution") != "ArachOS":
+        raise ReleasePolicyError(f"{base}.release-report component lock identity is invalid")
+    components = lock.get("component")
+    if not isinstance(components, list) or not components:
+        raise ReleasePolicyError(f"{base}.release-report component lock has no components")
+    names: set[str] = set()
+    for index, component in enumerate(components):
+        item = f"{base}.release-report.components[{index}]"
+        if not isinstance(component, dict) or set(component) != {"name", "repository", "revision", "role"}:
+            raise ReleasePolicyError(f"{item} has unexpected or missing fields")
+        name = component["name"]
+        revision = component["revision"]
+        if not isinstance(name, str) or not name or name in names:
+            raise ReleasePolicyError(f"{item}.name is invalid")
+        if not isinstance(revision, str) or not REVISION_RE.fullmatch(revision) or is_placeholder(revision):
+            raise ReleasePolicyError(f"{item}.revision is invalid")
+        names.add(name)
 
 
 def validate(root: Path, policy: dict[str, Any]) -> Counter[str]:
@@ -240,6 +336,8 @@ def validate(root: Path, policy: dict[str, Any]) -> Counter[str]:
         "require_exact_component_lock": True,
         "require_exact_package_generation": True,
         "require_reproducible_image": True,
+        "require_signed_artifacts": True,
+        "require_evidence_retention": True,
         "require_rollback_drill": True,
         "require_advisory": True,
     }:
@@ -288,10 +386,12 @@ def validate(root: Path, policy: dict[str, Any]) -> Counter[str]:
         published_at = release["published_at"]
         if not isinstance(published_at, str):
             raise ReleasePolicyError(f"{base}.published_at must be a timestamp")
-        parse_timestamp(published_at, f"{base}.published_at")
+        published_time = parse_timestamp(published_at, f"{base}.published_at")
         revision = release["revision"]
         if not isinstance(revision, str) or not REVISION_RE.fullmatch(revision):
             raise ReleasePolicyError(f"{base}.revision must be a full Git object ID")
+        if is_placeholder(revision):
+            raise ReleasePolicyError(f"{base}.revision cannot be a placeholder")
         for field in (
             "components_lock_sha256",
             "package_generation_sha256",
@@ -301,6 +401,8 @@ def validate(root: Path, policy: dict[str, Any]) -> Counter[str]:
             digest = release[field]
             if not isinstance(digest, str) or not SHA256_RE.fullmatch(digest):
                 raise ReleasePolicyError(f"{base}.{field} must be a SHA-256 digest")
+            if is_placeholder(digest):
+                raise ReleasePolicyError(f"{base}.{field} cannot be a placeholder")
         soak = release["soak_seconds"]
         if not isinstance(soak, int) or isinstance(soak, bool) or soak < channel["minimum_soak_seconds"]:
             raise ReleasePolicyError(f"{base}.soak_seconds is below the channel minimum")
@@ -318,10 +420,13 @@ def validate(root: Path, policy: dict[str, Any]) -> Counter[str]:
         missing_gates = [gate for gate in channel["required_readiness_gates"] if readiness[gate] != "qualified"]
         if missing_gates:
             raise ReleasePolicyError(f"{base} requires unqualified readiness gates: {missing_gates}")
-        evidence_kinds = validate_evidence(root, release, base)
+        evidence_kinds, evidence_times = validate_evidence(root, release, base)
         missing_evidence = set(channel["required_evidence"]) - evidence_kinds
         if missing_evidence:
             raise ReleasePolicyError(f"{base} lacks evidence kinds: {sorted(missing_evidence)}")
+        if any(captured_at > published_time for captured_at in evidence_times):
+            raise ReleasePolicyError(f"{base}.evidence cannot be captured after publication")
+        validate_release_report(root, release, base)
         promoted = release["promoted_from_sequence"]
         if channel_name == "development":
             if promoted is not None:
@@ -343,11 +448,25 @@ def validate(root: Path, policy: dict[str, Any]) -> Counter[str]:
 
     for channel_name in ("testing", "stable"):
         previous_name = CHANNELS[CHANNELS.index(channel_name) - 1]
-        previous_sequences = {record["sequence"] for record in by_channel[previous_name]}
+        previous_records = {
+            record["sequence"]: record for record in by_channel[previous_name]
+        }
         for release in by_channel[channel_name]:
-            if release["promoted_from_sequence"] not in previous_sequences:
+            source = previous_records.get(release["promoted_from_sequence"])
+            if source is None:
                 raise ReleasePolicyError(
                     f"{channel_name} release is not promoted from retained {previous_name} evidence"
+                )
+            for field in IMMUTABLE_PROMOTION_FIELDS:
+                if release[field] != source[field]:
+                    raise ReleasePolicyError(
+                        f"{channel_name} release must retain immutable {field} from {previous_name}"
+                    )
+            if parse_timestamp(release["published_at"], f"{channel_name}.published_at") < parse_timestamp(
+                source["published_at"], f"{previous_name}.published_at"
+            ):
+                raise ReleasePolicyError(
+                    f"{channel_name} release cannot be published before its promotion source"
                 )
     return counts
 

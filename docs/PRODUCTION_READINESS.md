@@ -4,6 +4,10 @@ This tracker captures the remaining production-readiness gates and turns the raw
 list into concrete acceptance checkpoints. It is the implementation target for the
 `Remaining production-readiness gates` document used by the project.
 
+`production/readiness.json` is the authoritative qualification ledger. A gate
+document can describe implemented controls, but only a `qualified` ledger entry
+with retained evidence clears the gate for a production release.
+
 ## 1. Full COSMIC lifecycle
 
 - Target: prove installer → reboot → greeter → login → usable desktop → suspend/resume
@@ -93,7 +97,7 @@ list into concrete acceptance checkpoints. It is the implementation target for t
 - Target: networking, Wi‑Fi auth, DNS, D-Bus, portals, audio policy,
   Bluetooth audio, credentials/authz, printing, storage/media/cameras/notifications,
   updates, diagnostics, locale/fonts, input methods, accessibility, power.
-- Current status: `completed`
+- Current status: `in_progress`
 - Detailed service checklist: [`DESKTOP_SERVICES_GATE.md`](DESKTOP_SERVICES_GATE.md)
 
 ## 11. Security qualification
@@ -118,6 +122,16 @@ list into concrete acceptance checkpoints. It is the implementation target for t
   native, rebuilt, compatibility runtime, container, or managed VM.
 - Current status: `in_progress`
 - Route enforcement: [`UNIVERSAL_ROUTE_GATE.md`](UNIVERSAL_ROUTE_GATE.md)
+
+## 14. Release integrity and promotion
+
+- Target: preserve an immutable component graph and synchronized package pins;
+  retain reproducible signed ISO artifacts, SBOM/provenance, CI evidence,
+  update/rollback results, and explicit development-to-testing-to-stable
+  promotion criteria.
+- Current status: `in_progress`
+- Release-blocking policy and evidence contract:
+  [`RELEASE_INTEGRITY_GATE.md`](RELEASE_INTEGRITY_GATE.md)
 
 ## Release graph synchronization
 

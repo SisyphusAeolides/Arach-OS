@@ -382,6 +382,52 @@
       ],
       "qualified_at": null,
       "qualified_revision": null
+    },
+    {
+      "number": 14,
+      "id": "release-integrity-promotion",
+      "title": "Release integrity and promotion",
+      "status": "in_progress",
+      "authority": "ArachOS",
+      "components": [
+        "ArachOS",
+        "Arach-Kernel",
+        "Granite",
+        "Push",
+        "Corinth",
+        "Arach-Packages",
+        "Arach-HWD"
+      ],
+      "document": "docs/RELEASE_INTEGRITY_GATE.md",
+      "depends_on": [
+        "cosmic-lifecycle",
+        "linux-posix-compatibility",
+        "hardware-driver-coverage",
+        "corinth-repository-service",
+        "package-semantics",
+        "dynamic-compatibility-workers",
+        "application-compatibility-tiers",
+        "package-repository",
+        "installer-recovery",
+        "desktop-services",
+        "security-qualification",
+        "hardware-lab-release",
+        "universal-route"
+      ],
+      "required_evidence": [
+        "attestation",
+        "recovery-report",
+        "release-report",
+        "reproducibility-report",
+        "sbom",
+        "test-report"
+      ],
+      "evidence": [],
+      "blockers": [
+        "The immutable component graph, signed ISO provenance, independent reproducibility, retained CI evidence, update and rollback exercises, and staged promotion criteria have not all been demonstrated for a release candidate."
+      ],
+      "qualified_at": null,
+      "qualified_revision": null
     }
   ]
 }

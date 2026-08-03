@@ -82,7 +82,8 @@ The release authority is fail-closed. The machine-readable ledgers under
 - installer and recovery certification;
 - desktop services;
 - security qualification;
-- hardware-lab and release operations.
+- hardware-lab and release operations; and
+- release integrity and staged promotion.
 
 A gate cannot become qualified while blockers remain or without retained,
 revision-bound, SHA-256-verified evidence. Current status is intentionally
@@ -112,6 +113,12 @@ python3 scripts/verify_control_matrices.py --root .
 python3 scripts/verify_installer_recovery.py --root .
 python3 scripts/verify_threat_model.py --root .
 python3 scripts/verify_release_channels.py --root .
+```
+
+A release candidate must additionally pass the fail-closed production command:
+
+```sh
+python3 scripts/verify_production_readiness.py --root . --require-production-ready
 ```
 
 A measured ISO can be executed under QEMU/OVMF with:

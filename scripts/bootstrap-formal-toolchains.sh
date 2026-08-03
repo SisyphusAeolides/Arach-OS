@@ -12,6 +12,8 @@ if command -v chezscheme >/dev/null 2>&1; then
     scheme="chezscheme"
 elif command -v scheme >/dev/null 2>&1; then
     scheme="scheme"
+elif command -v chez >/dev/null 2>&1; then
+    scheme="chez"
 else
     printf '%s\n' 'Idris bootstrap requires Chez Scheme.' >&2
     exit 1
@@ -28,6 +30,7 @@ if [[ ! -x "$idris_root/build/exec/idris2" ]]; then
     trap 'rm -rf -- "$staging"' EXIT
     tar -xzf "$archive" -C "$staging"
     make -C "$staging/Idris2-0.8.0" bootstrap SCHEME="$scheme"
+    make -C "$staging/Idris2-0.8.0" prelude SCHEME="$scheme"
     mv "$staging/Idris2-0.8.0" "$idris_root"
     rmdir "$staging"
     trap - EXIT

@@ -33,5 +33,7 @@ Each upstream family must run as a persistent indexer with immutable revision ca
 
 ## Current status
 
-`done`
-Service responsibilities are now explicit and implemented.
+`in_progress`
+Service responsibilities are explicit, but continuous immutable ingestion,
+catalog signing, publication, and compromise handling still require retained
+end-to-end evidence.

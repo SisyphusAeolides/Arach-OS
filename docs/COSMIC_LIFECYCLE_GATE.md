@@ -65,3 +65,10 @@ records the serial-log SHA-256 plus the ordered marker locations.
   explicit blockers for full gate completion.
 
 This keeps the gate explicit, incremental, and CI-safe.
+
+## Current status
+
+`in_progress`
+
+QEMU milestone validation is available, while complete ordered lifecycle
+evidence from QEMU and representative physical hardware remains outstanding.

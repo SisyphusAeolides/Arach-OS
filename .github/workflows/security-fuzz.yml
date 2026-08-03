@@ -6,11 +6,13 @@ on:
       - production/readiness.json
       - production/installer-recovery.json
       - production/threat-model.json
+      - production/release-channels.json
       - production/control-matrices/**
       - scripts/verify_production_readiness.py
       - scripts/verify_installer_recovery.py
       - scripts/verify_threat_model.py
       - scripts/verify_control_matrices.py
+      - scripts/verify_release_channels.py
       - scripts/fuzz_control_documents.py
       - tests/test_control_fuzzer.py
       - .github/workflows/security-fuzz.yml
@@ -19,11 +21,13 @@ on:
       - production/readiness.json
       - production/installer-recovery.json
       - production/threat-model.json
+      - production/release-channels.json
       - production/control-matrices/**
       - scripts/verify_production_readiness.py
       - scripts/verify_installer_recovery.py
       - scripts/verify_threat_model.py
       - scripts/verify_control_matrices.py
+      - scripts/verify_release_channels.py
       - scripts/fuzz_control_documents.py
       - tests/test_control_fuzzer.py
       - .github/workflows/security-fuzz.yml

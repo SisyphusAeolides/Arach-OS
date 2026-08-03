@@ -35,5 +35,6 @@ targeted evidence rather than one-time assertions.
 
 ## Current status
 
-`qualified`  
-The gate has been decomposed into concrete domains for implementation tracking.
+`in_progress`
+The gate has been decomposed into concrete domains for implementation tracking;
+the required behavior and evidence are not yet complete.

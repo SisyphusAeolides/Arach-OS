@@ -4,18 +4,24 @@ on:
   push:
     paths:
       - production/**
+      - components.lock.toml
       - docs/*_GATE.md
       - docs/PRODUCTION_READINESS.md
       - scripts/verify_production_readiness.py
+      - scripts/verify_release_channels.py
       - tests/test_production_readiness.py
+      - tests/test_release_channels.py
       - .github/workflows/readiness.yml
   pull_request:
     paths:
       - production/**
+      - components.lock.toml
       - docs/*_GATE.md
       - docs/PRODUCTION_READINESS.md
       - scripts/verify_production_readiness.py
+      - scripts/verify_release_channels.py
       - tests/test_production_readiness.py
+      - tests/test_release_channels.py
       - .github/workflows/readiness.yml
 
 permissions:
@@ -30,5 +36,9 @@ jobs:
         run: python3 scripts/verify_production_readiness.py --root . --report
       - name: Test readiness invariants
         run: python3 -m unittest tests/test_production_readiness.py
+      - name: Validate release integrity policy
+        run: python3 scripts/verify_release_channels.py --root .
+      - name: Test release integrity invariants
+        run: python3 -m unittest tests/test_release_channels.py
       - name: Check repository whitespace
         run: git diff --check

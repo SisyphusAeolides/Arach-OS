@@ -72,6 +72,10 @@ def targets(root: Path) -> list[Target]:
         "fuzz_verify_threat_model",
         scripts / "verify_threat_model.py",
     )
+    releases = load_module(
+        "fuzz_verify_release_channels",
+        scripts / "verify_release_channels.py",
+    )
 
     result = [
         Target(
@@ -91,6 +95,12 @@ def targets(root: Path) -> list[Target]:
             document=load_json(root / "production/threat-model.json"),
             validate=lambda document: threats.validate(root, document),
             expected_error=threats.ThreatModelError,
+        ),
+        Target(
+            name="release-channels",
+            document=load_json(root / "production/release-channels.json"),
+            validate=lambda document: releases.validate(root, document),
+            expected_error=releases.ReleasePolicyError,
         ),
     ]
     for matrix_id, expected_ids in controls.MATRICES.items():

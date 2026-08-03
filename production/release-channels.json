@@ -8,7 +8,7 @@
       "retained_generations": 10,
       "minimum_soak_seconds": 0,
       "required_readiness_gates": [],
-      "required_evidence": ["test-report"],
+      "required_evidence": ["release-report", "test-report"],
       "allow_direct_publish": true,
       "rollback_generations": 3
     },
@@ -24,6 +24,7 @@
         "security-qualification"
       ],
       "required_evidence": [
+        "release-report",
         "test-report",
         "security-report",
         "hardware-report",
@@ -50,7 +51,8 @@
         "desktop-services",
         "security-qualification",
         "hardware-lab-release",
-        "universal-route"
+        "universal-route",
+        "release-integrity-promotion"
       ],
       "required_evidence": [
         "attestation",
@@ -78,6 +80,8 @@
     "require_exact_component_lock": true,
     "require_exact_package_generation": true,
     "require_reproducible_image": true,
+    "require_signed_artifacts": true,
+    "require_evidence_retention": true,
     "require_rollback_drill": true,
     "require_advisory": true
   },
