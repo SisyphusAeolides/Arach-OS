@@ -73,6 +73,7 @@ list into concrete acceptance checkpoints. It is the implementation target for t
 - Target: clean install/reinstall/dual-boot/encrypted-TPM/secure-boot, failure and
   power-loss drills, rescue operations, kernel rollback, major upgrade recovery.
 - Current status: `in_progress`
+- Detailed test plan: [`INSTALLER_RECOVERY_GATE.md`](INSTALLER_RECOVERY_GATE.md)
 
 ## 10. Desktop services
 
