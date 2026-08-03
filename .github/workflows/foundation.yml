@@ -104,10 +104,10 @@ jobs:
             cp target/c0/probe/x86_64-arach/release/arach-c0-probe "target/fake-cosmic/$s"
           done
           ARACH_COSMIC_SERVICES_DIR="$PWD/target/fake-cosmic" \
-          ARACH_KERNEL_IMAGE="target/c0/kernel/x86_64-arach/release/arach" \
-          ARACH_PUSH_IMAGE="target/c0/push/x86_64-arach/release/push" \
-          ARACH_CREST_IMAGE="target/c0/probe/x86_64-arach/release/arach-c0-probe" \
-            scripts/build-reproducible-granite.sh "$ARACH_GRANITE_ROOT" "target/c0/granite-cosmic" "target/c0/granite-cosmic-repeat" "uefi-bin,require-artifacts,cosmic-boot"
+          ARACH_KERNEL_IMAGE="$PWD/target/c0/kernel/x86_64-arach/release/arach" \
+          ARACH_PUSH_IMAGE="$PWD/target/c0/push/x86_64-arach/release/push" \
+          ARACH_CREST_IMAGE="$PWD/target/c0/probe/x86_64-arach/release/arach-c0-probe" \
+            scripts/build-reproducible-granite.sh "$ARACH_GRANITE_ROOT" "$PWD/target/c0/granite-cosmic" "$PWD/target/c0/granite-cosmic-repeat" "uefi-bin,require-artifacts,cosmic-boot"
       - name: Assemble the measured live ISO
         run: |
           mkdir -p target/live-boot-input
