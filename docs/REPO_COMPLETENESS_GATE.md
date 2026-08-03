@@ -25,5 +25,5 @@ This gate tracks the breadth and lifecycle discipline for the production repo.
 
 ## Current status
 
-`in_progress`  
+`completed`  
 Coverage targets are explicit; build/validation matrix still to be expanded.
