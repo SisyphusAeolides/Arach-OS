@@ -29,6 +29,28 @@ for old, new in replacements.items():
     text = text.replace(old, new)
 matrix.write_text(text, encoding="utf-8")
 
+recovery = Path("scripts/verify_installer_recovery.py")
+text = recovery.read_text(encoding="utf-8")
+replacements = {
+'''        if entry["outcome"] not in OUTCOMES:
+            raise RecoveryError(f"{base}.outcome is invalid")
+''': '''        if not isinstance(entry["outcome"], str) or entry["outcome"] not in OUTCOMES:
+            raise RecoveryError(f"{base}.outcome is invalid")
+''',
+'''        status = scenario["status"]
+        if status not in STATUSES:
+            raise RecoveryError(f"{base}.status is invalid")
+''': '''        status = scenario["status"]
+        if not isinstance(status, str) or status not in STATUSES:
+            raise RecoveryError(f"{base}.status is invalid")
+''',
+}
+for old, new in replacements.items():
+    if text.count(old) != 1:
+        raise SystemExit("installer recovery type guard differs")
+    text = text.replace(old, new)
+recovery.write_text(text, encoding="utf-8")
+
 script = Path("scripts/repair_distribution_constant.py")
 result = subprocess.run(
     ["git", "grep", "-Il", "-e", "Arach OS", "-e", "Arach-OS", "--", "."],
