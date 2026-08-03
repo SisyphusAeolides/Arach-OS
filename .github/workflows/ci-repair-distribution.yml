@@ -37,7 +37,9 @@ jobs:
             --seed 0xA2AC0DE2026 \
             --report target/control-fuzz.json
           python3 -m unittest tests/test_control_fuzzer.py
-          if git grep -In -e 'Arach OS' -e 'Arach-OS' -- .; then
+          stale_spaced="$(printf 'Arach %s' 'OS')"
+          stale_dashed="$(printf 'Arach-%s' 'OS')"
+          if git grep -In -e "$stale_spaced" -e "$stale_dashed" -- .; then
             echo 'retired ArachOS identity remains' >&2
             exit 1
           fi
