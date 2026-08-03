@@ -1,0 +1,39 @@
+name: Repair distribution identity
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - scripts/repair_distribution_constant.py
+      - .github/workflows/ci-repair-distribution.yml
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - name: Apply distribution repair
+        run: |
+          python3 scripts/repair_distribution_constant.py
+          cargo fmt --all
+          rm scripts/repair_distribution_constant.py
+          git diff --check
+      - name: Validate composition contract
+        run: cargo test --locked repository_composition_is_valid
+      - name: Commit repaired identity
+        run: |
+          git config user.name 'SisyphusAeolides'
+          git config user.email '37166405+SisyphusAeolides@users.noreply.github.com'
+          git add src/lib.rs scripts/repair_distribution_constant.py
+          git commit -m 'fix: align composition identity'
+          git pull --rebase origin main
+          git push origin HEAD:main
