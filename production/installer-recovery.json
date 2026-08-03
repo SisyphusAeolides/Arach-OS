@@ -1,0 +1,97 @@
+{
+  "format": 1,
+  "distribution": "Arach OS",
+  "scenarios": [
+    {
+      "id": "clean-install",
+      "title": "Clean install",
+      "status": "pending",
+      "blocker": "No complete install-to-COSMIC certification artifact has been recorded.",
+      "evidence": []
+    },
+    {
+      "id": "reinstall",
+      "title": "Reinstall onto an existing Arach partition",
+      "status": "pending",
+      "blocker": "Reinstall preservation and replacement behavior has not been certified.",
+      "evidence": []
+    },
+    {
+      "id": "dual-boot",
+      "title": "Dual-boot preservation",
+      "status": "pending",
+      "blocker": "Foreign boot entries and partitions have not completed preservation testing.",
+      "evidence": []
+    },
+    {
+      "id": "encrypted-storage",
+      "title": "Encrypted storage create and unlock",
+      "status": "pending",
+      "blocker": "LUKS2 creation, unlock, reboot, and recovery evidence is incomplete.",
+      "evidence": []
+    },
+    {
+      "id": "tpm-recovery",
+      "title": "TPM-backed recovery",
+      "status": "pending",
+      "blocker": "TPM enrollment and recovery have not been certified on representative hardware.",
+      "evidence": []
+    },
+    {
+      "id": "secure-boot",
+      "title": "Secure Boot and signed boot",
+      "status": "pending",
+      "blocker": "Secure Boot enrollment, signed activation, and rollback evidence is incomplete.",
+      "evidence": []
+    },
+    {
+      "id": "interrupted-partitioning",
+      "title": "Interrupted partitioning",
+      "status": "pending",
+      "blocker": "Partition interruption and recovery behavior has not been certified.",
+      "evidence": []
+    },
+    {
+      "id": "disk-full",
+      "title": "Disk-full safeguards",
+      "status": "pending",
+      "blocker": "Disk exhaustion at each transaction boundary has not been exercised.",
+      "evidence": []
+    },
+    {
+      "id": "corrupted-cache",
+      "title": "Corrupted cache handling",
+      "status": "pending",
+      "blocker": "Corrupted catalog, package, and installer caches have not completed recovery tests.",
+      "evidence": []
+    },
+    {
+      "id": "power-loss-activation",
+      "title": "Power loss during activation",
+      "status": "pending",
+      "blocker": "Machine-loss injection across activation checkpoints has not been certified.",
+      "evidence": []
+    },
+    {
+      "id": "failed-kernel-rollback",
+      "title": "Failed-kernel rollback",
+      "status": "pending",
+      "blocker": "A deliberately unbootable kernel has not completed automatic rollback certification.",
+      "evidence": []
+    },
+    {
+      "id": "rescue-media",
+      "title": "Rescue and repair media",
+      "status": "pending",
+      "blocker": "Offline discovery, repair, and rollback from rescue media has not been certified.",
+      "evidence": []
+    },
+    {
+      "id": "major-version-upgrade",
+      "title": "Major-version in-place upgrade",
+      "status": "pending",
+      "blocker": "No major-version migration and rollback pair has completed certification.",
+      "evidence": []
+    }
+  ]
+}
