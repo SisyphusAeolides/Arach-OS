@@ -184,6 +184,10 @@ def validate_evidence(
     return kinds, environments
 
 
+def is_placeholder_revision(revision: str) -> bool:
+    return len(set(revision)) == 1
+
+
 def validate_document(
     root: Path,
     document: dict[str, Any],
@@ -258,6 +262,10 @@ def validate_document(
 
         evidence_kinds, evidence_environments = validate_evidence(root, matrix_id, control, base)
         if status == "qualified":
+            if any(is_placeholder_revision(item["revision"]) for item in control["evidence"]):
+                raise ControlMatrixError(
+                    f"{base}.evidence contains a placeholder revision and cannot qualify"
+                )
             if blockers:
                 raise ControlMatrixError(f"{base}.blockers must be empty after qualification")
             missing_kinds = set(required_evidence) - evidence_kinds

@@ -7,7 +7,7 @@
     {
       "id": "hardware-matrix",
       "title": "Representative hardware matrix",
-      "status": "qualified",
+      "status": "implemented",
       "components": [
         "ArachOS",
         "Arach-Kernel",
@@ -20,32 +20,15 @@
       "required_environments": [
         "hardware-lab"
       ],
-      "evidence": [
-        {
-          "kind": "hardware-report",
-          "path": "production/evidence/release-operations/hardware-matrix/hardware-report_hardware-lab.json",
-          "sha256": "3fa60a53100a2daee2534202b0a2d113cc43d271fed69fc740e4e4e9ba7e92f8",
-          "captured_at": "2026-08-03T13:00:00Z",
-          "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "component": "ArachOS",
-          "environment": "hardware-lab"
-        },
-        {
-          "kind": "test-report",
-          "path": "production/evidence/release-operations/hardware-matrix/test-report_hardware-lab.json",
-          "sha256": "3fa60a53100a2daee2534202b0a2d113cc43d271fed69fc740e4e4e9ba7e92f8",
-          "captured_at": "2026-08-03T13:00:00Z",
-          "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "component": "ArachOS",
-          "environment": "hardware-lab"
-        }
-      ],
-      "blockers": []
+      "evidence": [],
+      "blockers": [
+        "Replace placeholder evidence with retained, revision-bound evidence captured from the required real environments."
+      ]
     },
     {
       "id": "support-levels",
       "title": "Certified, Compatible, and Experimental support levels",
-      "status": "qualified",
+      "status": "implemented",
       "components": [
         "Arach-HWD",
         "ArachOS"
@@ -59,68 +42,15 @@
         "hardware-lab",
         "release-operations"
       ],
-      "evidence": [
-        {
-          "kind": "hardware-report",
-          "path": "production/evidence/release-operations/support-levels/hardware-report_hardware-lab.json",
-          "sha256": "3fa60a53100a2daee2534202b0a2d113cc43d271fed69fc740e4e4e9ba7e92f8",
-          "captured_at": "2026-08-03T13:00:00Z",
-          "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "component": "Arach-HWD",
-          "environment": "hardware-lab"
-        },
-        {
-          "kind": "hardware-report",
-          "path": "production/evidence/release-operations/support-levels/hardware-report_release-operations.json",
-          "sha256": "3fa60a53100a2daee2534202b0a2d113cc43d271fed69fc740e4e4e9ba7e92f8",
-          "captured_at": "2026-08-03T13:00:00Z",
-          "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "component": "Arach-HWD",
-          "environment": "release-operations"
-        },
-        {
-          "kind": "release-report",
-          "path": "production/evidence/release-operations/support-levels/release-report_hardware-lab.json",
-          "sha256": "3fa60a53100a2daee2534202b0a2d113cc43d271fed69fc740e4e4e9ba7e92f8",
-          "captured_at": "2026-08-03T13:00:00Z",
-          "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "component": "Arach-HWD",
-          "environment": "hardware-lab"
-        },
-        {
-          "kind": "release-report",
-          "path": "production/evidence/release-operations/support-levels/release-report_release-operations.json",
-          "sha256": "3fa60a53100a2daee2534202b0a2d113cc43d271fed69fc740e4e4e9ba7e92f8",
-          "captured_at": "2026-08-03T13:00:00Z",
-          "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "component": "Arach-HWD",
-          "environment": "release-operations"
-        },
-        {
-          "kind": "soak-report",
-          "path": "production/evidence/release-operations/support-levels/soak-report_hardware-lab.json",
-          "sha256": "3fa60a53100a2daee2534202b0a2d113cc43d271fed69fc740e4e4e9ba7e92f8",
-          "captured_at": "2026-08-03T13:00:00Z",
-          "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "component": "Arach-HWD",
-          "environment": "hardware-lab"
-        },
-        {
-          "kind": "soak-report",
-          "path": "production/evidence/release-operations/support-levels/soak-report_release-operations.json",
-          "sha256": "3fa60a53100a2daee2534202b0a2d113cc43d271fed69fc740e4e4e9ba7e92f8",
-          "captured_at": "2026-08-03T13:00:00Z",
-          "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "component": "Arach-HWD",
-          "environment": "release-operations"
-        }
-      ],
-      "blockers": []
+      "evidence": [],
+      "blockers": [
+        "Replace placeholder evidence with retained, revision-bound evidence captured from the required real environments."
+      ]
     },
     {
       "id": "release-channels",
       "title": "Stable, testing, and development channels",
-      "status": "qualified",
+      "status": "implemented",
       "components": [
         "ArachOS",
         "Corinth",
@@ -134,41 +64,15 @@
       "required_environments": [
         "release-operations"
       ],
-      "evidence": [
-        {
-          "kind": "release-report",
-          "path": "production/evidence/release-operations/release-channels/release-report_release-operations.json",
-          "sha256": "3fa60a53100a2daee2534202b0a2d113cc43d271fed69fc740e4e4e9ba7e92f8",
-          "captured_at": "2026-08-03T13:00:00Z",
-          "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "component": "ArachOS",
-          "environment": "release-operations"
-        },
-        {
-          "kind": "test-report",
-          "path": "production/evidence/release-operations/release-channels/test-report_release-operations.json",
-          "sha256": "3fa60a53100a2daee2534202b0a2d113cc43d271fed69fc740e4e4e9ba7e92f8",
-          "captured_at": "2026-08-03T13:00:00Z",
-          "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "component": "ArachOS",
-          "environment": "release-operations"
-        },
-        {
-          "kind": "recovery-report",
-          "path": "production/evidence/release-operations/release-channels/recovery-report_release-operations.json",
-          "sha256": "3fa60a53100a2daee2534202b0a2d113cc43d271fed69fc740e4e4e9ba7e92f8",
-          "captured_at": "2026-08-03T13:00:00Z",
-          "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "component": "ArachOS",
-          "environment": "release-operations"
-        }
-      ],
-      "blockers": []
+      "evidence": [],
+      "blockers": [
+        "Replace placeholder evidence with retained, revision-bound evidence captured from the required real environments."
+      ]
     },
     {
       "id": "mirrors",
       "title": "Repository mirrors",
-      "status": "qualified",
+      "status": "implemented",
       "components": [
         "Corinth",
         "Arach-Packages",
@@ -182,41 +86,15 @@
       "required_environments": [
         "release-operations"
       ],
-      "evidence": [
-        {
-          "kind": "mirror-report",
-          "path": "production/evidence/release-operations/mirrors/mirror-report_release-operations.json",
-          "sha256": "3fa60a53100a2daee2534202b0a2d113cc43d271fed69fc740e4e4e9ba7e92f8",
-          "captured_at": "2026-08-03T13:00:00Z",
-          "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "component": "Corinth",
-          "environment": "release-operations"
-        },
-        {
-          "kind": "security-report",
-          "path": "production/evidence/release-operations/mirrors/security-report_release-operations.json",
-          "sha256": "3fa60a53100a2daee2534202b0a2d113cc43d271fed69fc740e4e4e9ba7e92f8",
-          "captured_at": "2026-08-03T13:00:00Z",
-          "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "component": "Corinth",
-          "environment": "release-operations"
-        },
-        {
-          "kind": "recovery-report",
-          "path": "production/evidence/release-operations/mirrors/recovery-report_release-operations.json",
-          "sha256": "3fa60a53100a2daee2534202b0a2d113cc43d271fed69fc740e4e4e9ba7e92f8",
-          "captured_at": "2026-08-03T13:00:00Z",
-          "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "component": "Corinth",
-          "environment": "release-operations"
-        }
-      ],
-      "blockers": []
+      "evidence": [],
+      "blockers": [
+        "Replace placeholder evidence with retained, revision-bound evidence captured from the required real environments."
+      ]
     },
     {
       "id": "rollback-drills",
       "title": "Release rollback drills",
-      "status": "qualified",
+      "status": "implemented",
       "components": [
         "ArachOS",
         "Granite",
@@ -233,95 +111,15 @@
         "hardware-lab",
         "release-operations"
       ],
-      "evidence": [
-        {
-          "kind": "recovery-report",
-          "path": "production/evidence/release-operations/rollback-drills/recovery-report_qemu.json",
-          "sha256": "3fa60a53100a2daee2534202b0a2d113cc43d271fed69fc740e4e4e9ba7e92f8",
-          "captured_at": "2026-08-03T13:00:00Z",
-          "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "component": "ArachOS",
-          "environment": "qemu"
-        },
-        {
-          "kind": "recovery-report",
-          "path": "production/evidence/release-operations/rollback-drills/recovery-report_hardware-lab.json",
-          "sha256": "3fa60a53100a2daee2534202b0a2d113cc43d271fed69fc740e4e4e9ba7e92f8",
-          "captured_at": "2026-08-03T13:00:00Z",
-          "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "component": "ArachOS",
-          "environment": "hardware-lab"
-        },
-        {
-          "kind": "recovery-report",
-          "path": "production/evidence/release-operations/rollback-drills/recovery-report_release-operations.json",
-          "sha256": "3fa60a53100a2daee2534202b0a2d113cc43d271fed69fc740e4e4e9ba7e92f8",
-          "captured_at": "2026-08-03T13:00:00Z",
-          "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "component": "ArachOS",
-          "environment": "release-operations"
-        },
-        {
-          "kind": "release-report",
-          "path": "production/evidence/release-operations/rollback-drills/release-report_qemu.json",
-          "sha256": "3fa60a53100a2daee2534202b0a2d113cc43d271fed69fc740e4e4e9ba7e92f8",
-          "captured_at": "2026-08-03T13:00:00Z",
-          "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "component": "ArachOS",
-          "environment": "qemu"
-        },
-        {
-          "kind": "release-report",
-          "path": "production/evidence/release-operations/rollback-drills/release-report_hardware-lab.json",
-          "sha256": "3fa60a53100a2daee2534202b0a2d113cc43d271fed69fc740e4e4e9ba7e92f8",
-          "captured_at": "2026-08-03T13:00:00Z",
-          "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "component": "ArachOS",
-          "environment": "hardware-lab"
-        },
-        {
-          "kind": "release-report",
-          "path": "production/evidence/release-operations/rollback-drills/release-report_release-operations.json",
-          "sha256": "3fa60a53100a2daee2534202b0a2d113cc43d271fed69fc740e4e4e9ba7e92f8",
-          "captured_at": "2026-08-03T13:00:00Z",
-          "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "component": "ArachOS",
-          "environment": "release-operations"
-        },
-        {
-          "kind": "test-report",
-          "path": "production/evidence/release-operations/rollback-drills/test-report_qemu.json",
-          "sha256": "3fa60a53100a2daee2534202b0a2d113cc43d271fed69fc740e4e4e9ba7e92f8",
-          "captured_at": "2026-08-03T13:00:00Z",
-          "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "component": "ArachOS",
-          "environment": "qemu"
-        },
-        {
-          "kind": "test-report",
-          "path": "production/evidence/release-operations/rollback-drills/test-report_hardware-lab.json",
-          "sha256": "3fa60a53100a2daee2534202b0a2d113cc43d271fed69fc740e4e4e9ba7e92f8",
-          "captured_at": "2026-08-03T13:00:00Z",
-          "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "component": "ArachOS",
-          "environment": "hardware-lab"
-        },
-        {
-          "kind": "test-report",
-          "path": "production/evidence/release-operations/rollback-drills/test-report_release-operations.json",
-          "sha256": "3fa60a53100a2daee2534202b0a2d113cc43d271fed69fc740e4e4e9ba7e92f8",
-          "captured_at": "2026-08-03T13:00:00Z",
-          "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "component": "ArachOS",
-          "environment": "release-operations"
-        }
-      ],
-      "blockers": []
+      "evidence": [],
+      "blockers": [
+        "Replace placeholder evidence with retained, revision-bound evidence captured from the required real environments."
+      ]
     },
     {
       "id": "advisories-release-notes",
       "title": "Advisories and release notes",
-      "status": "qualified",
+      "status": "implemented",
       "components": [
         "ArachOS",
         "Arach-Packages"
@@ -332,23 +130,15 @@
       "required_environments": [
         "release-operations"
       ],
-      "evidence": [
-        {
-          "kind": "release-report",
-          "path": "production/evidence/release-operations/advisories-release-notes/release-report_release-operations.json",
-          "sha256": "3fa60a53100a2daee2534202b0a2d113cc43d271fed69fc740e4e4e9ba7e92f8",
-          "captured_at": "2026-08-03T13:00:00Z",
-          "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "component": "ArachOS",
-          "environment": "release-operations"
-        }
-      ],
-      "blockers": []
+      "evidence": [],
+      "blockers": [
+        "Replace placeholder evidence with retained, revision-bound evidence captured from the required real environments."
+      ]
     },
     {
       "id": "soak-testing",
       "title": "Sustained soak testing",
-      "status": "qualified",
+      "status": "implemented",
       "components": [
         "ArachOS",
         "Arach-Kernel",
@@ -363,36 +153,10 @@
       "required_environments": [
         "hardware-lab"
       ],
-      "evidence": [
-        {
-          "kind": "soak-report",
-          "path": "production/evidence/release-operations/soak-testing/soak-report_hardware-lab.json",
-          "sha256": "3fa60a53100a2daee2534202b0a2d113cc43d271fed69fc740e4e4e9ba7e92f8",
-          "captured_at": "2026-08-03T13:00:00Z",
-          "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "component": "ArachOS",
-          "environment": "hardware-lab"
-        },
-        {
-          "kind": "hardware-report",
-          "path": "production/evidence/release-operations/soak-testing/hardware-report_hardware-lab.json",
-          "sha256": "3fa60a53100a2daee2534202b0a2d113cc43d271fed69fc740e4e4e9ba7e92f8",
-          "captured_at": "2026-08-03T13:00:00Z",
-          "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "component": "ArachOS",
-          "environment": "hardware-lab"
-        },
-        {
-          "kind": "test-report",
-          "path": "production/evidence/release-operations/soak-testing/test-report_hardware-lab.json",
-          "sha256": "3fa60a53100a2daee2534202b0a2d113cc43d271fed69fc740e4e4e9ba7e92f8",
-          "captured_at": "2026-08-03T13:00:00Z",
-          "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          "component": "ArachOS",
-          "environment": "hardware-lab"
-        }
-      ],
-      "blockers": []
+      "evidence": [],
+      "blockers": [
+        "Replace placeholder evidence with retained, revision-bound evidence captured from the required real environments."
+      ]
     }
   ]
 }

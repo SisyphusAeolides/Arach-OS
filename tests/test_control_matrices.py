@@ -46,7 +46,7 @@ def evidence(root: Path, digest_override: str | None = None, environment: str = 
         "path": "production/evidence/test-matrix/report.json",
         "sha256": digest_override or digest,
         "captured_at": "2026-08-03T13:00:00Z",
-        "revision": "a" * 40,
+        "revision": "0123456789abcdef0123456789abcdef01234567",
         "component": "ArachOS",
         "environment": environment,
     }
@@ -75,6 +75,17 @@ class ControlMatrixTests(unittest.TestCase):
             value["controls"][0]["required_environments"] = ["qemu", "physical-hardware"]
             value["controls"][0]["evidence"] = [evidence(root)]
             with self.assertRaisesRegex(MODULE.ControlMatrixError, "lacks required environments"):
+                MODULE.validate_document(root, value, ["control"])
+
+    def test_qualified_control_rejects_placeholder_revision(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            value = document("qualified")
+            value["controls"][0]["blockers"] = []
+            report = evidence(root)
+            report["revision"] = "a" * 40
+            value["controls"][0]["evidence"] = [report]
+            with self.assertRaisesRegex(MODULE.ControlMatrixError, "placeholder revision"):
                 MODULE.validate_document(root, value, ["control"])
 
     def test_artifact_digest_mismatch_is_rejected(self) -> None:
