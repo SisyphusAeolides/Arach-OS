@@ -33,5 +33,5 @@ Each upstream family must run as a persistent indexer with immutable revision ca
 
 ## Current status
 
-`in_progress`  
-Service responsibilities are now explicit and ready for implementation scheduling.
+`done`
+Service responsibilities are now explicit and implemented.
