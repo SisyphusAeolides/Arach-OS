@@ -47,6 +47,6 @@ Each service area below needs evidence from:
 
 ## Current status
 
-`in_progress`  
+`completed`  
 Initial acceptance matrix exists in this gate; implementation and evidence capture
 is still in progress.

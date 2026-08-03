@@ -79,7 +79,7 @@ list into concrete acceptance checkpoints. It is the implementation target for t
 
 - Target: clean install/reinstall/dual-boot/encrypted-TPM/secure-boot, failure and
   power-loss drills, rescue operations, kernel rollback, major upgrade recovery.
-- Current status: `in_progress`
+- Current status: `qualified`
 - Detailed test plan: [`INSTALLER_RECOVERY_GATE.md`](INSTALLER_RECOVERY_GATE.md)
 
 ## 10. Desktop services
@@ -87,7 +87,7 @@ list into concrete acceptance checkpoints. It is the implementation target for t
 - Target: networking, Wi‑Fi auth, DNS, D-Bus, portals, audio policy,
   Bluetooth audio, credentials/authz, printing, storage/media/cameras/notifications,
   updates, diagnostics, locale/fonts, input methods, accessibility, power.
-- Current status: `in_progress`
+- Current status: `completed`
 - Detailed service checklist: [`DESKTOP_SERVICES_GATE.md`](DESKTOP_SERVICES_GATE.md)
 
 ## 11. Security qualification
