@@ -1,5 +1,7 @@
 format = 1
 distribution = "ArachOS"
+composition = "native-stack"
+release_role = "experimental"
 artifact_layout = "corinth-v1"
 # COSMIC is the only ArachOS desktop. The compatibility-named `crest` file
 # belongs exclusively to the measured C0 boot bundle and is never a provider.
@@ -165,6 +167,7 @@ files = [
   { source = "target/release/arach-install", destination = "/usr/libexec/arach-install", mode = 493 },
   { source = "installer/calamares/settings.conf", destination = "/etc/calamares/settings.conf", mode = 420 },
   { source = "installer/calamares/modules/arachhardware.conf", destination = "/etc/calamares/modules/arach-hardware.conf", mode = 420 },
+  { source = "installer/calamares/modules/arach-pacman.conf", destination = "/etc/calamares/modules/arach-pacman.conf", mode = 420 },
   { source = "installer/calamares/modules/arach-prepare.conf", destination = "/etc/calamares/modules/arach-prepare.conf", mode = 420 },
   { source = "installer/calamares/modules/arach-commit.conf", destination = "/etc/calamares/modules/arach-commit.conf", mode = 420 },
   { source = "installer/calamares/modules/partition.conf", destination = "/etc/calamares/modules/partition.conf", mode = 420 },
@@ -173,6 +176,11 @@ files = [
   { source = "installer/calamares/modules/arachhardware/module.desc", destination = "/usr/lib/arach/calamares/modules/arachhardware/module.desc", mode = 420 },
   { source = "installer/calamares/modules/arachhardware/main.py", destination = "/usr/lib/arach/calamares/modules/arachhardware/main.py", mode = 420 },
   { source = "installer/calamares/modules/arachhardware/repository.py", destination = "/usr/lib/arach/calamares/modules/arachhardware/repository.py", mode = 420 },
+  { source = "installer/calamares/modules/arachpacman/module.desc", destination = "/usr/lib/arach/calamares/modules/arachpacman/module.desc", mode = 420 },
+  { source = "installer/calamares/modules/arachpacman/main.py", destination = "/usr/lib/arach/calamares/modules/arachpacman/main.py", mode = 420 },
+  { source = "installer/calamares/modules/arachpacman/adapter.py", destination = "/usr/lib/arach/calamares/modules/arachpacman/adapter.py", mode = 420 },
+  { source = "installer/calamares/modules/arachpacman/schema.json", destination = "/usr/lib/arach/calamares/modules/arachpacman/schema.json", mode = 420 },
+  { source = "installer/calamares/modules/arachpacman/receipt-schema.json", destination = "/usr/lib/arach/calamares/modules/arachpacman/receipt-schema.json", mode = 420 },
   { source = "installer/calamares/modules/arachtransaction/module.desc", destination = "/usr/lib/arach/calamares/modules/arachtransaction/module.desc", mode = 420 },
   { source = "installer/calamares/modules/arachtransaction/main.py", destination = "/usr/lib/arach/calamares/modules/arachtransaction/main.py", mode = 420 },
   { source = "installer/calamares/modules/arachtransaction/protocol.py", destination = "/usr/lib/arach/calamares/modules/arachtransaction/protocol.py", mode = 420 },

@@ -47,6 +47,8 @@ with contract_path.open("rb") as stream:
 
 if contract.get("format") != 1 or contract.get("distribution") != "ArachOS":
     raise SystemExit("unsupported live system contract")
+if contract.get("composition") != "native-stack" or contract.get("release_role") != "experimental":
+    raise SystemExit("live system contract is not the experimental native stack")
 if contract.get("artifact_layout") != "corinth-v1":
     raise SystemExit("unsupported Corinth artifact layout")
 

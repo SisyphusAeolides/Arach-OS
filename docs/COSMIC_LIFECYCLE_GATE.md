@@ -20,7 +20,7 @@ Required end-to-end sequence under installer and hardware validation:
 
 ## QEMU execution evidence
 
-`scripts/run-live-iso-qemu.sh` currently validates boot-to-service milestones.
+`scripts/experimental-native-run-live-iso-qemu.sh` currently validates boot-to-service milestones.
 It can be extended incrementally with optional session markers:
 
 - set `ARACH_LIVE_SESSION_MARKERS` (newline-separated regexes), or
@@ -36,7 +36,7 @@ Example:
 
 ```sh
 ARACH_LIVE_COSMIC_LIFECYCLE_MARKERS_FILE="$PWD/docs/COSMIC_LIFECYCLE_MARKERS.sample" \
-  scripts/run-live-iso-qemu.sh /absolute/path/to/arach-os-c0.iso /tmp/arach-os-c0.serial.log
+  scripts/experimental-native-run-live-iso-qemu.sh /absolute/path/to/arach-os-c0.iso /tmp/arach-os-c0.serial.log
 ```
 
 See [`docs/COSMIC_LIFECYCLE_MARKERS.sample`](COSMIC_LIFECYCLE_MARKERS.sample)

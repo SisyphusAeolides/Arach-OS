@@ -80,6 +80,15 @@ the same owned-file receipt set under the transaction and rollback removes only
 those measured files. A missing index, profile, signature, recipe, or digest is
 a hard failure, never an unverified fallback.
 
+The Calamares Pacman adapter is deliberately disabled until a release supplies
+an additional signed local snapshot. Its `pacman-snapshot.toml` binds the
+complete verified Arach-HWD plan digest, a private Pacman configuration digest,
+and the digest of every archive. Calamares verifies the detached signature,
+copies the mapping, keyring, configuration, and archives into the private
+transaction directory, re-hashes them, and only then permits `pacman -U`.
+It never translates Corinth intents into package names, performs a repository
+sync, or accepts a package absent from the signed snapshot.
+
 The catalog is a release input, not a guessed package list: each profile must
 bind the exact bus/modalias identity to signed Arach hardware artifacts,
 firmware, health checks, and rollback data. A live image without this catalog

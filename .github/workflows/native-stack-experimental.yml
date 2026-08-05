@@ -1,0 +1,182 @@
+name: Experimental native stack
+
+on:
+  push:
+    paths:
+      - components.lock.toml
+      - live/**
+      - installer/**
+      - src/**
+      - Cargo.toml
+      - Cargo.lock
+      - branding/**
+      - formal/**
+      - native/**
+      - scripts/experimental-native-*.sh
+      - scripts/verify-components.py
+      - scripts/verify-workflow-pins.py
+      - scripts/test_verify_components.py
+      - scripts/test_verify_workflow_pins.py
+      - tests/test_marker_sequence.py
+      - .github/workflows/native-stack-experimental.yml
+  pull_request:
+    paths:
+      - components.lock.toml
+      - live/**
+      - installer/**
+      - src/**
+      - Cargo.toml
+      - Cargo.lock
+      - branding/**
+      - formal/**
+      - native/**
+      - scripts/experimental-native-*.sh
+      - scripts/verify-components.py
+      - scripts/verify-workflow-pins.py
+      - scripts/test_verify_components.py
+      - scripts/test_verify_workflow_pins.py
+      - tests/test_marker_sequence.py
+      - .github/workflows/native-stack-experimental.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native-composition:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install image build tools
+        run: >-
+          sudo apt-get update && sudo apt-get install -y
+          dosfstools mtools squashfs-tools xorriso
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt,clippy
+      - run: cargo fmt --all -- --check
+      - run: cargo clippy --locked --all-targets -- -D warnings
+      - run: cargo test --locked
+      - run: cargo run --locked --bin arach-compose -- verify --root .
+      - run: scripts/experimental-native-test-live-root.sh
+
+  native-verification:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - run: scripts/verify-experimental-native-stack.sh
+      - run: scripts/verify-components.py --lock components.lock.toml --manifest Cargo.toml --remote
+      - run: git diff --check
+
+  native-fortran:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - run: sudo apt-get update && sudo apt-get install -y gfortran
+      - run: scripts/check-fortran.sh
+
+  native-formal-models:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - run: sudo apt-get update && sudo apt-get install -y build-essential chezscheme libgmp-dev xz-utils curl
+      - uses: actions/cache@v6
+        with:
+          path: target/formal/toolchains
+          key: arach-experimental-native-formal-idris2-0.8.0-agda-2.8.0-v1
+      - run: scripts/bootstrap-formal-toolchains.sh
+      - run: scripts/check-formal-models.sh
+
+  measured-native-live-boot:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7
+        with:
+          repository: SisyphusAeolides/Arach-Kernel
+          ref: d9bbe05e5b9d626b34ff208dc8182b3f68b1eabd
+          path: target/live-sources/kernel
+      - uses: actions/checkout@v7
+        with:
+          repository: SisyphusAeolides/Push
+          ref: 74b8db4640401c367fcfd1a6a9ba5f3fddd3860b
+          path: target/live-sources/push
+      - uses: actions/checkout@v7
+        with:
+          repository: SisyphusAeolides/Granite
+          ref: 1e7110ffee23900cbec480b1cea90abd8c9dc3e8
+          path: target/live-sources/granite
+      - name: Verify measured component revisions
+        run: |
+          test "$(git -C target/live-sources/kernel rev-parse HEAD)" = d9bbe05e5b9d626b34ff208dc8182b3f68b1eabd
+          test "$(git -C target/live-sources/push rev-parse HEAD)" = 74b8db4640401c367fcfd1a6a9ba5f3fddd3860b
+          test "$(git -C target/live-sources/granite rev-parse HEAD)" = 1e7110ffee23900cbec480b1cea90abd8c9dc3e8
+      - name: Install native image execution tools
+        run: >-
+          sudo apt-get update && sudo apt-get install -y
+          build-essential chezscheme dosfstools gfortran libgmp-dev mtools
+          ovmf qemu-system-x86 squashfs-tools xorriso xz-utils curl
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: nightly-2026-07-20
+          components: rust-src
+          targets: x86_64-unknown-uefi
+      - uses: actions/cache@v6
+        with:
+          path: target/live-sources/kernel/target/formal/toolchains
+          key: arach-experimental-native-live-formal-idris2-0.8.0-agda-2.8.0-v1
+      - name: Build the experimental native bundle
+        working-directory: target/live-sources/kernel
+        env:
+          ARACH_PUSH_ROOT: ${{ github.workspace }}/target/live-sources/push
+          ARACH_GRANITE_ROOT: ${{ github.workspace }}/target/live-sources/granite
+          ARACH_PUSH_FEATURES: "os-bin,cosmic-boot"
+        run: |
+          scripts/build-c0-bundle.sh
+          mkdir -p target/fake-cosmic
+          for s in seatd dbus-broker pipewire wireplumber cosmic-comp cosmic-greeter cosmic-session xdg-desktop-portal-cosmic; do
+            cp target/c0/probe/x86_64-arach/release/arach-c0-probe "target/fake-cosmic/$s"
+          done
+
+          ARACH_COSMIC_SERVICES_DIR="$PWD/target/fake-cosmic" \
+          ARACH_PUSH_IMAGE="$PWD/target/c0/push/x86_64-arach/release/push" \
+          ARACH_BOOTSTRAP_IMAGE="$PWD/target/c0/probe/x86_64-arach/release/arach-c0-probe" \
+          CARGO_TARGET_DIR="$PWD/target/c0/kernel-cosmic" \
+            cargo build --locked --release -p arach --bin arach \
+                --no-default-features --features kernel-bin,reference-driver,fortran-control \
+                --target x86_64-arach.json -Z json-target-spec \
+                -Z build-std=core,alloc,compiler_builtins \
+                -Z build-std-features=compiler-builtins-mem
+
+          ARACH_COSMIC_SERVICES_DIR="$PWD/target/fake-cosmic" \
+          ARACH_KERNEL_IMAGE="$PWD/target/c0/kernel-cosmic/x86_64-arach/release/arach" \
+          ARACH_PUSH_IMAGE="$PWD/target/c0/push/x86_64-arach/release/push" \
+          ARACH_CREST_IMAGE="$PWD/target/c0/probe/x86_64-arach/release/arach-c0-probe" \
+            scripts/build-reproducible-granite.sh "$ARACH_GRANITE_ROOT" "$PWD/target/c0/granite-cosmic" "$PWD/target/c0/granite-cosmic-repeat" "uefi-bin,require-artifacts,cosmic-boot"
+      - name: Assemble the experimental native live ISO
+        run: |
+          mkdir -p target/live-boot-input
+          install -m 0644 target/live-sources/kernel/target/c0/granite-cosmic/x86_64-unknown-uefi/release/granite.efi target/live-boot-input/granite.efi
+          install -m 0644 target/live-sources/kernel/target/c0/kernel-cosmic/x86_64-arach/release/arach target/live-boot-input/arach
+          install -m 0644 target/live-sources/kernel/target/c0/push/x86_64-arach/release/push target/live-boot-input/push
+          install -m 0644 target/live-sources/kernel/target/c0/probe/x86_64-arach/release/arach-c0-probe target/live-boot-input/crest
+          ARACH_TEST_BOOT_ARTIFACT_ROOT="$PWD/target/live-boot-input" \
+          ARACH_TEST_ISO_OUTPUT="$PWD/target/arach-native-experimental-c0.iso" \
+            scripts/experimental-native-test-live-root.sh
+      - name: Execute the experimental native live ISO under QEMU/OVMF
+        run: |
+          ARACH_LIVE_MARKER_REPORT="$PWD/target/arach-native-experimental-c0.marker.tsv" \
+          scripts/experimental-native-run-live-iso-qemu.sh \
+            "$PWD/target/arach-native-experimental-c0.iso" \
+            "$PWD/target/arach-native-experimental-c0.serial.log"
+      - name: Upload experimental native live-boot evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arach-experimental-native-live-boot-${{ github.sha }}
+          path: |
+            target/arach-native-experimental-c0.iso.json
+            target/arach-native-experimental-c0.serial.log
+            target/arach-native-experimental-c0.marker.tsv
+          if-no-files-found: warn

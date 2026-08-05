@@ -31,6 +31,8 @@ with open(sys.argv[1], "rb") as stream:
     image = tomllib.load(stream)
 if image.get("format") != 1 or image.get("distribution") != "ArachOS":
     raise SystemExit("unsupported live image contract")
+if image.get("composition") != "native-stack" or image.get("release_role") != "experimental":
+    raise SystemExit("live image contract is not the experimental native stack")
 if image.get("root_layout") != "posix":
     raise SystemExit("unsupported live root layout")
 if image.get("boot_bundle_source") != "/run/arach-live/boot-bundle":
@@ -155,6 +157,8 @@ system_manifest = next(
 image = {
     "schema": 1,
     "distribution": "ArachOS",
+    "composition": "native-stack",
+    "release_role": "experimental",
     "root_layout": "posix",
     "boot_bundle_manifest": boot_manifest,
     "repository_generation": generation,
@@ -177,5 +181,5 @@ PY
 mv -- "$stage" "$output_root"
 trap - EXIT
 sync -f "$parent"
-echo "assembled live root: $output_root"
+echo "assembled experimental native live root: $output_root"
 sha256sum "$output_root/run/arach-live/image.json"

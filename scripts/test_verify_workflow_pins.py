@@ -18,7 +18,7 @@ SPEC.loader.exec_module(VERIFY)
 class WorkflowPinTests(unittest.TestCase):
     def setUp(self) -> None:
         self.locked = VERIFY.load_lock(ROOT / "components.lock.toml")
-        self.workflow = (ROOT / ".github/workflows/foundation.yml").read_text(
+        self.workflow = (ROOT / ".github/workflows/native-stack-experimental.yml").read_text(
             encoding="utf-8"
         )
 

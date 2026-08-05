@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 import gettext
+import hashlib
+import json
 import os
 from pathlib import Path
 import re
 import stat
 import subprocess
+import uuid
 
 import libcalamares
 
@@ -23,6 +26,15 @@ _ = gettext.translation(
     languages=libcalamares.utils.gettext_languages(),
     fallback=True,
 ).gettext
+
+
+PLAN_RECEIPT_SCHEMA = 1
+PLAN_RECEIPT_VERIFIER = "arach-hwd-plan"
+MAX_PLAN_BYTES = 1024 * 1024
+SUPPORTED_EXECUTABLES = {
+    ("/system/arach-hwd", "/system/arach-hwd-catalog-sync"),
+    ("/usr/bin/arach-hwd", "/usr/bin/arach-hwd-catalog-sync"),
+}
 
 
 def pretty_name():
@@ -53,10 +65,10 @@ def run():
     binary_index = configuration.get("binaryIndex")
     binary_signature = configuration.get("binarySignature")
     plan = configuration.get("plan")
+    plan_receipt = configuration.get("planReceipt")
     require_target_profiles = configuration.get("requireTargetProfiles")
     if (
-        executable != "/system/arach-hwd"
-        or catalog_sync_executable != "/system/arach-hwd-catalog-sync"
+        (executable, catalog_sync_executable) not in SUPPORTED_EXECUTABLES
         or repository_configuration != "/etc/arach/hwd/repository.toml"
         or remote_catalog_root != "/run/arach-installer/catalog"
         or sysfs != "/sys"
@@ -73,6 +85,7 @@ def run():
         or binary_index != "/etc/arach/hwd/packages.toml"
         or binary_signature != "/etc/arach/hwd/packages.toml.sig"
         or plan != "/run/arach-installer/hardware.plan.toml"
+        or plan_receipt != "/run/arach-installer/hardware.plan.verified.json"
         or require_target_profiles is not True
     ):
         return (
@@ -271,9 +284,15 @@ def run():
             detail = (result.stderr or result.stdout or "no diagnostic").strip()
             return (_("Hardware driver coverage is incomplete"), detail)
 
+    try:
+        _write_plan_receipt(Path(plan), Path(catalog_path), Path(plan_receipt))
+    except OSError as error:
+        return (_("Hardware preflight failed"), str(error))
+
     storage = libcalamares.globalstorage
     storage.insert("arachHardwareReport", report)
     storage.insert("arachHardwarePlan", plan)
+    storage.insert("arachHardwarePlanReceipt", plan_receipt)
     storage.insert("arachHardwareCatalogRoot", str(active_catalog.root))
     storage.insert("arachHardwareProfiles", str(profile_dir))
     storage.insert("arachHardwareKeyring", str(keyring_path))
@@ -287,3 +306,54 @@ def run():
     if sync_error is not None:
         storage.insert("arachHardwareCatalogSyncError", sync_error)
     return None
+
+
+def _write_plan_receipt(plan, catalog_lock, receipt):
+    plan_bytes = _read_bounded_regular(plan)
+    catalog_bytes = _read_bounded_regular(catalog_lock)
+    receipt.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+    os.chmod(receipt.parent, 0o700)
+    document = {
+        "catalog_lock_sha256": hashlib.sha256(catalog_bytes).hexdigest(),
+        "plan_sha256": hashlib.sha256(plan_bytes).hexdigest(),
+        "schema": PLAN_RECEIPT_SCHEMA,
+        "verifier": PLAN_RECEIPT_VERIFIER,
+    }
+    temporary = receipt.with_name(f".{receipt.name}.{uuid.uuid4().hex}.tmp")
+    descriptor = os.open(
+        temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600
+    )
+    try:
+        with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
+            json.dump(document, stream, sort_keys=True, separators=(",", ":"))
+            stream.write("\n")
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temporary, receipt)
+        directory = os.open(receipt.parent, os.O_RDONLY | os.O_DIRECTORY)
+        try:
+            os.fsync(directory)
+        finally:
+            os.close(directory)
+    except BaseException:
+        try:
+            temporary.unlink()
+        except FileNotFoundError:
+            pass
+        raise
+
+
+def _read_bounded_regular(path):
+    descriptor = os.open(path, os.O_RDONLY | os.O_NOFOLLOW)
+    with os.fdopen(descriptor, "rb") as stream:
+        metadata = os.fstat(stream.fileno())
+        if (
+            not stat.S_ISREG(metadata.st_mode)
+            or metadata.st_size <= 0
+            or metadata.st_size > MAX_PLAN_BYTES
+        ):
+            raise OSError(f"hardware plan or catalog is not a bounded regular file: {path}")
+        value = stream.read(MAX_PLAN_BYTES + 1)
+    if len(value) > MAX_PLAN_BYTES:
+        raise OSError(f"hardware plan or catalog exceeds its size limit: {path}")
+    return value

@@ -1,0 +1,15 @@
+base
+calamares
+efibootmgr
+grub
+linux
+linux-firmware
+networkmanager
+os-prober
+pacman-contrib
+plasma-meta
+polkit-kde-agent
+sddm
+systemd
+systemd-ukify
+arch-hwd

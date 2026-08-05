@@ -1,5 +1,11 @@
 # COSMIC live image and installer
 
+> **Experimental native stack only.** This document describes the bespoke
+> Arach-Kernel/Push/Corinth/Granite composition implemented by the
+> `experimental-native-*` scripts and `live/*.toml` contracts. It is not an
+> ArchISO production profile, production release input, or production
+> qualification gate.
+
 The ArachOS installation medium installs the complete pinned `cosmic-desktop`
 tree, the pinned `greetd` display manager, `seatd`, PipeWire, WirePlumber, and
 the upstream
@@ -55,8 +61,8 @@ same rollback immediately.
 
 The live medium supplies `/run/arach-live/boot-bundle`, containing a bounded
 `manifest.json` and four base measured files: `granite.efi`, `arach`, `push`,
-and the C0 probe in the compatibility slot named `crest`. A production native
-COSMIC bundle includes the complete eight-service set (`seatd`, `dbus-broker`,
+and the C0 probe in the compatibility slot named `crest`. An experimental
+native COSMIC bundle includes the complete eight-service set (`seatd`, `dbus-broker`,
 `pipewire`, `wireplumber`, `cosmic-comp`, `cosmic-greeter`, `cosmic-session`,
 and `xdg-desktop-portal-cosmic`); the manifest and installer enforce an
 all-or-nothing service set. Those measured services are also published into
@@ -66,10 +72,11 @@ probe is not a desktop image.
 `/boot/EFI/BOOT/BOOTX64.EFI` and the three measured payloads under `/boot/BOOT`,
 and retains backups in the target recovery checkpoint. `verify` re-hashes the
 installed files; rollback restores the previous boot files, including after a
-process or machine interruption. The release workflow assembles the complete
-live ISO and executes its measured QEMU/OVMF C0 session as a required gate.
+process or machine interruption. The `Experimental native stack` workflow
+assembles the complete live ISO and executes its measured QEMU/OVMF C0
+session. That workflow is excluded from production CI aggregation.
 
-Image assembly should use `scripts/assemble-boot-bundle.sh`; it rejects
+Image assembly should use `scripts/experimental-native-assemble-boot-bundle.sh`; it rejects
 symlinks, oversized or incorrectly typed artifacts, writes the canonical JSON
 manifest, and publishes the directory only after all files and the manifest
 have been synchronized.
@@ -102,17 +109,17 @@ readable, COSMIC greeter configuration is present, the target root can be
 mounted read-write, and an isolated boot probe reaches the configured session.
 
 The live medium is assembled in four bounded stages. First,
-`scripts/materialize-live-system.sh` consumes the versioned Corinth artifact
+`scripts/experimental-native-materialize-live-system.sh` consumes the versioned Corinth artifact
 directories described by `live/system.toml`, creates the `/system` and `/usr`
 runtime paths, and records `/run/arach-live/system.json`. Next,
-`scripts/assemble-boot-bundle.sh` creates the manifest-bound Granite/Arach/
-Push/C0 directory. Finally, `scripts/assemble-live-root.sh` consumes the
+`scripts/experimental-native-assemble-boot-bundle.sh` creates the manifest-bound Granite/Arach/
+Push/C0 directory. Finally, `scripts/experimental-native-assemble-live-root.sh` consumes the
 materialized root, that boot bundle, and the signed Corinth generation. It
 publishes the exact `/run/arach-live/system.json`,
 `/run/arach-live/boot-bundle`, and `/run/arach-live/repository/system.gen`
 paths only when every required Push/COSMIC/Calamares executable in
 `live/image.toml` is present—including `greetd`, the COSMIC greetd config, and
 the complete COSMIC component tree—and records the resulting root in
-`/run/arach-live/image.json`. Finally, `scripts/build-live-iso.sh` invokes
+`/run/arach-live/image.json`. Finally, `scripts/experimental-native-build-live-iso.sh` invokes
 xorriso with the measured Granite EFI path and `/BOOT` artifacts; it returns
 status 69 when the ISO tool is unavailable and never publishes a partial ISO.

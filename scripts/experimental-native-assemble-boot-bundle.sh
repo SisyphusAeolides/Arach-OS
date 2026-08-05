@@ -60,7 +60,7 @@ for artifact in "${cosmic_artifacts[@]}"; do
     fi
 done
 if [[ "$cosmic_present" -eq 1 && "$cosmic_count" -ne "${#cosmic_artifacts[@]}" ]]; then
-    echo 'production COSMIC boot bundles must contain all eight native services' >&2
+    echo 'experimental native COSMIC boot bundles must contain all eight services' >&2
     exit 1
 fi
 if [[ "$cosmic_present" -eq 1 ]]; then
@@ -158,4 +158,4 @@ mv -- "$stage" "$output_dir"
 trap - EXIT
 sync -f "$parent"
 
-echo "assembled boot bundle: $output_dir"
+echo "assembled experimental native boot bundle: $output_dir"

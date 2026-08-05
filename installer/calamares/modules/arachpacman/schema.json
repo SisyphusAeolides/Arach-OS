@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ArachOS signed Pacman hardware snapshot",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format", "plan_sha256", "pacman_config_sha256", "package"],
+  "properties": {
+    "format": { "const": 1 },
+    "plan_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "pacman_config_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "package": {
+      "type": "array",
+      "maxItems": 256,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["archive", "sha256"],
+        "properties": {
+          "archive": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255,
+            "pattern": "^[^/\\\\\\u0000\\u0001-\\u0020\\u007f]+$"
+          },
+          "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+        }
+      }
+    }
+  }
+}

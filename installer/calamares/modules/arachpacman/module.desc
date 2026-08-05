@@ -1,0 +1,5 @@
+---
+type: job
+name: arachpacman
+interface: python
+script: main.py

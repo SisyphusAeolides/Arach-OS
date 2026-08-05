@@ -1,5 +1,7 @@
 format = 1
 distribution = "ArachOS"
+composition = "native-stack"
+release_role = "experimental"
 
 [[component]]
 name = "arach-kernel"

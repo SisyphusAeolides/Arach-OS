@@ -57,9 +57,19 @@ for path in \
         exit 1
     }
 done
+python3 - "$image_manifest" <<'PY'
+import json
+import pathlib
+import sys
+
+image = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
+if image.get("composition") != "native-stack" or image.get("release_role") != "experimental":
+    raise SystemExit("live image is not an experimental native-stack artifact")
+PY
 for relative in \
     etc/calamares/settings.conf \
     etc/calamares/modules/arach-hardware.conf \
+    etc/calamares/modules/arach-pacman.conf \
     etc/calamares/modules/arach-prepare.conf \
     etc/calamares/modules/arach-commit.conf \
     etc/calamares/modules/partition.conf \
@@ -68,6 +78,11 @@ for relative in \
     usr/lib/arach/calamares/modules/arachhardware/module.desc \
     usr/lib/arach/calamares/modules/arachhardware/main.py \
     usr/lib/arach/calamares/modules/arachhardware/repository.py \
+    usr/lib/arach/calamares/modules/arachpacman/module.desc \
+    usr/lib/arach/calamares/modules/arachpacman/main.py \
+    usr/lib/arach/calamares/modules/arachpacman/adapter.py \
+    usr/lib/arach/calamares/modules/arachpacman/schema.json \
+    usr/lib/arach/calamares/modules/arachpacman/receipt-schema.json \
     usr/lib/arach/calamares/modules/arachtransaction/module.desc \
     usr/lib/arach/calamares/modules/arachtransaction/main.py \
     usr/lib/arach/calamares/modules/arachtransaction/protocol.py \
@@ -193,7 +208,7 @@ temporary="$work/image.iso"
     -iso-level 3 \
     -full-iso9660-filenames \
     -J -joliet-long -R \
-    -V ARACH_OS \
+    -V ARACH_NATIVE_EXPERIMENTAL \
     --modification-date="$iso_date" \
     --set_all_file_dates "$iso_date" \
     -eltorito-alt-boot \
@@ -214,6 +229,7 @@ import pathlib
 import sys
 
 iso, image, system, boot, rootfs = map(pathlib.Path, sys.argv[1:])
+image_document = json.loads(image.read_text(encoding="utf-8"))
 
 def digest(path):
     h = hashlib.sha256()
@@ -225,6 +241,8 @@ def digest(path):
 record = {
     "schema": 1,
     "distribution": "ArachOS",
+    "composition": image_document["composition"],
+    "release_role": image_document["release_role"],
     "iso_sha256": digest(iso),
     "iso_size": iso.stat().st_size,
     "image_manifest_sha256": digest(image),
@@ -241,5 +259,5 @@ with temporary.open("rb") as stream:
 temporary.replace(sidecar)
 PY
 
-echo "built Arach ISO: $output_iso"
+echo "built experimental native Arach ISO: $output_iso"
 sha256sum "$output_iso" "$output_iso.json"

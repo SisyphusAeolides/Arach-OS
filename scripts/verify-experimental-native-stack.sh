@@ -8,11 +8,11 @@ test -f "$root/components.lock.toml"
 test -f "$root/live/profile.toml"
 test -f "$root/live/image.toml"
 test -f "$root/live/system.toml"
-test -x "$root/scripts/assemble-live-root.sh"
-test -x "$root/scripts/materialize-live-system.sh"
-test -x "$root/scripts/build-live-iso.sh"
-test -x "$root/scripts/run-live-iso-qemu.sh"
-test -x "$root/scripts/test-live-root.sh"
+test -x "$root/scripts/experimental-native-assemble-live-root.sh"
+test -x "$root/scripts/experimental-native-materialize-live-system.sh"
+test -x "$root/scripts/experimental-native-build-live-iso.sh"
+test -x "$root/scripts/experimental-native-run-live-iso-qemu.sh"
+test -x "$root/scripts/experimental-native-test-live-root.sh"
 test -f "$root/scripts/verify-components.py"
 test -f "$root/scripts/verify-workflow-pins.py"
 test -f "$root/scripts/verify_production_readiness.py"
@@ -28,11 +28,14 @@ test -f "$root/installer/contract.toml"
 test -f "$root/installer/calamares/settings.conf"
 test -f "$root/installer/calamares/modules/arachhardware/repository.py"
 test -f "$root/installer/calamares/modules/arachhardware/test_repository.py"
+test -f "$root/installer/calamares/modules/arachpacman/test_adapter.py"
 test -f "$root/installer/calamares/modules/arachtransaction/main.py"
 printf '%s  %s\n' "$expected" "$root/branding/arach-logo.png" | sha256sum --check --strict
 printf '%s  %s\n' "$expected" "$root/branding/source/arach-original.png" | sha256sum --check --strict
 
 test "$(grep -c '^\[\[component\]\]' "$root/components.lock.toml")" -eq 11
+grep -Fxq 'composition = "native-stack"' "$root/components.lock.toml"
+grep -Fxq 'release_role = "experimental"' "$root/components.lock.toml"
 grep -Fq 'repository = "https://github.com/SisyphusAeolides/Arach-Packages.git"' \
     "$root/components.lock.toml"
 grep -Fq 'repository = "https://github.com/SisyphusAeolides/Arach-HWD.git"' \
@@ -42,7 +45,7 @@ python3 "$root/scripts/verify-components.py" \
     --manifest "$root/Cargo.toml"
 python3 "$root/scripts/verify-workflow-pins.py" \
     --lock "$root/components.lock.toml" \
-    --workflow "$root/.github/workflows/foundation.yml"
+    --workflow "$root/.github/workflows/native-stack-experimental.yml"
 python3 "$root/scripts/test_verify_components.py"
 python3 "$root/scripts/test_verify_workflow_pins.py"
 python3 "$root/tests/test_marker_sequence.py"
@@ -51,8 +54,11 @@ python3 "$root/tests/test_production_readiness.py"
 python3 "$root/scripts/verify_release_channels.py" --root "$root"
 python3 "$root/tests/test_release_channels.py"
 python3 "$root/installer/calamares/modules/arachhardware/test_repository.py"
+python3 "$root/installer/calamares/modules/arachpacman/test_adapter.py"
 python3 "$root/installer/calamares/modules/arachtransaction/test_protocol.py"
 grep -Fxq 'session = "cosmic-session"' "$root/live/profile.toml"
+grep -Fxq 'composition = "native-stack"' "$root/live/profile.toml"
+grep -Fxq 'release_role = "experimental"' "$root/live/profile.toml"
 grep -Fxq 'framework = "calamares"' "$root/live/profile.toml"
 grep -Fxq 'allow_unmatched_binary_kernel_modules = false' "$root/live/profile.toml"
 grep -Fq '/system/arach-hwd-catalog-sync' \
@@ -68,10 +74,13 @@ grep -Fq '/etc/arach/hwd/driver-sources/modules.firmware' \
 grep -Fq '/etc/arach/hwd/driver-sources/modules.builtin.modinfo' \
     "$root/installer/calamares/modules/arachhardware.conf"
 grep -Fq 'target/release/arach-hwd-catalog-sync' "$root/live/system.toml"
+grep -Fxq 'composition = "native-stack"' "$root/live/system.toml"
+grep -Fxq 'release_role = "experimental"' "$root/live/system.toml"
 grep -Fq 'target/release/arach-hwd-qualify' "$root/live/system.toml"
 grep -Fq 'target/release/arach-hwd-record' "$root/live/system.toml"
 grep -Fq 'arachhardware/repository.py' "$root/live/system.toml"
+grep -Fq 'arachpacman/adapter.py' "$root/live/system.toml"
 
-"$root/scripts/test-live-root.sh"
+"$root/scripts/experimental-native-test-live-root.sh"
 
-printf '%s\n' 'ArachOS foundation verified'
+printf '%s\n' 'experimental native stack verified'

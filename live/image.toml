@@ -1,5 +1,7 @@
 format = 1
 distribution = "ArachOS"
+composition = "native-stack"
+release_role = "experimental"
 root_layout = "posix"
 boot_bundle_source = "/run/arach-live/boot-bundle"
 repository_generation = "/run/arach-live/repository/system.gen"

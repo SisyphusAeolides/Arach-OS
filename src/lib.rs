@@ -68,6 +68,8 @@ const EXPECTED_COSMIC_COMPONENTS: &[&str] = &[
 pub struct ComponentLock {
     pub format: u32,
     pub distribution: String,
+    pub composition: String,
+    pub release_role: String,
     pub component: Vec<Component>,
 }
 
@@ -85,6 +87,8 @@ pub struct Component {
 pub struct LiveProfile {
     pub format: u32,
     pub distribution: String,
+    pub composition: String,
+    pub release_role: String,
     pub desktop: Desktop,
     pub installer: Installer,
     pub filesystems: Filesystems,
@@ -96,6 +100,8 @@ pub struct LiveProfile {
 pub struct LiveImageContract {
     pub format: u32,
     pub distribution: String,
+    pub composition: String,
+    pub release_role: String,
     pub root_layout: String,
     pub boot_bundle_source: String,
     pub repository_generation: String,
@@ -110,6 +116,8 @@ pub struct LiveImageContract {
 pub struct LiveSystemContract {
     pub format: u32,
     pub distribution: String,
+    pub composition: String,
+    pub release_role: String,
     pub artifact_layout: String,
     pub provider: Vec<LiveProvider>,
 }
@@ -302,10 +310,14 @@ pub fn parse_installer_contract(text: &str) -> Result<InstallerContract, Composi
 }
 
 pub fn validate_lock(lock: &ComponentLock) -> Result<(), CompositionError> {
-    if lock.format != LOCK_FORMAT || lock.distribution != DISTRIBUTION {
+    if lock.format != LOCK_FORMAT
+        || lock.distribution != DISTRIBUTION
+        || lock.composition != "native-stack"
+        || lock.release_role != "experimental"
+    {
         return Err(CompositionError::new(
             "components.lock",
-            "format or distribution identity differs from the image contract",
+            "this lock must remain the experimental native-stack composition",
         ));
     }
     let mut components = BTreeMap::<&str, &Component>::new();
@@ -358,10 +370,14 @@ pub fn validate_lock(lock: &ComponentLock) -> Result<(), CompositionError> {
 }
 
 pub fn validate_live_profile(profile: &LiveProfile, root: &Path) -> Result<(), CompositionError> {
-    if profile.format != PROFILE_FORMAT || profile.distribution != DISTRIBUTION {
+    if profile.format != PROFILE_FORMAT
+        || profile.distribution != DISTRIBUTION
+        || profile.composition != "native-stack"
+        || profile.release_role != "experimental"
+    {
         return Err(CompositionError::new(
             "live.profile",
-            "format or distribution identity differs from the image contract",
+            "this profile must remain experimental native-stack only",
         ));
     }
     let desktop = &profile.desktop;
@@ -444,10 +460,14 @@ pub fn validate_live_image_contract(
     image: &LiveImageContract,
     root: &Path,
 ) -> Result<(), CompositionError> {
-    if image.format != LIVE_IMAGE_FORMAT || image.distribution != DISTRIBUTION {
+    if image.format != LIVE_IMAGE_FORMAT
+        || image.distribution != DISTRIBUTION
+        || image.composition != "native-stack"
+        || image.release_role != "experimental"
+    {
         return Err(CompositionError::new(
             "live/image.toml",
-            "format or distribution identity differs from the image contract",
+            "this image contract must remain experimental native-stack only",
         ));
     }
     if image.root_layout != "posix"
@@ -520,21 +540,30 @@ pub fn validate_live_image_contract(
             ));
         }
     }
-    if !root.join("scripts/assemble-live-root.sh").is_file() {
+    if !root
+        .join("scripts/experimental-native-assemble-live-root.sh")
+        .is_file()
+    {
         return Err(CompositionError::new(
-            "scripts/assemble-live-root.sh",
+            "scripts/experimental-native-assemble-live-root.sh",
             "the live root assembler is absent",
         ));
     }
-    if !root.join("scripts/materialize-live-system.sh").is_file() {
+    if !root
+        .join("scripts/experimental-native-materialize-live-system.sh")
+        .is_file()
+    {
         return Err(CompositionError::new(
-            "scripts/materialize-live-system.sh",
+            "scripts/experimental-native-materialize-live-system.sh",
             "the signed package-to-live-system materializer is absent",
         ));
     }
-    if !root.join("scripts/build-live-iso.sh").is_file() {
+    if !root
+        .join("scripts/experimental-native-build-live-iso.sh")
+        .is_file()
+    {
         return Err(CompositionError::new(
-            "scripts/build-live-iso.sh",
+            "scripts/experimental-native-build-live-iso.sh",
             "the bootable ISO assembler is absent",
         ));
     }
@@ -547,11 +576,13 @@ pub fn validate_live_system_contract(
 ) -> Result<(), CompositionError> {
     if system.format != LIVE_IMAGE_FORMAT
         || system.distribution != DISTRIBUTION
+        || system.composition != "native-stack"
+        || system.release_role != "experimental"
         || system.artifact_layout != "corinth-v1"
     {
         return Err(CompositionError::new(
             "live/system.toml",
-            "format, distribution, or artifact layout differs from the live image contract",
+            "this system contract must remain experimental native-stack only",
         ));
     }
     let expected = [
@@ -654,9 +685,12 @@ pub fn validate_live_system_contract(
             "the provider set differs from the measured live system contract",
         ));
     }
-    if !root.join("scripts/materialize-live-system.sh").is_file() {
+    if !root
+        .join("scripts/experimental-native-materialize-live-system.sh")
+        .is_file()
+    {
         return Err(CompositionError::new(
-            "scripts/materialize-live-system.sh",
+            "scripts/experimental-native-materialize-live-system.sh",
             "the package-to-live-system materializer is absent",
         ));
     }
@@ -724,11 +758,13 @@ pub fn validate_installer_contract(
     let hardware = token_position(exec, "- arachhardware@preflight")?;
     let partition = token_position(exec, "- partition")?;
     let unpack = token_position(exec, "- unpackfs")?;
+    let pacman = token_position(exec, "- arachpacman@hardware")?;
     let commit = token_position(exec, "- arachtransaction@commit")?;
-    if !(hardware < prepare && prepare < partition && unpack < commit)
+    if !(hardware < prepare && prepare < partition && unpack < pacman && pacman < commit)
         || settings.matches("arachtransaction@prepare").count() != 1
         || settings.matches("arachtransaction@commit").count() != 1
         || settings.matches("arachhardware@preflight").count() != 1
+        || settings.matches("arachpacman@hardware").count() != 1
     {
         return Err(CompositionError::new(
             "installer/calamares/settings.conf",
@@ -742,8 +778,14 @@ pub fn validate_installer_contract(
         "installer/calamares/modules/arachtransaction/protocol.py",
         "installer/calamares/modules/arachhardware/module.desc",
         "installer/calamares/modules/arachhardware/main.py",
+        "installer/calamares/modules/arachpacman/module.desc",
+        "installer/calamares/modules/arachpacman/main.py",
+        "installer/calamares/modules/arachpacman/adapter.py",
+        "installer/calamares/modules/arachpacman/schema.json",
+        "installer/calamares/modules/arachpacman/receipt-schema.json",
         "installer/calamares/modules/arach-prepare.conf",
         "installer/calamares/modules/arach-commit.conf",
+        "installer/calamares/modules/arach-pacman.conf",
         "installer/calamares/modules/partition.conf",
         "installer/calamares/modules/users.conf",
         "installer/calamares/modules/unpackfs.conf",
@@ -787,8 +829,14 @@ pub fn validate_installer_contract(
             "catalogLock: /etc/arach/hwd/catalog.lock",
             "driverAbi: /etc/arach/hwd/driver-abi",
             "plan: /run/arach-installer/hardware.plan.toml",
+            "planReceipt: /run/arach-installer/hardware.plan.verified.json",
             "requireTargetProfiles: true",
         ],
+    )?;
+    require_file_tokens(
+        root,
+        "installer/calamares/modules/arach-pacman.conf",
+        &["enabled: false"],
     )?;
     require_file_tokens(
         root,
@@ -823,6 +871,8 @@ pub fn validate_installer_contract(
         "installer/calamares/modules/arachtransaction/main.py",
         "installer/calamares/modules/arachtransaction/protocol.py",
         "installer/calamares/modules/arachhardware/main.py",
+        "installer/calamares/modules/arachpacman/main.py",
+        "installer/calamares/modules/arachpacman/adapter.py",
     ]
     .iter()
     .map(|path| fs::read_to_string(root.join(path)))
@@ -1010,6 +1060,15 @@ mod tests {
         let text = fs::read_to_string(root.join("components.lock.toml")).unwrap();
         let mut lock = parse_lock(&text).unwrap();
         lock.component[0].revision = "main".into();
+        assert!(validate_lock(&lock).is_err());
+    }
+
+    #[test]
+    fn production_role_is_rejected_for_native_stack() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR"));
+        let text = fs::read_to_string(root.join("components.lock.toml")).unwrap();
+        let mut lock = parse_lock(&text).unwrap();
+        lock.release_role = "production".into();
         assert!(validate_lock(&lock).is_err());
     }
 

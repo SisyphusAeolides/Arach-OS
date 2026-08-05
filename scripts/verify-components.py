@@ -27,10 +27,15 @@ STALE_PRODUCT = re.compile(r"\bArach(?:[ \t\r\n]+|-)OS\b")
 
 def load_lock(path: pathlib.Path) -> list[dict[str, str]]:
     data = tomllib.loads(path.read_text(encoding="utf-8"))
-    if set(data) != {"format", "distribution", "component"}:
+    if set(data) != {"format", "distribution", "composition", "release_role", "component"}:
         raise ValueError("lock contains missing or unknown top-level fields")
-    if data["format"] != 1 or data["distribution"] != "ArachOS":
-        raise ValueError("lock format or distribution identity is invalid")
+    if (
+        data["format"] != 1
+        or data["distribution"] != "ArachOS"
+        or data["composition"] != "native-stack"
+        or data["release_role"] != "experimental"
+    ):
+        raise ValueError("lock is not the experimental native-stack composition")
     components = data["component"]
     if not isinstance(components, list):
         raise ValueError("component must be an array of tables")

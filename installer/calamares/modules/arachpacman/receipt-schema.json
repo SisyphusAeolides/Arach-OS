@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ArachOS verified Arach-HWD plan receipt",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "verifier", "plan_sha256", "catalog_lock_sha256"],
+  "properties": {
+    "schema": { "const": 1 },
+    "verifier": { "const": "arach-hwd-plan" },
+    "plan_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "catalog_lock_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  }
+}

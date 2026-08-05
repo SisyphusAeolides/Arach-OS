@@ -35,6 +35,23 @@ Linux driver binding is not treated as proof that the target Arach kernel has a
 qualified driver. Unresolved physical devices remain a hard failure unless the
 operation is explicitly inventory-only.
 
+## Pacman hardware adapter
+
+`arachpacman@hardware` is a disabled-by-default commit-side boundary. It never
+derives Pacman package names from a Corinth Arach-HWD plan. When explicitly
+enabled by the measured image contract, it requires an Arach-HWD plan receipt
+that binds the exact plan and catalog-lock digests, then verifies a detached
+OpenPGP signature over `pacman-snapshot.toml`. The signed snapshot binds that
+exact plan digest, the digest of its private Pacman configuration, and every
+local archive digest. It stages all inputs into the private transaction
+directory before invoking only `pacman -U` against those staged archives.
+
+There is intentionally no generic package-name fallback, repository sync, or
+`pacman -S` path. A catalog release must supply the signed mapping and snapshot
+as a separate reviewed authority before this adapter can run. The current
+Corinth-specific plans therefore remain handled by the verified Corinth path;
+the adapter's disabled default prevents duplicate provisioning.
+
 ## Transaction lifecycle
 
 The external `arachtransaction` module has two instances:

@@ -27,6 +27,7 @@ jobs:
           repo="$GITHUB_REPOSITORY"
           sha="$GITHUB_SHA"
           self_path=".github/workflows/ci-aggregate-status.yml"
+          experimental_path=".github/workflows/native-stack-experimental.yml"
           actions_url="https://github.com/$repo/actions"
           observed=0
           unobserved=0
@@ -35,6 +36,7 @@ jobs:
           while IFS=$'\t' read -r workflow_id workflow_name workflow_path; do
             [ -n "$workflow_id" ] || continue
             [ "$workflow_path" != "$self_path" ] || continue
+            [ "$workflow_path" != "$experimental_path" ] || continue
             run_json="$(gh api "repos/$repo/actions/workflows/$workflow_id/runs?branch=main&per_page=1" --jq '.workflow_runs[0] // empty')"
             if [ -z "$run_json" ]; then
               unobserved=$((unobserved + 1))

@@ -122,7 +122,7 @@
       "assets": ["boot-authority", "kernel-authority"],
       "boundaries": ["firmware-to-granite", "granite-to-kernel"],
       "status": "partially-mitigated",
-      "controls": ["components.lock.toml", "scripts/assemble-boot-bundle.sh", "scripts/build-live-iso.sh"],
+      "controls": ["components.lock.toml", "scripts/experimental-native-assemble-boot-bundle.sh", "scripts/experimental-native-build-live-iso.sh"],
       "required_evidence": ["attestation", "reproducibility-report", "hardware-report"],
       "evidence": [],
       "residual_risk": "Secure Boot enrollment, physical firmware behavior, and key-revocation drills are not yet qualified.",

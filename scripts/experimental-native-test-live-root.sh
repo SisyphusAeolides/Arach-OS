@@ -112,7 +112,7 @@ make_fake_elf "$installer_artifact/target/release/arach-install" "Installer"
 printf 'PNG test branding\n' > "$installer_artifact/branding/arach-logo.png"
 cp -a -- "$root/installer" "$installer_artifact/"
 
-"$root/scripts/materialize-live-system.sh" "$artifacts" "$source"
+"$root/scripts/experimental-native-materialize-live-system.sh" "$artifacts" "$source"
 if [[ -n "$boot_artifact_root" ]]; then
     for artifact in granite.efi arach push crest; do
         source_artifact="$boot_artifact_root/$artifact"
@@ -131,10 +131,10 @@ fi
 for artifact in seatd dbus-broker pipewire wireplumber cosmic-comp cosmic-greeter cosmic-session xdg-desktop-portal-cosmic; do
     make_fake_elf "$bundle_inputs/$artifact" "$artifact"
 done
-"$root/scripts/assemble-boot-bundle.sh" "$bundle_inputs" "$bundle"
+"$root/scripts/experimental-native-assemble-boot-bundle.sh" "$bundle_inputs" "$bundle"
 printf 'generation test\n' > "$generation"
 
-"$root/scripts/assemble-live-root.sh" "$source" "$bundle" "$generation" "$output"
+"$root/scripts/experimental-native-assemble-live-root.sh" "$source" "$bundle" "$generation" "$output"
 test -s "$output/run/arach-live/image.json"
 test -s "$output/run/arach-live/system.json"
 test -s "$output/run/arach-live/boot-bundle/manifest.json"
@@ -152,8 +152,12 @@ test -s "$output/etc/greetd/config.toml"
 test -s "$output/usr/bin/cosmic-greeter-start"
 test -s "$output/etc/calamares/settings.conf"
 test -s "$output/etc/calamares/modules/arach-hardware.conf"
+test -s "$output/etc/calamares/modules/arach-pacman.conf"
 test -s "$output/usr/lib/arach/calamares/modules/arachhardware/main.py"
 test -s "$output/usr/lib/arach/calamares/modules/arachhardware/repository.py"
+test -s "$output/usr/lib/arach/calamares/modules/arachpacman/adapter.py"
+test -s "$output/usr/lib/arach/calamares/modules/arachpacman/schema.json"
+test -s "$output/usr/lib/arach/calamares/modules/arachpacman/receipt-schema.json"
 test -s "$output/usr/lib/arach/calamares/modules/arachtransaction/protocol.py"
 test -s "$output/usr/share/calamares/branding/arach/branding.desc"
 python3 - "$output/run/arach-live/image.json" <<'PY'
@@ -164,6 +168,8 @@ with open(sys.argv[1], encoding="utf-8") as stream:
     manifest = json.load(stream)
 assert manifest["schema"] == 1
 assert manifest["distribution"] == "ArachOS"
+assert manifest["composition"] == "native-stack"
+assert manifest["release_role"] == "experimental"
 assert manifest["entry_count"] > 10
 assert len(manifest["root_sha256"]) == 64
 PY
@@ -191,7 +197,7 @@ bad_artifacts="$tmp/bad-artifacts"
 cp -a -- "$artifacts" "$bad_artifacts"
 rm -- "$bad_artifacts/push-0.1.0-5/target/release/push"
 ln -s /etc/passwd -- "$bad_artifacts/push-0.1.0-5/target/release/push"
-if "$root/scripts/materialize-live-system.sh" "$bad_artifacts" "$tmp/bad-root"; then
+if "$root/scripts/experimental-native-materialize-live-system.sh" "$bad_artifacts" "$tmp/bad-root"; then
     echo 'materializer accepted a symlinked package output' >&2
     exit 1
 fi
@@ -200,7 +206,7 @@ printf '%s\n' 'ArachOS materializer rejection gate verified'
 missing_sync="$tmp/missing-sync-artifacts"
 cp -a -- "$artifacts" "$missing_sync"
 unlink "$missing_sync/arach-hwd-0.1.0-1/target/release/arach-hwd-catalog-sync"
-if "$root/scripts/materialize-live-system.sh" "$missing_sync" "$tmp/missing-sync-root"; then
+if "$root/scripts/experimental-native-materialize-live-system.sh" "$missing_sync" "$tmp/missing-sync-root"; then
     echo 'materializer accepted an image without hardware catalog sync' >&2
     exit 1
 fi
@@ -209,7 +215,7 @@ printf '%s\n' 'ArachOS hardware catalog sync presence gate verified'
 missing_browser="$tmp/missing-browser-artifacts"
 cp -a -- "$artifacts" "$missing_browser"
 unlink "$missing_browser/firefox-140.4.0esr-1/usr/bin/firefox"
-if "$root/scripts/materialize-live-system.sh" "$missing_browser" "$tmp/missing-browser-root"; then
+if "$root/scripts/experimental-native-materialize-live-system.sh" "$missing_browser" "$tmp/missing-browser-root"; then
     echo 'materializer accepted a live image without Firefox' >&2
     exit 1
 fi
@@ -221,8 +227,8 @@ for tool in "${image_tools[@]}"; do
     command -v "$tool" >/dev/null 2>&1 || have_image_tools=false
 done
 if "$have_image_tools"; then
-    "$root/scripts/build-live-iso.sh" "$output" "$tmp/arach-os.iso"
-    "$root/scripts/build-live-iso.sh" "$output" "$tmp/arach-os-repeat.iso"
+    "$root/scripts/experimental-native-build-live-iso.sh" "$output" "$tmp/arach-os.iso"
+    "$root/scripts/experimental-native-build-live-iso.sh" "$output" "$tmp/arach-os-repeat.iso"
     test -s "$tmp/arach-os.iso"
     test -s "$tmp/arach-os.iso.json"
     cmp --silent "$tmp/arach-os.iso" "$tmp/arach-os-repeat.iso"
@@ -234,7 +240,7 @@ if "$have_image_tools"; then
         sync -f "$(dirname -- "$preserved_iso")"
     fi
     set +e
-    "$root/scripts/build-live-iso.sh" >/dev/null 2>&1
+    "$root/scripts/experimental-native-build-live-iso.sh" >/dev/null 2>&1
     missing_args_status=$?
     set -e
     test "$missing_args_status" -eq 64
@@ -254,10 +260,12 @@ rootfs = pathlib.Path(sys.argv[2])
 hash_value = hashlib.sha256(rootfs.read_bytes()).hexdigest()
 assert sidecar["rootfs_sha256"] == hash_value
 assert sidecar["rootfs_size"] == rootfs.stat().st_size
+assert sidecar["composition"] == "native-stack"
+assert sidecar["release_role"] == "experimental"
 PY
 else
     set +e
-    "$root/scripts/build-live-iso.sh" "$output" "$tmp/arach-os.iso"
+    "$root/scripts/experimental-native-build-live-iso.sh" "$output" "$tmp/arach-os.iso"
     iso_status=$?
     set -e
     test "$iso_status" -eq 69

@@ -41,7 +41,7 @@ Each service area below needs evidence from:
 
 ## Evidence artifacts
 
-- runtime markers captured by `scripts/run-live-iso-qemu.sh`
+- runtime markers captured by `scripts/experimental-native-run-live-iso-qemu.sh`
 - service state snapshots during installer and post-boot sessions
 - failure logs + rollback evidence when coverage probes fail
 
